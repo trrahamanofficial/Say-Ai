@@ -1,4 +1,5 @@
 interface Env {
+  SAY_AI_CONFIG?: KVNamespace;
   AI?: {
     run(
       model: string,
@@ -19,6 +20,10 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
     if (prompt.length > 2048) {
       return Response.json({ error: 'Image description must be 2048 characters or less.' }, { status: 400 });
     }
+    const imageConfig = env.SAY_AI_CONFIG ? await env.SAY_AI_CONFIG.get<{ enabled: boolean; model: string }>('private-image-ai-config', 'json') : null;
+    if (imageConfig?.enabled === false) {
+      return Response.json({ error: 'Image generation is currently disabled by the administrator.' }, { status: 503 });
+    }
     if (!env.AI) {
       return Response.json({
         error: 'Image generation is not connected yet. The Cloudflare Workers AI binding named AI must be added to this Pages project.'
@@ -38,7 +43,7 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
     const realismDirection = category === 'Anime' ? '' : 'Create a highly photorealistic image as if captured by a professional full-frame DSLR camera. Realistic anatomy, authentic textures, natural imperfections, physically accurate lighting, lifelike shadows, true-to-life colors, fine photographic detail, realistic depth of field. The result must look like an actual photograph, not digital art. Avoid cartoon, anime, illustration, painting, 3D render, CGI, game art, plastic textures, oversaturated colors, and artificial fantasy-art styling.';
     const finalPrompt = `${prompt}. ${style}. ${realismDirection}`;
 
-    const result = await env.AI.run('@cf/black-forest-labs/flux-1-schnell', {
+    const result = await env.AI.run(imageConfig?.model || '@cf/black-forest-labs/flux-1-schnell', {
       prompt: finalPrompt,
       steps: 4
     });
