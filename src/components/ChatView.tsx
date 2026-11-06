@@ -215,26 +215,6 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   {msg.text}
                 </div>
 
-                {/* 1-Click Download Card inside chat bubble if message mentions ZIP or source */}
-                {!isUser && (msg.text.includes('SAY-AI-FULL-PROJECT.zip') || msg.text.includes('Download') || msg.id === 'msg-2') && (
-                  <div className="mt-3 p-2.5 rounded-xl bg-purple-950/80 border border-purple-400/40 shadow-inner flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xl">📦</span>
-                      <div className="truncate">
-                        <div className="font-bold text-white text-xs truncate">SAY-AI-FULL-PROJECT.zip</div>
-                        <div className="text-[10px] text-purple-300">Complete project source • 1-Click</div>
-                      </div>
-                    </div>
-                    <a
-                      href="/SAY-AI-FULL-PROJECT.zip"
-                      download="SAY-AI-FULL-PROJECT.zip"
-                      className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex-shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.5)] active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>Download</span>
-                    </a>
-                  </div>
-                )}
-
                 {/* Footer timestamp & action icons */}
                 <div className={`flex items-center gap-2 mt-2 pt-1 border-t ${
                   isUser ? 'border-cyan-400/20 justify-end text-cyan-100/80' : 'border-purple-800/30 justify-between text-slate-400'
@@ -296,24 +276,6 @@ export const ChatView: React.FC<ChatViewProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 1-Click ZIP Download Bar directly above chat box */}
-      <div className="pt-1 pb-1">
-        <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-950/90 via-[#151042] to-indigo-950/90 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-sm">📦</span>
-            <span className="font-bold text-white tracking-wide">SAY-AI-FULL-PROJECT.zip</span>
-            <span className="text-[10px] text-purple-300 hidden sm:inline">• 9.14 MB Complete Source</span>
-          </div>
-          <a
-            href="/SAY-AI-FULL-PROJECT.zip"
-            download="SAY-AI-FULL-PROJECT.zip"
-            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-[11px] shadow-sm active:scale-95 transition-all cursor-pointer"
-          >
-            <span>⬇ 1-Click Download</span>
-          </a>
-        </div>
-      </div>
-
       {/* Composer Input Bar matching Image 4 & Image 1 left */}
       <form onSubmit={handleSend} className="pb-1 relative z-20">
         <div className="relative rounded-2xl bg-[#090d29]/90 border border-purple-600/40 p-1.5 flex items-center gap-2 shadow-[0_0_25px_rgba(147,51,234,0.25)] focus-within:border-purple-400 focus-within:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all">
@@ -340,16 +302,6 @@ export const ChatView: React.FC<ChatViewProps> = ({
             disabled={isLoading}
             className="flex-1 bg-transparent text-sm text-white placeholder-slate-400 focus:outline-none px-2 py-1.5"
           />
-
-          {/* 1-Click ZIP Download button directly in chat box */}
-          <a
-            href="/SAY-AI-FULL-PROJECT.zip"
-            download="SAY-AI-FULL-PROJECT.zip"
-            title="1-Click Download SAY-AI-FULL-PROJECT.zip"
-            className="p-2 text-purple-300 hover:text-white hover:bg-purple-900/50 rounded-xl transition-colors cursor-pointer flex items-center justify-center"
-          >
-            <span className="text-base leading-none">📦</span>
-          </a>
 
           {/* Attachment Paperclip */}
           <button
