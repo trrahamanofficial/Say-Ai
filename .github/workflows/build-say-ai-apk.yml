@@ -164,7 +164,15 @@ jobs:
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                           String host = request.getUrl().getHost();
-                          return !(host != null && (host.equals("say-ai.pages.dev") || host.endsWith(".supabase.co")));
+                          if (host == null) return true;
+                          // Allow Google OAuth navigation that was previously blocked.
+                          boolean trusted = host.equals("say-ai.pages.dev")
+                              || host.equals("supabase.co") || host.endsWith(".supabase.co")
+                              || host.equals("google.com") || host.endsWith(".google.com")
+                              || host.equals("gstatic.com") || host.endsWith(".gstatic.com")
+                              || host.equals("googleapis.com") || host.endsWith(".googleapis.com")
+                              || host.equals("googleusercontent.com") || host.endsWith(".googleusercontent.com");
+                          return !trusted;
                       }
                   });
                   setContentView(webView);
