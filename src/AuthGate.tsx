@@ -129,7 +129,8 @@ export default function AuthGate() {
   if (!isSupabaseConfigured || !supabase) {
     return <AuthMessage title="SAY AI setup required" detail="Supabase is not configured in this deployment. Add the Supabase project URL and publishable key to the Cloudflare Pages environment, then rebuild the site." />;
   }
-  if (busy) return <AuthMessage title="SAY AI" detail="Checking your secure account..." />;
+  // Keep the account/session check invisible: no blocking "Checking your secure account" screen.
+  if (busy) return <div className="min-h-screen bg-[#050614]" aria-hidden="true" />;
   if (session?.user && profile) {
     const isAdmin = profile.role === 'admin';
     const expectedPath = isAdmin ? '/admin' : '/';
