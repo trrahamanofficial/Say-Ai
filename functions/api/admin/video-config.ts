@@ -1,5 +1,5 @@
 type Env = { SAY_AI_CONFIG?: KVNamespace; VITE_SUPABASE_URL?: string; VITE_SUPABASE_ANON_KEY?: string };
-type VideoConfig = { provider: 'huggingface'; model: string; apiKey: string; enabled: boolean };
+type VideoConfig = { provider: 'zerogpu' | 'huggingface'; model: string; apiKey: string; enabled: boolean };
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 const trimSlash = (value: string) => value.endsWith('/') ? value.slice(0, -1) : value;
 async function isAdmin(request: Request, env: Env) {
@@ -12,7 +12,7 @@ async function isAdmin(request: Request, env: Env) {
     return (user.email || '').toLowerCase() === 'trrahaman.official0.6@gmail.com';
   } catch { return false; }
 }
-const defaults: VideoConfig = { provider: 'huggingface', model: 'Wan-AI/Wan2.2-TI2V-5B', apiKey: '', enabled: false };
+const defaults: VideoConfig = { provider: 'zerogpu', model: 'Wan-AI/Wan2.2-TI2V-5B', apiKey: '', enabled: false };
 export async function onRequest({ request, env }: { request: Request; env: Env }): Promise<Response> {
   if (!await isAdmin(request, env)) return json({ error: 'Admin access required.' }, 403);
   if (!env.SAY_AI_CONFIG) return json({ error: 'Global configuration storage is not connected.' }, 503);
@@ -25,7 +25,7 @@ export async function onRequest({ request, env }: { request: Request; env: Env }
     try {
       const input = await request.json() as Partial<VideoConfig>;
       const old = await env.SAY_AI_CONFIG.get<VideoConfig>(key, 'json') || defaults;
-      const config: VideoConfig = { provider: 'huggingface', model: String(input.model || old.model), apiKey: String(input.apiKey || old.apiKey), enabled: Boolean(input.enabled) };
+      const config: VideoConfig = { provider: input.provider === 'huggingface' ? 'huggingface' : 'zerogpu', model: String(input.model || old.model), apiKey: String(input.apiKey || old.apiKey), enabled: Boolean(input.enabled) };
       if (!config.model.trim()) return json({ error: 'A video model ID is required.' }, 400);
       await env.SAY_AI_CONFIG.put(key, JSON.stringify(config));
       return json({ success: true, message: 'Video API settings saved globally.' });

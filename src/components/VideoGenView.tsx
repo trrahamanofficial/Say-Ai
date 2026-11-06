@@ -8,7 +8,6 @@ export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate }) => {
   const [prompt, setPrompt] = useState('');
   const [cameraMotion, setCameraMotion] = useState('Orbit 360');
   const [aspect, setAspect] = useState('16:9');
-  const [provider, setProvider] = useState<'zerogpu' | 'huggingface'>('zerogpu');
   const [isGenerating, setIsGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [generationMessage, setGenerationMessage] = useState('');
@@ -21,7 +20,7 @@ export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate }) => {
       const response = await fetch('/api/generate-video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, cameraMotion, aspectRatio: aspect, provider })
+        body: JSON.stringify({ prompt, cameraMotion, aspectRatio: aspect })
       });
       const data = await response.json();
       if (!response.ok || !data.videoUrl) throw new Error(data.error || 'Video provider is not configured yet.');
@@ -39,15 +38,6 @@ export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate }) => {
           <div className="w-12 h-12 rounded-2xl bg-fuchsia-600/30 border border-fuchsia-400/40 flex items-center justify-center text-fuchsia-300"><Film className="w-6 h-6" /></div>
           <div><h2 className="text-xl font-bold text-white tracking-tight">AI Video Generator</h2><p className="text-xs text-purple-200/80">Transform creative concepts into cinematic videos</p></div>
         </div>
-      </div>
-
-      <div className="rounded-2xl p-4 bg-[#0a0e2a]/80 border border-purple-900/30 space-y-3">
-        <label className="text-xs font-semibold text-slate-300">Video Provider</label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <button type="button" onClick={() => setProvider('zerogpu')} className={'py-3 px-3 rounded-xl text-left text-xs font-semibold border ' + (provider === 'zerogpu' ? 'bg-purple-600/30 border-purple-400 text-white' : 'bg-[#0d1238] border-purple-900/40 text-slate-400')}>Free ZeroGPU · LTX Video<span className="block mt-1 text-[10px] font-normal opacity-80">Daily free account GPU quota · queue may apply</span></button>
-          <button type="button" onClick={() => setProvider('huggingface')} className={'py-3 px-3 rounded-xl text-left text-xs font-semibold border ' + (provider === 'huggingface' ? 'bg-purple-600/30 border-purple-400 text-white' : 'bg-[#0d1238] border-purple-900/40 text-slate-400')}>Hugging Face Inference API<span className="block mt-1 text-[10px] font-normal opacity-80">Uses available inference credits</span></button>
-        </div>
-        <p className="text-[11px] leading-relaxed text-amber-200/80">{provider === 'zerogpu' ? 'ZeroGPU free quota is tied to the saved Hugging Face account (5 minutes/day for eligible free accounts). GPU time is not video duration. No paid fallback.' : 'Uses your saved Hugging Face token and available Inference Provider credits. No paid fallback is attempted.'}</p>
       </div>
 
       <form onSubmit={handleGenerate} className="space-y-4">
