@@ -10,7 +10,7 @@ type AuthMode = 'login' | 'signup';
 declare global {
   interface Window {
     SayAiAndroid?: { openExternal: (url: string) => void };
-    handleSayAiGoogleCallback?: (code: string) => void;
+    handleSayAiGoogleCallback?: (code: string, error?: string) => void;
   }
 }
 
@@ -80,14 +80,17 @@ export default function AuthGate() {
   // Receive the OAuth authorization code returned to the Android deep link.
   useEffect(() => {
     if (!supabase) return;
-    window.handleSayAiGoogleCallback = async (code: string) => {
+    window.handleSayAiGoogleCallback = async (code: string, callbackError?: string) => {
       setBusy(true);
       setMessage('');
       try {
+        if (callbackError) throw new Error(callbackError);
+        if (!code) throw new Error('Google sign-in returned no authorization code. Please try again.');
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) throw error;
-        if (!data.session) throw new Error('Google sign-in did not return a session. Please try again.');
-        setSession(data.session);
+        const sessionData = data.session ? data : await supabase.auth.getSession();
+        if (!sessionData.data.session) throw new Error('Google sign-in did not return a session. Please try again.');
+        setSession(sessionData.data.session);
       } catch (error) {
         setMessage(error instanceof Error ? error.message : 'Google sign-in could not be completed. Please try again.');
         setBusy(false);
@@ -146,6 +149,9 @@ export default function AuthGate() {
         if (error) throw error;
         if (!data.url) throw new Error('Google sign-in link could not be created.');
         window.SayAiAndroid.openExternal(data.url);
+        // Keep the login screen responsive while Chrome is handling Google sign-in.
+        // The native deep-link callback will set busy=true again when it returns.
+        setBusy(false);
         return;
       }
       const { data, error } = await supabase.auth.signInWithOAuth({
