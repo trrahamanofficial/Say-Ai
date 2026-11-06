@@ -82,7 +82,7 @@ export const VideoAIControl: React.FC = () => {
         <input type="password" autoComplete="off" value={config.apiKey} onChange={e => setConfig(v => ({ ...v, apiKey: e.target.value }))} placeholder={config.apiKeyConfigured ? 'Saved token — paste only to replace' : 'Paste hf_… token here'} className="mt-1 w-full rounded-xl border border-purple-900 bg-[#050614] p-3 text-white" />
       </label>
       <div className="flex flex-wrap gap-2">
-        <button onClick={test} disabled={testing || !config.apiKey} className="rounded-xl border border-purple-700 px-4 py-2 text-xs font-bold text-purple-200 disabled:opacity-40">{testing ? 'Testing…' : 'Test Token'}</button>
+        <button onClick={test} disabled={testing || (!config.apiKey && !config.apiKeyConfigured)} className="rounded-xl border border-purple-700 px-4 py-2 text-xs font-bold text-purple-200 disabled:opacity-40">{testing ? 'Testing…' : 'Test Token'}</button>
         <button onClick={save} disabled={busy || (!config.apiKey && !config.apiKeyConfigured)} className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-40">{busy ? 'Saving…' : 'Save Video API'}</button>
       </div>
       {status && <p role="status" className="rounded-xl border border-purple-500/30 bg-purple-950/30 p-3 text-xs text-slate-200">{status}</p>}
