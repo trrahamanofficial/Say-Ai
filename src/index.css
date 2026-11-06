@@ -111,3 +111,10 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(168, 85, 247, 0.6);
 }
+
+
+/* SAY AI appearance controls: keep image colors natural when light mode is inverted. */
+.sayai-app[data-sayai-theme="light"] img,
+.sayai-app[data-sayai-theme="light"] video {
+  filter: invert(1) hue-rotate(180deg);
+}
