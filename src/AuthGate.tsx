@@ -6,6 +6,13 @@ import type { UserProfile } from './types';
 
 type AuthMode = 'login' | 'signup';
 
+declare global {
+  interface Window {
+    SayAiAndroid?: { openExternal: (url: string) => void };
+    handleSayAiGoogleCallback?: (code: string) => void;
+  }
+}
+
 const emptyProfile = (id: string, email: string, name: string, role: 'user' | 'admin' = 'user'): UserProfile => ({
   id,
   email,
@@ -91,6 +98,20 @@ export default function AuthGate() {
     if (!supabase) return;
     setBusy(true); setMessage('');
     try {
+      if (window.SayAiAndroid?.openExternal) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: 'com.trofficial.sayai://login-callback',
+            skipBrowserRedirect: true,
+            queryParams: { access_type: 'offline', prompt: 'select_account' }
+          }
+        });
+        if (error) throw error;
+        if (!data.url) throw new Error('Google sign-in link could not be created.');
+        window.SayAiAndroid.openExternal(data.url);
+        return;
+      }
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
