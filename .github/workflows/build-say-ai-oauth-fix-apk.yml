@@ -202,7 +202,7 @@ jobs:
                       "(function(){if(typeof window.handleSayAiGoogleCallback==='function'){window.handleSayAiGoogleCallback("
                           + quotedCode + ");return 'sent';}return 'wait';})()",
                       result -> {
-                          if ("\\"sent\\"".equals(result)) {
+                          if (result != null && result.contains("sent")) {
                               pendingOAuthCode = null;
                           } else if (oauthDeliveryAttempts++ < 480 && webView != null) {
                               webView.postDelayed(this::deliverPendingOAuthCode, 250);
