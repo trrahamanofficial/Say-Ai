@@ -1,3 +1,35 @@
+import React, { useState } from 'react';
+import { Video, Sparkles, Play, RefreshCw, Download, ArrowRight, Film, Sliders } from 'lucide-react';
+import { ScreenType } from '../types';
+
+interface VideoGenViewProps {
+  onNavigate: (screen: ScreenType) => void;
+}
+
+export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate }) => {
+  const [prompt, setPrompt] = useState('');
+  const [cameraMotion, setCameraMotion] = useState('Orbit 360');
+  const [aspect, setAspect] = useState('16:9');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [generationMessage, setGenerationMessage] = useState<string>('');
+
+mport React, { useState } from 'react';
+import { Video, Sparkles, Play, RefreshCw, Download, ArrowRight, Film, Sliders } from 'lucide-react';
+import { ScreenType } from '../types';
+
+interface VideoGenViewProps {
+  onNavigate: (screen: ScreenType) => void;
+}
+
+export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate }) => {
+  const [prompt, setPrompt] = useState('');
+  const [cameraMotion, setCameraMotion] = useState('Orbit 360');
+  const [aspect, setAspect] = useState('16:9');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [generationMessage, setGenerationMessage] = useState<string>('');
+
   const sampleVideos = [
     {
       title: 'Neon Cyberpunk Metropolis',
