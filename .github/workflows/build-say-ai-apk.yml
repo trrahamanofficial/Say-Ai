@@ -98,12 +98,32 @@ jobs:
           }
           EOF
 
+          mkdir -p app/src/main/res/drawable
+          cat > app/src/main/res/drawable/ic_launcher.xml <<'EOF'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="100"
+              android:viewportHeight="100">
+              <path android:fillColor="#080B1C" android:pathData="M0,0h100v100h-100z" />
+              <path android:fillColor="#00000000" android:strokeColor="#D946EF"
+                  android:strokeWidth="9" android:strokeLineCap="round"
+                  android:pathData="M50,10 C72,10 90,28 90,50 C90,68 76,84 58,88 C42,92 26,82 20,68 C14,54 20,38 32,30 C44,22 60,26 66,38 C72,50 66,64 54,68 C44,72 34,66 32,56 C30,48 36,42 44,42 C50,42 54,46 54,50" />
+              <path android:fillColor="#00000000" android:strokeColor="#38BDF8"
+                  android:strokeWidth="6" android:strokeLineCap="round"
+                  android:pathData="M50,90 C28,90 10,72 10,50 C10,32 24,16 42,12 C58,8 74,18 80,32 C86,46 80,62 68,70 C56,78 40,74 34,62" />
+              <path android:fillColor="#FFFFFF" android:pathData="M57,50 A7,7 0,1 1,43 50 A7,7 0,1 1,57 50" />
+              <path android:fillColor="#A855F7" android:pathData="M54,50 A4,4 0,1 1,46 50 A4,4 0,1 1,54 50" />
+          </vector>
+          EOF
+
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
               <application
                   android:allowBackup="false"
                   android:label="SAY AI"
+                  android:icon="@drawable/ic_launcher"
                   android:theme="@android:style/Theme.Material.Light.NoActionBar"
                   android:usesCleartextTraffic="false">
                   <activity
