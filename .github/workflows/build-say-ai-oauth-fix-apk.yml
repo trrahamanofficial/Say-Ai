@@ -1,0 +1,230 @@
+name: Build SAY AI Android APK - Google Login Fix
+
+on:
+  push:
+    branches:
+      - fix-say-ai-google-oauth
+    paths:
+      - '.github/workflows/build-say-ai-oauth-fix-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fixed SAY AI source
+        uses: actions/checkout@v4
+        with:
+          ref: fix-say-ai-google-oauth
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-35 build-tools;35.0.0
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Create Android WebView app
+        shell: bash
+        run: |
+          mkdir -p app/src/main/java/com/trofficial/sayai
+          cat > settings.gradle <<'EOF'
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name = "SAYAI"
+          include(":app")
+          EOF
+          cat > build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.9.2' apply false
+          }
+          EOF
+          cat > gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          EOF
+          cat > app/build.gradle <<'EOF'
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'com.trofficial.sayai'
+              compileSdk 35
+              defaultConfig {
+                  applicationId 'com.trofficial.sayai'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 2
+                  versionName '1.0.1'
+              }
+              buildTypes { release { minifyEnabled false } }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          EOF
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <application
+                  android:allowBackup="false"
+                  android:label="SAY AI"
+                  android:theme="@android:style/Theme.Material.Light.NoActionBar"
+                  android:usesCleartextTraffic="false">
+                  <activity
+                      android:name=".MainActivity"
+                      android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+                      android:launchMode="singleTop"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                      <intent-filter>
+                          <action android:name="android.intent.action.VIEW" />
+                          <category android:name="android.intent.category.DEFAULT" />
+                          <category android:name="android.intent.category.BROWSABLE" />
+                          <data android:scheme="com.trofficial.sayai" android:host="login-callback" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+          cat > app/src/main/java/com/trofficial/sayai/MainActivity.java <<'EOF'
+          package com.trofficial.sayai;
+
+          import android.app.Activity;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.webkit.JavascriptInterface;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.webkit.WebResourceRequest;
+          import org.json.JSONObject;
+
+          public class MainActivity extends Activity {
+              private WebView webView;
+              private String pendingOAuthCode;
+              private int oauthDeliveryAttempts = 0;
+
+              public class SayAiBridge {
+                  @JavascriptInterface
+                  public void openExternal(String url) {
+                      if (url == null || !url.startsWith("https://")) return;
+                      runOnUiThread(() -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))));
+                  }
+              }
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  webView = new WebView(this);
+                  webView.getSettings().setJavaScriptEnabled(true);
+                  webView.getSettings().setDomStorageEnabled(true);
+                  webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+                  webView.addJavascriptInterface(new SayAiBridge(), "SayAiAndroid");
+                  webView.setWebChromeClient(new WebChromeClient());
+                  webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public void onPageFinished(WebView view, String url) {
+                          super.onPageFinished(view, url);
+                          deliverPendingOAuthCode();
+                      }
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                          Uri uri = request.getUrl();
+                          if ("com.trofficial.sayai".equals(uri.getScheme())) {
+                              handleOAuthUri(uri);
+                              return true;
+                          }
+                          String host = uri.getHost();
+                          if (host == null) return true;
+                          boolean trusted = host.equals("say-ai.pages.dev")
+                              || host.equals("supabase.co") || host.endsWith(".supabase.co");
+                          return !trusted;
+                      }
+                  });
+                  setContentView(webView);
+                  if (savedInstanceState == null) webView.loadUrl("https://say-ai.pages.dev");
+                  else webView.restoreState(savedInstanceState);
+                  handleOAuthReturn(getIntent());
+              }
+
+              @Override
+              protected void onNewIntent(Intent intent) {
+                  super.onNewIntent(intent);
+                  setIntent(intent);
+                  handleOAuthReturn(intent);
+              }
+
+              @Override
+              protected void onResume() {
+                  super.onResume();
+                  deliverPendingOAuthCode();
+              }
+
+              private void handleOAuthReturn(Intent intent) {
+                  handleOAuthUri(intent == null ? null : intent.getData());
+              }
+
+              private void handleOAuthUri(Uri uri) {
+                  if (uri == null || !"com.trofficial.sayai".equals(uri.getScheme())
+                      || !"login-callback".equals(uri.getHost())) return;
+                  String code = uri.getQueryParameter("code");
+                  if (code == null) return;
+                  pendingOAuthCode = code;
+                  oauthDeliveryAttempts = 0;
+                  deliverPendingOAuthCode();
+              }
+
+              private void deliverPendingOAuthCode() {
+                  if (pendingOAuthCode == null || webView == null) return;
+                  String quotedCode = JSONObject.quote(pendingOAuthCode);
+                  webView.evaluateJavascript(
+                      "(function(){if(typeof window.handleSayAiGoogleCallback==='function'){window.handleSayAiGoogleCallback("
+                          + quotedCode + ");return 'sent';}return 'wait';})()",
+                      result -> {
+                          if ("\\"sent\\"".equals(result)) {
+                              pendingOAuthCode = null;
+                          } else if (oauthDeliveryAttempts++ < 480 && webView != null) {
+                              webView.postDelayed(this::deliverPendingOAuthCode, 250);
+                          }
+                      });
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (webView != null && webView.canGoBack()) webView.goBack();
+                  else super.onBackPressed();
+              }
+          }
+          EOF
+
+      - name: Build installable debug APK
+        run: gradle --no-daemon assembleDebug
+
+      - name: Upload fixed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SAY-AI-Android-APK-Google-Login-Fix
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
