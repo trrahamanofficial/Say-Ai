@@ -13,6 +13,7 @@ import {
   Database
 } from 'lucide-react';
 import { ScreenType, SystemHealth, UserProfile } from '../types';
+import { AIBrainControl } from './AIBrainControl';
 
 interface AdminViewProps {
   onNavigate: (screen: ScreenType) => void;
@@ -25,7 +26,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
   systemHealth,
   currentUser
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'logs'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'logs' | 'brain'>('overview');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   const mockUsers = [
@@ -97,6 +98,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
           Audit Logs
         </button>
       </div>
+
+        <button onClick={() => setActiveTab('brain')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'brain' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>AI Brain Control</button>
+      </div>
+
+      {activeTab === 'brain' && <AIBrainControl />}
 
       {/* Tab: Overview */}
       {activeTab === 'overview' && (
