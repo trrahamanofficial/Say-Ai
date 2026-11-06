@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-dark: #050614;
+    --card-dark: rgba(10, 14, 38, 0.75);
+    --border-glow: rgba(139, 92, 246, 0.25);
+    --primary-glow: #8b5cf6;
+    --cyan-glow: #06b6d4;
+  }
+
+  body {
+    background-color: #050614;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: #ffffff;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* Custom Neon & Glassmorphic Utilities */
+.glass-panel {
+  background: rgba(13, 17, 44, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.glass-panel-subtle {
+  background: rgba(15, 20, 52, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-active {
+  background: rgba(22, 26, 68, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 20px -3px rgba(168, 85, 247, 0.35);
+}
+
+.neon-border-glow {
+  box-shadow: 0 0 25px -4px rgba(139, 92, 246, 0.35), inset 0 0 15px -3px rgba(139, 92, 246, 0.2);
+}
+
+.neon-btn-glow {
+  box-shadow: 0 0 20px -2px rgba(147, 51, 234, 0.5);
+  transition: all 0.25s ease;
+}
+
+.neon-btn-glow:hover {
+  box-shadow: 0 0 30px 2px rgba(168, 85, 247, 0.7);
+  transform: translateY(-1px);
+}
+
+.neon-orb-glow {
+  box-shadow: 0 0 45px 5px rgba(147, 51, 234, 0.5), 0 0 80px 10px rgba(59, 130, 246, 0.3);
+}
+
+/* Custom animations */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+    filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.8));
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes wave-bounce {
+  0%, 100% { height: 12px; }
+  50% { height: 36px; }
+}
+
+.animate-wave-1 { animation: wave-bounce 1s ease-in-out infinite 0.1s; }
+.animate-wave-2 { animation: wave-bounce 1s ease-in-out infinite 0.3s; }
+.animate-wave-3 { animation: wave-bounce 1s ease-in-out infinite 0.2s; }
+.animate-wave-4 { animation: wave-bounce 1s ease-in-out infinite 0.4s; }
+.animate-wave-5 { animation: wave-bounce 1s ease-in-out infinite 0.15s; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(5, 6, 20, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.6);
+}

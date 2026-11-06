@@ -1,0 +1,6 @@
+{
+  "name": "SAY AI - Your Personal AI Universe",
+  "description": "SAY AI: High-fidelity AI assistant suite featuring AI Chat, Image Generation, Voice Assistant, API Management, and comprehensive Dashboards matching the approved neon glassmorphic design.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
