@@ -1,0 +1,326 @@
+name: Build SAY AI Release APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tested SAY AI Android source
+        uses: actions/checkout@v4
+        with:
+          ref: fix-say-ai-google-oauth
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-35 build-tools;35.0.0
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Prepare release signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$ANDROID_KEYSTORE_BASE64" || { echo "Missing ANDROID_KEYSTORE_BASE64 secret"; exit 1; }
+          test -n "$ANDROID_KEYSTORE_PASSWORD" || { echo "Missing ANDROID_KEYSTORE_PASSWORD secret"; exit 1; }
+          test -n "$ANDROID_KEY_ALIAS" || { echo "Missing ANDROID_KEY_ALIAS secret"; exit 1; }
+          test -n "$ANDROID_KEY_PASSWORD" || { echo "Missing ANDROID_KEY_PASSWORD secret"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/sayai-signing"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/sayai-signing/release-key.p12"
+          keytool -list -keystore "$RUNNER_TEMP/sayai-signing/release-key.p12" -storetype PKCS12 -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          echo "SAYAI_KEYSTORE_PATH=$RUNNER_TEMP/sayai-signing/release-key.p12" >> "$GITHUB_ENV"
+          echo "SAYAI_KEYSTORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "SAYAI_KEY_ALIAS=$ANDROID_KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "SAYAI_KEY_PASSWORD=$ANDROID_KEY_PASSWORD" >> "$GITHUB_ENV"
+
+      - name: Create Android project and exact SAY AI spiral launcher icon
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p app/src/main/java/com/trofficial/sayai
+          cat > settings.gradle <<'EOF'
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name = "SAYAI"
+          include(":app")
+          EOF
+          cat > build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.9.2' apply false
+          }
+          EOF
+          cat > gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          EOF
+          cat > app/build.gradle <<'EOF'
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'com.trofficial.sayai'
+              compileSdk 35
+              defaultConfig {
+                  applicationId 'com.trofficial.sayai'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 3
+                  versionName '1.0.2'
+              }
+              signingConfigs {
+                  release {
+                      storeFile file(System.getenv('SAYAI_KEYSTORE_PATH'))
+                      storePassword System.getenv('SAYAI_KEYSTORE_PASSWORD')
+                      keyAlias System.getenv('SAYAI_KEY_ALIAS')
+                      keyPassword System.getenv('SAYAI_KEY_PASSWORD')
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                      minifyEnabled false
+                  }
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          EOF
+
+          mkdir -p app/src/main/res/mipmap-anydpi-v26
+          cat > /tmp/sayai-logo.svg <<'EOF'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="432" height="432">
+            <defs>
+              <linearGradient id="swirlGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00f5ff"/>
+                <stop offset="40%" stop-color="#7928ca"/>
+                <stop offset="70%" stop-color="#d946ef"/>
+                <stop offset="100%" stop-color="#ec4899"/>
+              </linearGradient>
+              <linearGradient id="swirlGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8"/>
+                <stop offset="50%" stop-color="#818cf8"/>
+                <stop offset="100%" stop-color="#c084fc"/>
+              </linearGradient>
+              <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <circle cx="50" cy="50" r="46" fill="none" stroke="#9333ea" stroke-opacity=".3" stroke-width="1.5" stroke-dasharray="4 6"/>
+            <path d="M50 10 C72 10 90 28 90 50 C90 68 76 84 58 88 C42 92 26 82 20 68 C14 54 20 38 32 30 C44 22 60 26 66 38 C72 50 66 64 54 68 C44 72 34 66 32 56 C30 48 36 42 44 42 C50 42 54 46 54 50" fill="none" stroke="url(#swirlGrad1)" stroke-width="9" stroke-linecap="round" filter="url(#glow)"/>
+            <path d="M50 90 C28 90 10 72 10 50 C10 32 24 16 42 12 C58 8 74 18 80 32 C86 46 80 62 68 70 C56 78 40 74 34 62" fill="none" stroke="url(#swirlGrad2)" stroke-width="6" stroke-linecap="round" opacity=".9" filter="url(#glow)"/>
+            <circle cx="50" cy="50" r="7" fill="#fff"/>
+            <circle cx="50" cy="50" r="4" fill="#a855f7"/>
+          </svg>
+          EOF
+          python -m pip install --quiet cairosvg pillow
+          python - <<'PY'
+          import cairosvg
+          from PIL import Image
+          from pathlib import Path
+          import io
+          root = Path("app/src/main/res")
+          svg = Path("/tmp/sayai-logo.svg").read_bytes()
+          raw = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg, output_width=432, output_height=432))).convert("RGBA")
+          # Legacy launcher assets with the app's dark navy background.
+          for name, size in [("mipmap-mdpi",48),("mipmap-hdpi",72),("mipmap-xhdpi",96),("mipmap-xxhdpi",144),("mipmap-xxxhdpi",192)]:
+              d = root / name
+              d.mkdir(parents=True, exist_ok=True)
+              bg = Image.new("RGBA", (size,size), "#080B24")
+              icon = raw.resize((size,size), Image.Resampling.LANCZOS)
+              bg.alpha_composite(icon)
+              bg.save(d / "ic_launcher.png")
+              bg.save(d / "ic_launcher_round.png")
+          # Adaptive foreground keeps all artwork inside Android's safe area.
+          fg_svg = svg.replace(b'<svg xmlns=', b'<svg xmlns=').replace(b'<circle cx="50" cy="50" r="46"', b'<g transform="translate(17 17) scale(0.66)"><circle cx="50" cy="50" r="46"')
+          fg_svg = fg_svg.replace(b'</svg>', b'</g></svg>')
+          fg = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=fg_svg, output_width=432, output_height=432))).convert("RGBA")
+          d = root / "mipmap-xxxhdpi"
+          fg.save(d / "ic_launcher_foreground.png")
+          (root / "mipmap-anydpi-v26").mkdir(parents=True, exist_ok=True)
+          (root / "mipmap-anydpi-v26/ic_launcher.xml").write_text('''<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/sayai_launcher_bg"/><foreground android:drawable="@mipmap/ic_launcher_foreground"/></adaptive-icon>''')
+          (root / "mipmap-anydpi-v26/ic_launcher_round.xml").write_text('''<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/sayai_launcher_bg"/><foreground android:drawable="@mipmap/ic_launcher_foreground"/></adaptive-icon>''')
+          (root / "values").mkdir(parents=True, exist_ok=True)
+          (root / "values/sayai_colors.xml").write_text('''<resources><color name="sayai_launcher_bg">#080B24</color></resources>''')
+          PY
+
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <application
+                  android:allowBackup="false"
+                  android:label="SAY AI"
+                  android:icon="@mipmap/ic_launcher"
+                  android:roundIcon="@mipmap/ic_launcher_round"
+                  android:theme="@android:style/Theme.Material.Light.NoActionBar"
+                  android:usesCleartextTraffic="false">
+                  <activity
+                      android:name=".MainActivity"
+                      android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+                      android:launchMode="singleTop"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                      <intent-filter>
+                          <action android:name="android.intent.action.VIEW" />
+                          <category android:name="android.intent.category.DEFAULT" />
+                          <category android:name="android.intent.category.BROWSABLE" />
+                          <data android:scheme="com.trofficial.sayai" android:host="login-callback" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+          cat > app/src/main/java/com/trofficial/sayai/MainActivity.java <<'EOF'
+          package com.trofficial.sayai;
+
+          import android.app.Activity;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.webkit.JavascriptInterface;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.webkit.WebResourceRequest;
+          import org.json.JSONObject;
+
+          public class MainActivity extends Activity {
+              private WebView webView;
+              private String pendingOAuthCode;
+              private int oauthDeliveryAttempts = 0;
+
+              public class SayAiBridge {
+                  @JavascriptInterface
+                  public void openExternal(String url) {
+                      if (url == null || !url.startsWith("https://")) return;
+                      runOnUiThread(() -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))));
+                  }
+              }
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  webView = new WebView(this);
+                  webView.getSettings().setJavaScriptEnabled(true);
+                  webView.getSettings().setDomStorageEnabled(true);
+                  webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+                  webView.addJavascriptInterface(new SayAiBridge(), "SayAiAndroid");
+                  webView.setWebChromeClient(new WebChromeClient());
+                  webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public void onPageFinished(WebView view, String url) {
+                          super.onPageFinished(view, url);
+                          deliverPendingOAuthCode();
+                      }
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                          Uri uri = request.getUrl();
+                          if ("com.trofficial.sayai".equals(uri.getScheme())) {
+                              handleOAuthUri(uri);
+                              return true;
+                          }
+                          String host = uri.getHost();
+                          if (host == null) return true;
+                          boolean trusted = host.equals("say-ai.pages.dev")
+                              || host.equals("supabase.co") || host.endsWith(".supabase.co");
+                          return !trusted;
+                      }
+                  });
+                  setContentView(webView);
+                  if (savedInstanceState == null) webView.loadUrl("https://say-ai.pages.dev");
+                  else webView.restoreState(savedInstanceState);
+                  handleOAuthReturn(getIntent());
+              }
+
+              @Override
+              protected void onNewIntent(Intent intent) {
+                  super.onNewIntent(intent);
+                  setIntent(intent);
+                  handleOAuthReturn(intent);
+              }
+
+              @Override
+              protected void onResume() {
+                  super.onResume();
+                  deliverPendingOAuthCode();
+              }
+
+              private void handleOAuthReturn(Intent intent) {
+                  handleOAuthUri(intent == null ? null : intent.getData());
+              }
+
+              private void handleOAuthUri(Uri uri) {
+                  if (uri == null || !"com.trofficial.sayai".equals(uri.getScheme())
+                      || !"login-callback".equals(uri.getHost())) return;
+                  String code = uri.getQueryParameter("code");
+                  if (code == null) return;
+                  pendingOAuthCode = code;
+                  oauthDeliveryAttempts = 0;
+                  deliverPendingOAuthCode();
+              }
+
+              private void deliverPendingOAuthCode() {
+                  if (pendingOAuthCode == null || webView == null) return;
+                  String quotedCode = JSONObject.quote(pendingOAuthCode);
+                  webView.evaluateJavascript(
+                      "(function(){if(typeof window.handleSayAiGoogleCallback==='function'){window.handleSayAiGoogleCallback("
+                          + quotedCode + ");return 'sent';}return 'wait';})()",
+                      result -> {
+                          if (result != null && result.contains("sent")) {
+                              pendingOAuthCode = null;
+                          } else if (oauthDeliveryAttempts++ < 480 && webView != null) {
+                              webView.postDelayed(this::deliverPendingOAuthCode, 250);
+                          }
+                      });
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (webView != null && webView.canGoBack()) webView.goBack();
+                  else super.onBackPressed();
+              }
+          }
+          EOF
+
+      - name: Build signed Release APK
+        run: gradle --no-daemon assembleRelease
+
+      - name: Verify APK signature
+        run: |
+          apksigner verify --verbose app/build/outputs/apk/release/app-release.apk
+          aapt dump badging app/build/outputs/apk/release/app-release.apk | head -n 1
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SAY-AI-Release-APK
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
