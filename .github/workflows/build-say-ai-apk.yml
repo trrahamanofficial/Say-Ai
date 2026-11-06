@@ -18,7 +18,7 @@ jobs:
       - name: Checkout latest SAY AI app code
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: fix/say-ai-google-login-logo
 
       - name: Set up Java
         uses: actions/setup-java@v4
