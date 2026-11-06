@@ -1,0 +1,14 @@
+{
+  "appId": "com.trofficial.sayai",
+  "appName": "SAY AI",
+  "webDir": "dist",
+  "server": {
+    "url": "https://say-ai.pages.dev",
+    "cleartext": false,
+    "allowNavigation": [
+      "say-ai.pages.dev",
+      "*.supabase.co",
+      "accounts.google.com"
+    ]
+  }
+}
