@@ -95,6 +95,40 @@ export default function AuthGate() {
     return () => { delete window.handleSayAiGoogleCallback; };
   }, []);
 
+  // When Android returns from the external Google sign-in browser, recover the
+  // Supabase session. If the deep-link callback was not delivered, release the
+  // hidden loading state instead of leaving the app on a blank screen forever.
+  useEffect(() => {
+    if (!supabase) return;
+    let timer: number | undefined;
+    const recoverOnReturn = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(async () => {
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          if (data.session) {
+            setSession(data.session);
+          } else {
+            setBusy(false);
+            setMessage('Google sign-in did not finish. Please try again.');
+          }
+        } catch {
+          setBusy(false);
+          setMessage('Google sign-in could not be completed. Please try again.');
+        }
+      }, 5000);
+    };
+    document.addEventListener('visibilitychange', recoverOnReturn);
+    window.addEventListener('focus', recoverOnReturn);
+    return () => {
+      if (timer) window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', recoverOnReturn);
+      window.removeEventListener('focus', recoverOnReturn);
+    };
+  }, []);
+
   useEffect(() => {
     let active = true;
     async function resolve() {
