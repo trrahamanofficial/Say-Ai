@@ -1,5 +1,4 @@
-name: Build SAY AI Android APK - Google Login Fix (verified retry)
-
+name: Build SAY AI APK with supplied app icon
 on:
   push:
     branches:
@@ -7,43 +6,36 @@ on:
     paths:
       - '.github/workflows/build-say-ai-oauth-fix-apk.yml'
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   build-apk:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout fixed SAY AI source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: fix-say-ai-google-oauth
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools platforms;android-35 build-tools;35.0.0
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
-
-      - name: Create Android WebView app
+      - name: Create Android WebView app with supplied icon
         shell: bash
         run: |
           mkdir -p app/src/main/java/com/trofficial/sayai
+          mkdir -p app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}
+          cp public/say-ai-app-icon.png /tmp/say-ai-icon.png
+          for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            cp /tmp/say-ai-icon.png app/src/main/res/mipmap-${density}/ic_launcher.png
+          done
           cat > settings.gradle <<'EOF'
-          pluginManagement {
-              repositories { google(); mavenCentral(); gradlePluginPortal() }
-          }
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
           dependencyResolutionManagement {
               repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
               repositories { google(); mavenCentral() }
@@ -52,9 +44,7 @@ jobs:
           include(":app")
           EOF
           cat > build.gradle <<'EOF'
-          plugins {
-              id 'com.android.application' version '8.9.2' apply false
-          }
+          plugins { id 'com.android.application' version '8.9.2' apply false }
           EOF
           cat > gradle.properties <<'EOF'
           org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8
@@ -79,29 +69,16 @@ jobs:
               }
           }
           EOF
-          mkdir -p app/src/main/res/drawable app/src/main/res/mipmap-mdpi app/src/main/res/mipmap-hdpi app/src/main/res/mipmap-xhdpi app/src/main/res/mipmap-xxhdpi app/src/main/res/mipmap-xxxhdpi
-          cat > /tmp/say-ai-logo.b64 <<'LOGO_BASE64'
-          iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAMAAADDpiTIAAAAwFBMVEX9/f0AAAADif0Pl/0apf3l6/gjrfwlsf3a5/oBe/y6urqs2f1PtviLyfvFxcZzxfksmPZ8v644/3Y2NgWFhenqKlnZ2cnJyeHh4hHR0c3NzdXV1d3d3eXl5cmjPQdsf5Gm/RbwfnM2u+EvPi1ucJjrflbYGmcoq9bXWSWm6a9wcYcHSIeICR5e4Wjzf69wL7Avr03NkA+QU9AQD5gX2CBfoGmrsHAwL/Hz+AAAAAAAAAAAAAAAABvRVFRAAAAQHRSTlP9AP39/fj8/fr8uv34+8b59vn89/792BepZyeIRzdXd5f0/vT57/jC+WmvZKbHIiSF/sDAQE9AYIHBwOAAAAAAKS/bLwAANnJJREFUeNrtnQmb67bt7mVLpDXexmOP9zXn5CRp03T53/3e7/+9rlZbC0WCJEBy2uhp2qQ545H5/giAIAhGo8Cf/elyux2P9+I5Hw7TZf3sdjvGWIT8MMPPzH8ue6Nd/maHx/1+PB7/kj2/3y7X0z7g8Y1C1T17Trfj/fyYLnfoKiuURPqkNHsyKqaHc0ZDDsKfAAC1vx4z2bMZ7lR4dAI6n5ORcC9A+BMAifa3ez7jPSnfkI7Ol7Dd4Xy+H69/AtB5rsf74zAFSE/g94kwkv275SGj4PInAJX258dhyVy7aO+OpAgPbqf/aACuhc1nPkI0krWA/s/vltPH8fQfCcAlW9UtmQfvDPpFWQDvjJ/MFDyO+/8oAC6aE9+1/sUajpnTo/+iOQQ3DxkDDwD8/ffzYecvOqcnwNh/5CvF6/7fG4BrZvZ/GA+s0zDOlAC7+IEtH5f9vykA+9ujXOeZjZDz8N+MAGYdp7Ll2V3W0BUA+9Pt8XL6LDLx/87XfyaRIEN5z4yBy+nfB4D96XjopHi0R8nL+l+fAIb3nlk88O8BwOlyECT4NMfJU/pHkwDGUDndOUgTUQOwvzyGlnssfP01CcjUT3FflB2odw1oAbjelygD4jH9q0EA8vyvniwa2H9NALKgf4ckgs/0P5gAlqYpyYvuDrf91wPgdJ9ijYbn7R8gAYwR6Z8jMCXbLiACIPP8LvfVAiCAmeR/ddYERFYgIrH9h12Eqb/vDWAAAWT2//UbpiT7RfgAnG5TzJEIYvtfSQD1/K+WBARWIArX9Yejv5KA/F+7eFF2QF8RRMjyL5HXwaGU/0gJoLf/r3DwcQkXgEx+7GEPp/5LkuOhjP8FCNxPYQKwPy4pTmlEwRPgcP5XCwLMaDBCi/ynX6RYF3s54lz/IhQIDYDLg5GMePgEeNAf1Q+gAHA9W6/7WYjrf8Ar+dEf0QhEKM6fINxnIR4A6MUBrtZ/IiNwPgUBwB7H+vfkDjOi6GDpJP9Dmxq0BeB0RtvxY+Hr37EBXvVHMgKWAGDG/k0E2FcgwKP9fxqBi1cA9ucdjXkN+QDgM+zzFf+1nuXNIwCXA6OZXGEfAM2FD0V/+wVh5Df4FybcQz8AXJh+//YfZ0EYmUd/FKmflDEW/gHwXP0gpn+VGr55AOB2YDRDy75CA4Bw5n/lBvauAcA3/18JgMD0t1oPGgGw/9+7iBCA4PUv23+F9Eq7x/90CMA/zoxuaL+G/uFtU5iGgpHJ6v9P/cNbrJrmhPQB+Ps/fxAm2b6E/09DTFelf704AeB0/sGohvarxH9RgAlLlv4wIkAXgMshJfraX2P9117/B1WymKa/HskBuEypwO9utH4F/cOxAZX1XOonBPQAuB6owp/e/GdfQf9QCHh6T30CIr35z4jMtajY6ivoHwYBjdXT8kgIwGXKiBz2V/T/4RDQejFdAjQAOB0YlWRfWH//L995Mc2tocg0/4NIAPvS+vsmoLd61ssIwQG4MyLZJB/EQjobOLz/6/M1+6PHDicKAI47ookr/ZhQAFCU//gjQDR67HHCB+C2IzLdig8JpOpGlaRmQbWxY+c9NgCXJZHzVn5EIMssVf2Pn9ccOrC6uyMDcB2o/0Hoi6v8gMCWWSG95vCRdfhiMDJYAOARAPlx73tEwE1q928pGxjwUiAydwD2BMB+2DMA4PJv168pH5fHHg+A65RGHuiPeiVAo/zf7WuqomdgIAgA4DRVjJDp/RjgAfNIgNbxD5evqWxLsztiAXBmJPLo/Ji3OEDz+A8L6VKr6RUHgMuOZILq/ZAnALSPf7l6TVD0DMoHReotIBJ5dH/ES72gwfE/NwTA2tKzOwYAd1Cj5FT7/gfG9L8zc64/M7kyxsGLwX7J8mIPwGVJIaiJRXceBxgWqdO/JbwtIWBbSAHA/oEMpYVHd0yA8SEF6rfUucLiaAvAnRGIaiqkUwIsDqnQvqXWtTTLqx0A12WEP63NZXRIgFX3V8q31HyxhxUA+zNBYGcjojMCLLv/0r2l7ouxmw0A112EToCD7SPv+tMRoH8t2fRkDgA4AtRQx1ZANzcz2Lf/IDo8o/9iTHFSQAbAEf/eVIwSEnICULq/kxyeMXmx3cUUgP3B6GszagNOTQBS9390AkyvJZBvDEeYBiBSlnjSl5EiyJ+iVTuHoL8iGRCZ7gIbqINXSE5nAzBv/8A+O2P6cdO9EQBH7PmJeZQkpYuyU5rmtx5fTGoCImQDMPy9UQ030S092Lf/oH1luxeTLQUjbAMwJDX2cVIKG0CwxmQsgBeTmYAI3wCID3ujHyjHtwEU3X9Rvra1YZJsCUSYS4BhuQkCd/TZStP9GeGLIzimuy4A+6n112bUCzdsf51SxRWM+dY/2l01AbihHvkiWrij2gC67u9BJL/vegCYJAGHESBL3GCu2Qnbf1t9faSFyeBCQAzABSdyYYxwyVb/juD1tyIAa2E6uBAQA3DHm5+0F+tiDQ9x+39jG4i3MB1KB0YIdQCyr019sTLOzh359Q8Wh2ewUklHDQCOiF+bhTm0bvW3ODyD9mKHPRiA0xTza6chDq1r/Y0Pz+C92EBdQESxBmz7gChsAlzd/mVwFAZ37M5gAM5YX7m4XSvIyeVef20C0J2nOB8cGR8GAg9t0DbA5e1/esdh8d/rCATghmYAmKubNcyXWU6vf9M6PIP/XsIwMCLJAjb1d9LqzXSZ5fr6P/rDM5LnxwUEwCn4si28ZZbz6x/9NsU5gwC4UwgSpBfw0XPAa1uswz8AAJyWJHIE6AU83f4Ma4xH8ot/HAEAXIMv3Eb6pdRJamMbQKZ/yh5qAPb3r6q/5q/1d/u7i8MzYt6j5UkJAIYHYENlwSEtszxe/+3i8MzAx56VAFwJ+38HRIDfO0pdHJ4Rp5UOSgDuGF8uyKENR39JHECsvyAd3AXgYP3VUq/3P8B6FPi/o9jB4Zm2KEOpgMi8J4xZhBMAAUHcUe3g8IzoYw8KAH5PaYc/hH2BQO4od3B4RvCxvXVAB4B/Rox2+vknIJQ76vu5MhfnEnrdQ6NuLZCD+x/8LrP8Lf/kr8nIrmRufexDCsCNeP77JyAc/Z0cnunH5N3q4AitGpRp3P/gjYCQ9G+fnUmJ5n/3+3avEYiwSgGY1v0PnggIS//XaxLlJYWaHCQAWJwH0Mv/eCIgNP2fb+TyXOpUAkDjRBij1N8TAeRnFMycdPG4mv+9ZGA0EALot38P7WYNFz0KEJ50/bHIAHAXB3UWgtFAZ1DNC11Sg3IctwSwQO8on23Gq4VD/bsLwWgoD0x+pZNjAtI0DVT/MQUBEkmmgwDczKw0M77/wSEBLGD9cwI+nenfOSMWDWcBNCpYg7xZI2qkfcO0/5+L1XhcEZC60j9i5wEAes3BwRWsQd6sETUW2EU9VMD6I9sAhSSPAQD6W8Gg1H5qdXmwAwJmi0Ua9vwvCXClfzsIiKQ3RKo39+xiKwc2IJ19cP4e4PxPW/pnBKC9pGpUWy3DIvmZQGV9h2VsRU/A9oMnCX//DE7/97b+4/FPH6kT/duZgEhRDqisYGW05sp+nDP9MwIWgRGQfnT1zx4MAiAD+hACMHBHrKKClZHzajf/S/2DI0Co/xsCASBJmlvCkbIccLiCNUVqhMvo9c+9QBqS/vFY+HykDvSPlkIALpql6mhb2HQENPQPioDtkP62BABN8u4kAuCmpxBmCQMRAi39k5h/pMHrb0kANHd3FAFw1Ppc1L0VGgDa+uc2IAwCZhuJ/jYEwCVp3CMVgS4J7H0y8t4axVqgp39OwDYE/cfSJ56n5IN4EAAgbw7Y+Wz0vVV8AAT6ZwTMZ4HP//z5LaWeRI3TARHwTFCngpXgahXcDyzyP4LHNwHrzVj9bGa0+jejwAhaEd7cWqXYW8UlYDbnYgA8E7Dm4zEJAXommV36ABzBv4KRHWHC039g/nsm4HOxGY9JCNAtyTzvewDcob+ErrYK7WOz+Z8k4RHQ3f7BI0BbksOpB8AZ9msYUv6PkgC5/hkB6+D11yNAf0oujQCI6EqYMQnI9ZcTwNfB6/+mQYCBSX7tCEc6h4LKInbCzRsM46Ka/0VScO18a6i//YtlA0xcMusBAOsMQQ0AAgLrwfi/ZQMWjpOCwu0/FALMQrJLF4DbDvi7HFyuQq+/8+1hE/3H4+8zKv1fncMjjZtCWf0QE2CnfwJ7nG4Oph9jo2c1o5ovjy4Ad6D+DiqszT//E66/UwKk23+ySPBt9S+isXruBkTgRQBjrmrsTT+/0F+DAFebg4D0/4D+GQELmrnyXAeCAWh4/0AJ0Jr/ZYHA1o3+Zva/AEBKgIUQz+NBUABarZWCJEBXf1fbw3b6ywiwkuHYAeABtP/OCDDRXxeAJJlvg9VfSYCdBh0AFNfF9/K/9GftmMH81yeAvEDAQv8agAECGCoA8jyQoLVeYDYgNZr/9FtDwO1fOQBCAmzH/94GQJoHErZWDIqAz8U8ScwIiDd0BHwubPR/AfD20wI9Y9oB4M7A/j9AAtLFxGz6Z/rH8WZNpv9qjANAjwD7sT+3AThrzv+g1gIW+hcIEBGQ2un/1np++oWh6t8F4KE7/wOyAen7hHML/YkIsNS/i0CTAIxxf7QBOMjmP0UiAo+ATP8MAG4DQExQIGC2/QOyASijPj2BAFBs/tEToM6zv0+y8C8HgJsDgE8Agv4dADICUsRBr9sFVgBMNf1/00F4jQOK8v9y/psCUPwHeXs4Ndz+kQFQHR5GmnS7GwAAQGt9zwQIj3/oG4DcBmCWiGDo/9Z/MgLQbjuom0bLAAD9Mq85wcz+YwGAScD2N4L5X3kBrIKcuk2IBABg8Y8DAoY+f2atf4sArD4yNulfOQLfF3gFWWcVAODiL/IrmIcIm33wSWsFyI0CgAYBaUj69wH4PkPsKtwGYGmuv7fVYFH+iwkADgFo+vcY2GwxD9A95ABoFX96sQGF/rxVAsS1EYjbj32R0OcaU/8mAOMNbgFTC4DTziT+85sVLgEwd/0C/eN4ZUuA1fafzAEYHhoffg5NALo9IrWLv90TwNK1DQEDANgSsOA01v9tjF7A2ALgZn2DnXMvwFg6m1uYgEQMQBxbFAmliPp3dgLwC1hbALRPBRgd/nBqA6pflncBaBHAEQCIjUtE0sUq+3EKAH4iOMbSAqBVDmA4mV0SUP/t9oNzbAtgTECu/3hMAUC/IoghA3BuDbNhrsEdAew5AJap4BiRAP3Tn1AABBVhCCPdAuDRdK3GuSb6c4NpdTSpkXX94PgAmJSJ5dt/iA6gWRX8L4NNMk0ADg0NLUSkjgTL7hTt35ETwDkyAPoElNu/MYEN+L6O3AFge4MltQ0QAFDEAegA6BYJ5dt/yPO/ImDohLA1ASIA7A9/09uA/hdP37kpAsMA6JWIzOYU+o/fZH1CbAmoWoZHjb0gZr+5T90/QBhoFgRoa69igMPvcJltyh8h0H9LFnRXNWENAHCO/jPaHkLCN8wJSNC9AJiAWn90AFTpXyu9qpqwFwBIrR8obcDgG5YEcFQfEEPLxIj0B6R/rRRbXloAMLRaI7o4QPJ9jbyACgAYAetN4f/xl4CA9L8NAVVRYAnAf0WY3Z+ICJB+W0MvENsS8LnglfjYBgCW/rfoEHBsAPAr6tW6NH2EFB+aLjhHB0BZJlbrj74AgN4laj7UbQBwHTdFHKD8puligw9ALL/Nr9z+ofD/4HskjQloAfB/sIu70dsJAr7np4ENiNUESCxx+uFdf3MCWBOAA7rJRrYBoG9p0CQmtiGgSv9n8sfo9p9+E66qC4/kRwMD8QLA7/i5nmguBmMLAp76owPwfUYxOjIApkQbN271L2wAugUYIiD9eFp/ZCegvRNlRAA1AIj1ATofpNsqBkRALCBg9vFy/7gGwGAv2qhf9JkaACwC9JwJDQG9QsHZ/PnvkP2/Ucsag6F2BID7zQWdSDCGAtAtEnqmf9H1N6z+1B9qBwCgEKAfTGqtBWLo05qYDf1xI0Dz6l/9Sn4HACB4AZMPmMEJ6JwNkxKwFupfpoGRILA5laBNwMMVAMw5QDoEwG3As0Rk3Zr/iE5gZXU2UZcAJwBYrgZN8QETEOs8FQF1+r9lA3DSP5+W3lJrtNwAYEWA+Y8CCYj1nmJz8Jn+b7oAh9s/aOPlCAALAmySiTAC4uKIIJyAzEZ39K8ufA5g/muP2MERAMZxgF34ACIgLgiAAzBebVYUxj9f/qP0KdMhwBkAhjbAdgGhJqCUUM8RjHv/PEZZBGB1LNYgwB0AJjtDCFsJM/WhoZKA2OoZYxCA17EaPtQOATAgAKNCcQu0AVbyxxgxAGbHcvBQTxsALKOwCEhnPzA2k1UHBzHmf70bZGMEcDvWQ22nUwD0Dp2lizlOwy4FATHiYzH/f9tizzYQAW4B0HHqefvnCU5LBCkBYcgf4zf/gA21YwAi8L3zhf4TBzYgxmPAV/rXxgZMHQaBOvmANG//nSPwvqX3AnYxwPj1X6Zx4IrmDmOIDXAOAMwL5Pp/KwBAIiCVNBGxDwKfAASlP4gA9wBA1gLF/E94QQCfUxMQJxhZAPMlwIruDnP1UHsAQE1AFv8X938UACSc2gbYGwArALSqv9EJ8AGAyguU8V/9fOP8ZxwCBuOAJwCm8WADAG0KOO2llSoCvAAgJ6CY/8XDawh+prYBlisBCwA2M+qxlhPgBwDZWuCpP5/kPqCEAOdmz0ECagCsLEBsAgC5/qpI0BMAki4Pi6fx57yOAxAJ4NIdIQQXEJr+ChvgC4AhG/DUn9dP9Y+0NiC2zwk+c3pxYPrLCfAGgNgIvOY/b/ynJGBN6gWSJHYOAP219WoCXKeC5TagYf9LK/BaC9ATgJQFBgNAkP43iAM8AtAn4BX/Cx6OR0CMURgmqgjwvP1jEnP5BKCbEZLqXzzrTzoCHO8EkWz/GNgArwC06wOG9edPj0BIgFsAVovU+VgLCfAYBHZsQDv/JyRggkXAghPUBASS/pdm34ID4GUDIPpPvmVxAB4BsTcASNP/enGAbwBqG5Dp/+3bYPhX+4BsLYBTJPTZtgGOASC4p97YC3gHoLABaWf9NxGtBr8VloBPUKKnNgFuAXCU/oHZAP8A5ATMpPE/b/1dgkZAHHsBwJ/+IhsQAABROnuXrv94ww5kZgCRANy60PD1FxAQggWYvU/UTxkIZP+VNwTHJKBI/6CcDgkv/QMgIAAAfoD0L8XP//r2DY+A+mgwihX4Cvr34oCDdwCk8V/HERQA5ATglIq+IsHYDQAB6N8mgPm3ANv3+QRIQLE1+K3aJUYiYINVFgzpEuA6/askgHkHAOb/GwC8ygRQysQ+15u4KAp1YQF8pP+kcUAOwq9eAUg19G8UieR/9w2pVHSx0W0QIkcgDl//uj6gsARLnwBo6t8CIHvmSHEA5unAYTuwWUThPGl59SLzuwpgmvo3y8QQCVhvXADgd/kvCgNKN+ARgE9d/atFQB0MZOEgTqHgmuPEALJQICz9G8U4/80bAPr6V6mA2hAkHKtIaL3hOEHAYAgQmv4vE+ANgNRA/+qswMsLJFgEzDkpAAHqH3mOAdLZfGL28MaTJEgFAnXf34RiIRh/bMOb/3U+4A8/AJjN/z4BiF6AzP2vPtIg9S//109NoI3+bQASjmQDUAgINv0r1N9fJtDU/wudQJLgFAqu5yjLwF4UEK+D1T/fC/CxGZSuf56YA1CGgI0oAI2ADQkAoUWArc1Axg7uXYCh/hPec/9PCHAImM0xAHDeAcBC/6i9HewIAOP4v+4a0pU/swI4RUKzOc2e0GoRrP4+mkSlWAHgU/88JYREAE0kGAwB/aJQ15tBLC8DX8zNor8+AEl5R2juBXAI2NBsBwZCgOBggGMAyvTT53puDMCkP//Lh4dBwAAEfB2m/o4BeG5BrOfamwCCopAuAVv/BAy2CeGLIPV3C0DjPPjMcCUgjAGrq6JDIGC4T4x3LyA+IL50el9A4x2MCOAyC5BvDKAQMCfYDvRfETTQIGDp8saQ1iuYrAYVAKARkODuBoVgA4YaRCwd3hnUeQUDG8C7QWC33QtOichsviKpC3XfFECpvzsABB2B9G2AyAK8GCj+EYkAmspgb3Xhwx3al87uDRS8g1lOsGUEmgDkCCCViJgSQHktMIn+rgAY6A2rSQDngu3A4q+mG/BJQJhng2Q3NCz93h28/VnXAYj2hDqBAAoB2zmF/l4IkN7QsfR8e/j2XXsjYCKPA7EKBLYGawHILeLOCZDf0LJ0sBso7k5kTMCEqwBIUPrIbA3XAkojEEaDQHcAKG4J0iFgAgIgjww9EhCWF1Dd0EQPgPKeMAMvoAQAZ2to+7EiCQRiZ02ClfrTA8DU179u5R3i+OAasFwGijvAeyMA1CfEFQHqG9qoAWCQ6387BPBmSwiFESgAoCTgS3cKAtzQR7wKYLDrn5sEcM61vEAydAcEx3C1qbYNAMx/VwRAbmikBQB8U2yDgBqAHgd8OBIcImDrgQCIB4idEAC6oZMUAI3Lwl+FgoMAqAoDBQTMPRAAigFcFAnBpl4TgP/rT/+agOY9MXyoZywYACQC3lf4MUCxMbD2Pf07APyXR/0LAurT//xZ+9O5OeRpHAYA6JOAsTmoZwPGYRBgAsDUp/4lAbzRD0wfAFFOwD0BGgyQlYgwqP4tAH71qn8jDuANK9BeGGpbAJytIR0CtK4NoyKAgce+DQDzqX9FQLXlV0f6fQDU24FeCdC7OpCGALj+HRfAmE/9cwLm1eR/1v/2T4ZNNAFINgibgxqRoO7dQZ8UDsAYAObYBXWez/Wct4q/VSVhIAIwtobyi4ZIbo+K0QnQGvsmAH9gAQBN/wwQ0FsGculmkDonmGAsuWEEjPXvj1v9kvrTv7sKQCHA0P43CWgngsAADNsABC8Aaik5NnhwCwU1FewtA+0RsJj/5TjPX6Fed3uAyx9aLwAhwAQA1AIB3aEXAcD8zf/KBjSOAEAqAlwRkC5WABdgAgEWAfra9RNBdgQwa/0rArorQFsAULaH1TbAEAAkApgdAMunhszf/G8QMKnTwgjyu/AC41cQqA/BJvWiv7AgxFxEhqL/i4BGNAiIAhLFQ20DGjt9BlbAngAj0y2sCDL2Akj6R2UDgeZ+EMAGJE4IiIYJaF8fr82AbYGAmWjikjBDAtIULZVYEtCuD5IYgQRiAagJqIWPx4ZeYOZe/6HdQCMC8Ob/ywY0LQAfOCDc6hLhh4BG7FeEArGZF5g5139wO9iAAFz9ixbevFUVoFcO5JqAZsWX4vKYwef7zLX+w/UA2ukcbP0rAppZIMk+AJgEQgIaLWLMEkLmBJgv3YcLQjRtAGMMWf/CC/DGSlAa/MMJwCgVXYu9gDUAhtvDFmMvqQjSkpRC//yQNm+mgSdcYgFgQUBRIIBBwEaYBoCdD8UmwGbsZSVhGqLS6F80EBA1Begv/jQigZgTEfCkoLUcpCfAauylNYFQWRlLafQvbYCsUbQJAHFCSEBsaQHGb7rdxOzmnrwoFEYAw4//ujaAD7cKL3MAPEng64EYpVR0mAAr/cfjn7QKBBglAKBPJ9U/byLCxX0BrNaDGAS8WkqO0RB4G7+9vf2ksTVk63tVZeFqAoj1L9rJwQjQcQQclwA8ALJnrEGAdeylPBegIoBZbR5q2oCJbCOAJ1pGAJ2A8fiVELACIGcASIB97K0+GCIngHz+lwRMVPM/4YmmF4hRCJi/lH8SYOcCxhoEIKy9ACeDZCE+YfzfIuCdAx4tC5CptEGyATUAdS5obBkGggnAWHtDjoYNi8yo1v99AiYcxIAWAVg2YNzw/Ib7QB0XACIAZexBZwOHZHamf2EDErnwmrtCOQDJBjcOMCwF6TuAkoDfUnr9gYdDxUI71F/pBXQBiIsLw5PNGpUAuxRQB4C3N2mRENLYA08Hi6R2qr/SBujuC5cUoBQKdmyAHQFvLQJm1PqDj4f3xXasvyoO0BY/rpKCCKczy8bCY2v520GAlAC0sQf3B+jK7Vz/4nAWEgBx6QOKQADDBhTNxMZjfADeBgoE8MYe3iCCde4cda5/cXw8QTEAcSl/AUBGQBoQAW8QAhDHXqNDSFNyL/pXTUQwPED8WgqgEUBiAYReAHPsdVrEvET3pP+TgKTTKFI//qvMQPEXSplY+kFjAQQ2AHXstXoE1Wl/R/k/hRdI5J1CVfFfKX7x9zEGAds5ShjYB+Bt9S86/TXvDi4bf3rUv+kF6sbghg6gXrmVkSACAdW+gN1mkAiAt58WbQAibwCUBKTMn/5R9JkRkDQuDq6LggwoqPTHIuAZB2AD0CIAeeh1bw9nzOv8f9qAqg7YOAdU6V7GAFgEYMQBQgDe6K4cNAHAr/4lAUlvG5CbxYFPV4DRpwMnElR7AZ8ApP4BiNLFJHkuAJqF4YmZG6gICGUtIPYCv6Bbf+MYIAwCkg4AZl6geTEUR7IBMYkXyEtFmW8AMv1TFgVAwGdOgEkdiAyAOEY4NJR+rGjCgLfxLxTBl14eIC3rv8IgoN0VwCIObDzzbQBeYACAt+8zgvI7rUxgWr9AQASUS8Hm7cEayYB+OW8IBLwNrQSy8U89uoDm+i8UL5BYLgWJCFhRxAALihPYGgC0g78QCFhvmgAYrACEV4N6JuBNmgvCH3aNeoB2CBIEAROLpUCcDFwNi1Aqmr6vkA1AnQlCH/YpuCKoG4IGQMB2bnQqSOYBYpxycSsb8CbbEcQediAAIufjnYC0USVouA4MkYA3xY6wj91A8fV/ngnI9U/sUkFDR/sQioXNCXhT1YSgDjsIgKHg0ysBhf6vw+GoAGCUihrHAeqaIMxhn4JOBqWSk0G+/P97oz2U4T7AMAAoBCxWKAD0qwIxN2SnkLOBKZOtDX3N/8bl0cYQkBLwaUaAuiYQkwA1AEyafvJEwPajVRJoVBksBwCjXNzMBkBOBuANuxIAVfLJCwG1/pZnA54lIWIC7LeHjWwA6GQI2p6sCgCmTD97IGD2IWsWzFFcAE6BgC0Bmy31sKt6BAG2H5wTMJvz5Fu/O4zR+TA5AQgFAgYEvDaAN/TOV9ElDLT54JiA9bw+Dd49HcCNosCEmABuCoCiQwBOJCh1AdDNJ5cEVPfKtU6HVLXBev0hIADEGNc5Lb4bAvCb0vmmtADACXNHQKl/IuwOQAFA7MEGwPpDIBEgAUBn89kVAWk5/5OBftFGHkARCSBsD683ND2CMNYCWN3C3RCQLpBaQ8BCALTtYX0CgH3i6ADQjjBcEFCk/yZ8ggmAcimAsjk422hWhUA9DyPqFGrQ/o+egHSoSYxZSSjUArgl4C3/S6NXLCPpFWzU/pGagK2kOQAtAC4JeNPsFWw77kIADNt/0hJQtglLvACAsTU028RAAvS6hVvmA0SrAONPpCRg+/PglXGJZRgIeVYLd15A9zp5KwIEADCbm0OJL46YoLWI09PfIQEr/YY1NgRMRZdHm6cX6K6OkXYLTxJyAOKV/fYwhAAj0CwIwL89nPLyKE4RBYIJsN8cVBNgiJk5AV0ArHNLBAQ80//im8MMj4ZrA4CxNaQiwNjRGBPQAeB1/C8cAl5XiQ9GgJygJswHARaBhikB7RgAQX+DO0eV6X/lvfEWoYAOAGOEraHZPKbQ35iANgApyuFDVALSRX1zINJNETYmgJYA24WG0bg3AThgHT5FJCB9n6iujrVqEaH9zK0JGGoqurI9jWJkA5oA/BXt+ic0AsqugBOu8AGODADS9nA6F94db38ayYSAQwOAv+FZbiQC8vT/pFoAUAAQx14IEEWCGJeXmOTw2gDghW4oa4Fi++cJwARZ/9gQAIStoR8bEv1NbEATgAfm4g3BBsw+atWltwebr//MCMBQq9tGBkl/AwIezRggCoqA2fylP0e+LMYOgPEKgYAVhf76494E4ICbwLP0Apn+3ybtAGCCuP6HlgOJEbDfGmraAEz9dcf9QeUCLHcpP2dz/m1Se3/F5cFm2ifAWgAyAmj01yOAnekAsPECRfq/9PuqNCAYgDjuAGA6/Yv/4BGw2aKPO5wAdm8AcI48volA/0J9YRGoCQIxn/MXCOYAxGM8G7Ai0V9n3FsA3FkgBHwu5tXEn3AYAGoC4sl6W/QUaViC2PwZoxDwvhp/zKLIIwHs2ADgyKIgCMjTv2rHr2kA5uv8rgke1+bfLgYoCXi3LRFJF79saSpooN53d2sAcNtFIRBQ6w+7LhoIQHm6I80IiBEsQHUpiP3WEGMpQf9fDQJaAFyoAGAW+tf/Y1MOlLn/bf3h/BkAWnqAsT0BxcAwKgJA4767NAA4LSP/BOTbP635P+HSZBDg3qg4eaXvcwIs3X/zjmC7EhH2XC57swHLfQMA0JUhxARs35/RX+eZiOMBQEEYb27ffC44T6wReOZwME4PkxEAGPdyN5gWAJ18wLaO/14GYNLIBOoDkNuHzjUQ6w3HAwCHAH9ewA0AYAJm81r+p9Z1LojzgbpAlQXo93rKW4wguYCcgM2PL0zAwQ0AwIikqv6bNBLA9f9hXA4g6va2nsfWj91WTnc0mK+1wF8dAQCxAZ+1/u3nWRFkdC6Ir0Vr9fXGLwH96eDHBjD2N1cAqAkQ6F9P/Prv9QEQ618SkKABoEuASBQfNiD7d84sgJKAl/68Md8njTTARN8DTNafg96GIwKgR4B4UnqwASx1FgMoCfhcCOZ/HQqoEoND8f98/SmJN1cxIgEaJSJDglBdyMiGf2EXgAMtABIC0kVR/iEC4AmBbgzI5c19MgISPADgRd2SCUmWDxB+bvF/uwRAQsAz/dvRnzc9gm4IoGruNJsnePqDNwdls5zqbLXQu5S/7NEC4BH5IWD7Phl4ePtvdcI/dfX27GOFCACMALnEjOBiwAHvW8F2bgFwJu/zJWS8qz8X/ONQJnjQ/r8D6iy2NjbA6GiXaoo7I6B6kaoepAbg6AQAppr/nPdcgTQJJOgSDtI/J2CFpz+AALWJz/eHHRBQ/0NVD1IDQFIQoPIC25/5RGIBOpuCMAsAbvW//eCIAIzjhaX+jnaGnn9XlQPUANDsB8sJyNP/35pZv9eyb1JXhSqLQbih/jkBK0QAMgJSO/0JI8EXWa9fsDy1ACBOBIgIqJs/tf29EIAJ1AJoXfWRGhIwcMRb0uIPXKZHvRZofHq1GegUgOY37KV/OzBwQF2YYPtHy4saEjDY5WGIAI1SbbIKkeJzmXcAngTk1d+DC8DnsVBFXWjCXx4gx2Gy1izVNCJA0udFTIDOtCbLCeb3f7IgAChYzPX/NhkmoIkBuDnEfK1dqpsaRIJjTQL0FGVEGwMs7aDVBeAQOSIgzZ/1hH9TAAA4FdQGYG7SZqEqFkbSX3TVg+6MJiOgA8DBEwA5AbP3+UT2PNsCTODbgHxu1mYDm4DeZU/aFp2IABbJATi7AiBS6t80A8AIkHPjux20CZC3e+4RwEzdJLb+nTXGowPA0dndT+L0fxny9RYGUAAs7vbQJUDV9H+T2ltrdAIK7ZsEVGeDXwDcXAGQvk++DZj99uZPT/wWDmj6axOgvPbB/sw3+qGhOv//IqDOBD8BOO0cAbCefPsmWgHw/j5AxwAMAsAtmzfpEaC+9uH7LDAb8NT9RUB1LugFwH7pRn82K9s/ySwA5HRoYxeI/2x7zPpzwdEAyAlY/Qt/48Tqw/qZpjoT/ATAVSowWwN8TBI+AEAzFQzNAgK3/9AIUHmA/OYX+/PjiDagvRlYfWy9CHgB8HCWB6paQDaX/LwPAIcdB+AY+msRALr70+DuByob0C0HKAl49AA4O9G/eJvnKdBO0VcHAJkheDoAhJveNQmAWACkOACDACbKCYoAuDuZ/+VXapwDb/QCam0Kt9IAk94mcE0Alv5AAsZqAzCub/9kCNMF5UOEOcFzD4Cby5qg8iKACW8C8FoJcMlpkJfpLyqC3vGKaCAEjFV5oAKAPCU8Q5i+CDtDwg/I/s/dsQfAdedO/3y0Gx0AG1mfxqmQpv4Tcfw/se7Uom8DIACMP2YoDUDsCRD/OIt+vfYAOE3p9W+N9uvkT3vrp7IAwxVBTx/A15+476gkYAwgoLj9kSFlc6hKRA77HgDEQUDPn6XvLQKeJr8RGPQBKE0/l5/+s8lScRUAgDVAvSlc7MGjj5v19C+ev436ABwdzv+GDXg1hWv6hIHmME8AuNH2vzUBkNs/X0UBOARYXOU4/O8eAgBurvz/k4D1JPn2Cvab3WGHrwl8kkCiv4KAsZqAt2b7P5RkjqkXkB5EugsAuOxczv9nJNje9O0cDRa3hcmf+ZroXWUNBAC3f/6UxX84BtyWANkPPXcCmgBcl471L66FejYFFW75CAGw3v4zJgCif9oz4H4iQelPTPcCAMiSwZL3ry4GbNR/K2+JKpo/Eeov8wLq2197RYH+CJAuAkYiAM7O9a+rw3nbB0wUx8H4fBtRPoM2QAnAxw9hEBccAQ8hADTLAEUgVNSHD+76iyJA4vmfP7ONkf4/ffwQD4DrfIDyj56FANA0DFZ9++f1wIC+wFX8t40iLwRo+n9vBCj/5CsR3ALgSpALBLx3thqENQev9H+n17+45FMXgOHesSinPTQuAlD+ueVVCICvayOeBIBswHsauXiENkCq/y8pYU5fgwDAn2rEgC0Ajl701/AC7vQXEWBk/1/5AEcEQP7QeQCAmx/9awLULSESd/prEqDqHe5sLQAa8uMAAMipII1EaG8tMPA41L9PgEx/5Ys5sgGwmwJuAwCcDp70L/MBgenfjQRl+gMqAJ3YAJjJbeQB2wCgHg/S3AgBxAETx/p3GglVjUAM9XdjA2Cf/xgNAXDCA0D768oJSBI+odn+kxPwAbAA0Apg8rUAtA/JfRiAJZ7+2t9VSkDCNwv3+pfXvCr2guEV4DjdHwY/A/rhy8sgAPuDP/1lBOTz34v+jSYitvMfzQsMCQ3+5MN+EACsbLBhIUS9N9hL/+Wn//3oX9gAGQF6J0AIbQD8c8+jYQBwTgiaF8JUa4G66uOZ//Wnf2UDxgMOQPcEEKkNAP7wUQIAyglBm0Ko3AskSQMAbtH9A9cLYOgfAgHTkwyAM8bL2ex9ree8pX9p/6PINwFjUUU4NzgBSEKAzic+RjIArJOB1ueZCgJaYYBv/curngUPNzoByrBKRc30by8CewDYNotC4Lu9FnBQ/gEloGsCuOEJYJScYJMALYewu8oBeHhY/0lXgyHoXxLQ0f+78QlwbBugNeSHkRwAqzOiSH0uy7VA6Qjm2yiIJ4sDxi0jsLHoAIDTA6gabM02hGcFADbrALQ+p6UNQOj+g+8F4mpDgFt1gMAjQHfE22lAEQAPi/dB62tTENC/+9e/F4irHSFu2QEEkwCtH+l6gD4Ax51//curZBG6P+ESsFjFlvEfMgH6APQ8QB8A03UAqv6lDXgPSv+igUDl/9coN8fj9A/Q+pDlVQ3A2fxdMKfbeh6a/jkBq/KyUJTEtD0B+kHAY6QGwCgXhLO2bX3gbJay0AiIMhsQb2Zo39HuGzKmS0A3CyQEwMQHoHe3LTussAAJ2GxmiJTbjFq1CtQZpeUJAoB+YRh+b9u0bG4cng3IDBPDBMCm/wfrZoQMPIAIgP3UAGTs3sasDizD0h851GU2/T9eqWDwzxxBAOimApAHpdXTOg2LAIYd6xoTYLQZ1CoHlgCg1ysEW//WdwvLBjwtE6q3M/mG3e1g2CudRzAAtMJAdIlY56bTcAigu9AL4U0An9FPAgwBoBEGYk//3ncLhwCqRYk+AeL+ryYh4AAA8DAQ3UkzwW3ngRAgvIPZBwFisdW3U9/AAICzgcT2P6hIkGmONxUBg2Go6o0OezgAwBMi2K1r2BDbARDAGKFD0CFg+BcrPkJoAAYAgJkAR/qHQICh1yUgQNr/UTsEHAQA0jscP/07zLbvrPBA13X3BCgOh0r+5X2kAwAgGeRQf/82gJEvC2DDaX48fHfVA0BpApzq75kA5mJhCBlQiwYR55EeAPtHUPoTJBww1v+OCbBoETNkAAYBUJgAZ/FfADZA9mZOCYD9MvEfOu91AZAuBDzo74sAlKYsKASA28SJAtbLSBuAYRPAvOjvJyOE05YJgwCNRpH9P/nY6wMwfIeMJ/192ACsxmz2BGi1iu1lrQYNgAyAoXQgSz3pX5bQBKY/NgEDjOs1i+7+6cEIQAqAeFOQrPwHOWPmTH8nNkC3/L/9x3fDBkAKgGhTkDGf+rslwMrrohKg/fntN7qPzAAQnBRl3vy/ewKsvC6qFzD49OYbCWqBgQD0uob5199dJGjndTFtgOGdUc+q4ePIFIDuUtC3/XdKgLbXZUTDYn5tXPlzh705AO1skN/4z+1awNLrIg6M8cfW/QMuIwsAmjcKh6K/izjAzOuirgZT648tx/cxsgGg0ToyHP3pCTB6M+zVYMpsPzT/4V9PdgA884EU5X/MZnxYYPrjR4LZV7S+Pf7HX0aWAFT5wLD0p40Ejd8MfS1g/XHssbcFoEwGoNdkWX8gnQ2w8bopciRo+2mDZQAaAOSlIRT6U2TMvL8a5kBhHEQ8j+wBGF1/DW/+060GLd8M0wbYEzA9YQAwuizT4OY/lQ1gLAS260GyXHktryMUAEb//MEC1J+CABTDhPL1qiyOVQuJ+wgJgP3fgtSfojQ1GP/G7LMvyhUAGIDMCQSpP3IcgGW97T+n2SPD2KIAAgAwAIgXymFvJyLaADzXZL3G7fTIMPm03W2ECADGTRIU+mMSgLyCQ3sTMwJAAYAGAEi3ihKc8cMiAHkzxybPzQQ5Qd0POZxwAcAJA0jOeOIQEE6mQ3QQWZsAyApQDwCMK+WIzvgynL7LURgEiA8ia35FYACgBYB9IEh2xtuaAIrj56bVLoM9MiwuBsIBwDIQpDzjb0kAI3JNRvVubPAbMgL9tQBQnRj2pr/t7jCVazKpeGWSjAe0Sv2wpwGgVSAWjP23J4DONWnXvDP5N4R92vQ2IgLAYilA3uPFnABK16R56oWpviHk05bHERkAo9vSlTF0RQDpq2l281f1yACFOjst/XUBMCPATY8no0iQkbsm+MlXSI8M5VfU1F8bAJN0gKseXwYEMAeuCXz2HdQjQ/EVd/cRMQD614q56/GmTYAb14R4xFi1Gtyd9+QA6BLgssefJgGOXBNsbsN7ZDBE/U0AGN13geqvWR/gzDVBvDs8UhgmYHc+jVwAoGMDXPf41CDAoWvCbDQ0TMDuoa+/GQBwAtz3eAV7AaeuiSl6zek6LoY0/00BgK4GffT4BRLg2jVJ++Dqhq6iTzPw/xYAwHKCfno8gwhw75oYXsNZkQ3Y3Y30NwZgdJmCSI2iIAnw4JoGfiMzPYnMOvlfM/3NARhdDyzE+Q8iz4trYog957s24HA1ldEcgNHpwUKc/wAb4Ms1CW+dwDiJfDiNPAAw2ssSAv66eysJ8GWaBB08rft/FH9nob8VALLloPcbHoYJ8Omaenfi2dQOV1OMnS30twRgMBT0fsfLMIE+X411K/5te2SwfPtvP/IHwEAgwAK4+X3ABvh9NdY+82PfIyOdXuwEtAVAGAiEoP8AAb5frXXqz/4b/rAy/ygACNxAEPJHwn2BEFxT9QYYb/LHX/Yj/wB03UAo+gtsQBCuqTr5j/AmtuYfC4DMDSxD1L9HQCCuiTGUnsvscR0FAkDmBuq0IAtJ/w4Bobwbjv7L434UDgCjf5x3wc3/ThwQDJuMIbQiQpn+iACMRrcpC0//xomagGwTsx6n5RFLNjwARn//5zKIe77FBISjv30MwM7XUYAAjEb//fwjOP3rnqsh6W938wI73BA1QwVgNPr9jyhIAtKA7P/TITFD678fhQvA6HQO0AakaRqQ/iyyIGCHaP1JAMiCwUOIcWCasqD0N4tK2eGCLRc+AKN9sR4ITX+3N04C9DcgYHrbj74AAJkfuC8D0r9IBrEgCOgorkfA8n4i0IoEgKAQqOLtEAiwqQiikZ8MgNHoet6FpL+fu8cV+sMJWN6vRDqRARAIAo31tm8bMFQVrL6ffHk8kalECECGwGPpe841139+CWCGFWpsetwTakQKQIaA11igu9b2SMCwzopzg4/bnlQhYgAyBI7eFoX9fKu/OECisoSA5Z1YfgcAZCuCi6fUkGBkvZ1WMzgdvDscr/TqOABgNNpnnoCFYXU9HQpSNYDrk7o8X/cutHECQGkGdiyEQfd0LFCZrGzFKsvHZe9IGFcAZGbgdHcZDUiCrtT5wWBQuvql/m3vTBWHAJSuYOq/K4vrtQADApCWlv9ycimJWwDyRcHteNh5HnS3NgDaJu7H//vjcLxcHevhHIDcDlwu1IaAsWBOrkP1//X8P/6xdy+GDwDKmPD2WPq7/tsdAZBMb+71T3/f+1HCEwBFQHC5nUkgAA26sxaB8n+/O9yvp/3emwoeAShDgsvxjr0+BGnrrEmoRPvp+Xa5nvwK4BuAMia43Y54DgHem9dBm+Ah6R/H6+m0HwXwRKMwnlNOwfEx3Tm7mcpJo/Budnd5yGZ9Nu33o1CeaBTSs79eL5cMhPNhudtRX/9AnQ949fDZLaeH+y1X3rvFDxyAl0HIQchtwjGnYbrMeMiIADVd1ui6S7I3mL/Cbrf89fDX819+/1/Zlwhsynee/w+/M91qQ+OP8gAAAABJRU5ErkJggg==
-          LOGO_BASE64
-          base64 -d /tmp/say-ai-logo.b64 > /tmp/say-ai-logo.png
-          for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
-            cp /tmp/say-ai-logo.png app/src/main/res/mipmap-${density}/ic_launcher.png
-          done
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
-              <application
-                  android:allowBackup="false"
-                  android:label="SAY AI"
-                  android:icon="@mipmap/ic_launcher"
-                  android:roundIcon="@mipmap/ic_launcher"
+              <application android:allowBackup="false" android:label="SAY AI"
+                  android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher"
                   android:theme="@android:style/Theme.Material.Light.NoActionBar"
                   android:usesCleartextTraffic="false">
-                  <activity
-                      android:name=".MainActivity"
+                  <activity android:name=".MainActivity"
                       android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-                      android:launchMode="singleTop"
-                      android:exported="true">
+                      android:launchMode="singleTop" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
                           <category android:name="android.intent.category.LAUNCHER" />
@@ -118,33 +95,23 @@ jobs:
           EOF
           cat > app/src/main/java/com/trofficial/sayai/MainActivity.java <<'EOF'
           package com.trofficial.sayai;
-
           import android.app.Activity;
           import android.content.Intent;
           import android.net.Uri;
           import android.os.Bundle;
-          import android.webkit.JavascriptInterface;
-          import android.webkit.WebChromeClient;
-          import android.webkit.WebView;
-          import android.webkit.WebViewClient;
-          import android.webkit.WebResourceRequest;
+          import android.webkit.*;
           import org.json.JSONObject;
-
           public class MainActivity extends Activity {
               private WebView webView;
               private String pendingOAuthCode;
               private int oauthDeliveryAttempts = 0;
-
               public class SayAiBridge {
-                  @JavascriptInterface
-                  public void openExternal(String url) {
+                  @JavascriptInterface public void openExternal(String url) {
                       if (url == null || !url.startsWith("https://")) return;
                       runOnUiThread(() -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))));
                   }
               }
-
-              @Override
-              protected void onCreate(Bundle savedInstanceState) {
+              @Override protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   webView = new WebView(this);
                   webView.getSettings().setJavaScriptEnabled(true);
@@ -153,22 +120,15 @@ jobs:
                   webView.addJavascriptInterface(new SayAiBridge(), "SayAiAndroid");
                   webView.setWebChromeClient(new WebChromeClient());
                   webView.setWebViewClient(new WebViewClient() {
-                      @Override
-                      public void onPageFinished(WebView view, String url) {
-                          super.onPageFinished(view, url);
-                          deliverPendingOAuthCode();
+                      @Override public void onPageFinished(WebView view, String url) {
+                          super.onPageFinished(view, url); deliverPendingOAuthCode();
                       }
-                      @Override
-                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                      @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                           Uri uri = request.getUrl();
-                          if ("com.trofficial.sayai".equals(uri.getScheme())) {
-                              handleOAuthUri(uri);
-                              return true;
-                          }
+                          if ("com.trofficial.sayai".equals(uri.getScheme())) { handleOAuthUri(uri); return true; }
                           String host = uri.getHost();
                           if (host == null) return true;
-                          boolean trusted = host.equals("say-ai.pages.dev")
-                              || host.equals("supabase.co") || host.endsWith(".supabase.co");
+                          boolean trusted = host.equals("say-ai.pages.dev") || host.equals("supabase.co") || host.endsWith(".supabase.co");
                           return !trusted;
                       }
                   });
@@ -177,64 +137,36 @@ jobs:
                   else webView.restoreState(savedInstanceState);
                   handleOAuthReturn(getIntent());
               }
-
-              @Override
-              protected void onNewIntent(Intent intent) {
-                  super.onNewIntent(intent);
-                  setIntent(intent);
-                  handleOAuthReturn(intent);
+              @Override protected void onNewIntent(Intent intent) {
+                  super.onNewIntent(intent); setIntent(intent); handleOAuthReturn(intent);
               }
-
-              @Override
-              protected void onResume() {
-                  super.onResume();
-                  deliverPendingOAuthCode();
-              }
-
-              private void handleOAuthReturn(Intent intent) {
-                  handleOAuthUri(intent == null ? null : intent.getData());
-              }
-
+              @Override protected void onResume() { super.onResume(); deliverPendingOAuthCode(); }
+              private void handleOAuthReturn(Intent intent) { handleOAuthUri(intent == null ? null : intent.getData()); }
               private void handleOAuthUri(Uri uri) {
-                  if (uri == null || !"com.trofficial.sayai".equals(uri.getScheme())
-                      || !"login-callback".equals(uri.getHost())) return;
+                  if (uri == null || !"com.trofficial.sayai".equals(uri.getScheme()) || !"login-callback".equals(uri.getHost())) return;
                   String code = uri.getQueryParameter("code");
                   if (code == null) return;
-                  pendingOAuthCode = code;
-                  oauthDeliveryAttempts = 0;
-                  deliverPendingOAuthCode();
+                  pendingOAuthCode = code; oauthDeliveryAttempts = 0; deliverPendingOAuthCode();
               }
-
               private void deliverPendingOAuthCode() {
                   if (pendingOAuthCode == null || webView == null) return;
                   String quotedCode = JSONObject.quote(pendingOAuthCode);
-                  webView.evaluateJavascript(
-                      "(function(){if(typeof window.handleSayAiGoogleCallback==='function'){window.handleSayAiGoogleCallback("
-                          + quotedCode + ");return 'sent';}return 'wait';})()",
-                      result -> {
-                          if (result != null && result.contains("sent")) {
-                              pendingOAuthCode = null;
-                          } else if (oauthDeliveryAttempts++ < 480 && webView != null) {
-                              webView.postDelayed(this::deliverPendingOAuthCode, 250);
-                          }
-                      });
+                  webView.evaluateJavascript("(function(){if(typeof window.handleSayAiGoogleCallback==='function'){window.handleSayAiGoogleCallback(" + quotedCode + ");return 'sent';}return 'wait';})()", result -> {
+                      if (result != null && result.contains("sent")) pendingOAuthCode = null;
+                      else if (oauthDeliveryAttempts++ < 480 && webView != null) webView.postDelayed(this::deliverPendingOAuthCode, 250);
+                  });
               }
-
-              @Override
-              public void onBackPressed() {
-                  if (webView != null && webView.canGoBack()) webView.goBack();
-                  else super.onBackPressed();
+              @Override public void onBackPressed() {
+                  if (webView != null && webView.canGoBack()) webView.goBack(); else super.onBackPressed();
               }
           }
           EOF
-
       - name: Build installable debug APK
         run: gradle --no-daemon assembleDebug
-
-      - name: Upload fixed APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SAY-AI-Android-APK-Google-Login-Fix
+          name: SAY-AI-Android-APK-with-Logo
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
