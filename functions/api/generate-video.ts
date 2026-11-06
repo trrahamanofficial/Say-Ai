@@ -1,5 +1,5 @@
 interface Env { SAY_AI_CONFIG?: KVNamespace }
-type VideoConfig = { provider?: 'huggingface'; model?: string; apiKey?: string; enabled?: boolean };
+type VideoConfig = { provider?: 'zerogpu' | 'huggingface'; model?: string; apiKey?: string; enabled?: boolean };
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
 
 function providerError(status: number, detail: string) {
@@ -84,7 +84,7 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
 
     const motion = typeof body.cameraMotion === 'string' ? body.cameraMotion : 'Slow Pan';
     const ratio = typeof body.aspectRatio === 'string' && ['16:9', '9:16', '1:1'].includes(body.aspectRatio) ? body.aspectRatio : '16:9';
-    if (body.provider === 'zerogpu') {
+    if ((config.provider || 'zerogpu') === 'zerogpu') {
       const result = await generateZeroGpu(prompt, motion, ratio, config.apiKey);
       return json({ success: true, ...result });
     }
