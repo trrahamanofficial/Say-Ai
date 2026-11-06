@@ -76,6 +76,25 @@ export default function AuthGate() {
     return () => { mounted = false; data.subscription.unsubscribe(); };
   }, []);
 
+  // Receive the OAuth authorization code returned to the Android deep link.
+  useEffect(() => {
+    if (!supabase) return;
+    window.handleSayAiGoogleCallback = async (code: string) => {
+      setBusy(true);
+      setMessage('');
+      try {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) throw error;
+        if (!data.session) throw new Error('Google sign-in did not return a session. Please try again.');
+        setSession(data.session);
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : 'Google sign-in could not be completed. Please try again.');
+        setBusy(false);
+      }
+    };
+    return () => { delete window.handleSayAiGoogleCallback; };
+  }, []);
+
   useEffect(() => {
     let active = true;
     async function resolve() {
