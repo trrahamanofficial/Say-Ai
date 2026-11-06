@@ -13,7 +13,6 @@ import {
   Video,
   ArrowRight,
   Sparkles,
-  Download
 } from 'lucide-react';
 import { SayAiLogo } from './Logo';
 import { ScreenType } from '../types';
@@ -23,7 +22,6 @@ interface SidebarProps {
   onNavigate: (screen: ScreenType) => void;
   onOpenPro: () => void;
   onLogout: () => void;
-  onDownloadProjectZip: () => void;
   className?: string;
   onCloseMobileDrawer?: () => void;
 }
@@ -33,7 +31,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onNavigate,
   onOpenPro,
   onLogout,
-  onDownloadProjectZip,
   className = '',
   onCloseMobileDrawer
 }) => {
@@ -98,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Bottom Pro Card & Project ZIP */}
+      {/* Bottom Pro Card */}
       <div className="pt-4 space-y-3">
         {/* Pro Card matching Image 5 */}
         <div className="relative rounded-2xl p-4 bg-gradient-to-b from-purple-950/60 to-indigo-950/80 border border-purple-500/30 overflow-hidden shadow-[0_0_25px_rgba(147,51,234,0.2)]">
