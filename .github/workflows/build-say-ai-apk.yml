@@ -164,6 +164,8 @@ jobs:
 
           public class MainActivity extends Activity {
               private WebView webView;
+              private String pendingOAuthCode;
+              private int oauthDeliveryAttempts = 0;
 
               public class SayAiBridge {
                   @JavascriptInterface
@@ -186,6 +188,12 @@ jobs:
                   webView.addJavascriptInterface(new SayAiBridge(), "SayAiAndroid");
                   webView.setWebChromeClient(new WebChromeClient());
                   webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public void onPageFinished(WebView view, String url) {
+                          super.onPageFinished(view, url);
+                          deliverPendingOAuthCode();
+                      }
+
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                           String host = request.getUrl().getHost();
@@ -217,10 +225,24 @@ jobs:
                       || !"login-callback".equals(uri.getHost())) return;
                   String code = uri.getQueryParameter("code");
                   if (code == null || webView == null) return;
-                  String quotedCode = JSONObject.quote(code);
-                  webView.post(() -> webView.evaluateJavascript(
-                      "window.handleSayAiGoogleCallback && window.handleSayAiGoogleCallback(" + quotedCode + ")",
-                      null));
+                  pendingOAuthCode = code;
+                  oauthDeliveryAttempts = 0;
+                  deliverPendingOAuthCode();
+              }
+
+              private void deliverPendingOAuthCode() {
+                  if (pendingOAuthCode == null || webView == null) return;
+                  String quotedCode = JSONObject.quote(pendingOAuthCode);
+                  webView.evaluateJavascript(
+                      "(function(){if(typeof window.handleSayAiGoogleCallback==='function'){window.handleSayAiGoogleCallback("
+                          + quotedCode + ");return 'sent';}return 'wait';})()",
+                      result -> {
+                          if ("\"sent\"".equals(result)) {
+                              pendingOAuthCode = null;
+                          } else if (oauthDeliveryAttempts++ < 40 && webView != null) {
+                              webView.postDelayed(this::deliverPendingOAuthCode, 250);
+                          }
+                      });
               }
 
               @Override
