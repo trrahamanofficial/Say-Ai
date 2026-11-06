@@ -7,7 +7,7 @@ interface Env {
   };
 }
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export async function onRequestPost({ request, env }: { request: Request; env: Env }): Promise<Response> {
   try {
     const body = await request.json() as { prompt?: unknown; category?: unknown };
     const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
@@ -59,4 +59,4 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     const message = error instanceof Error ? error.message : 'Unknown image generation error';
     return Response.json({ error: `Image generation failed: ${message}` }, { status: 500 });
   }
-};
+}
