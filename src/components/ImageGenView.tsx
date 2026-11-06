@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Sparkles,
   ArrowRight,
@@ -32,6 +32,28 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
   const [activeModalImage, setActiveModalImage] = useState<GeneratedImage | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [generationError, setGenerationError] = useState('');
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const previewAfterGeneration = useRef(false);
+
+  useEffect(() => {
+    if (!isGenerating) {
+      if (!previewAfterGeneration.current) setGenerationProgress(0);
+      return;
+    }
+    setGenerationProgress(4);
+    const timer = window.setInterval(() => {
+      setGenerationProgress((current) => Math.min(95, current + Math.max(1, Math.round((95 - current) * 0.08))));
+    }, 700);
+    return () => window.clearInterval(timer);
+  }, [isGenerating]);
+
+  useEffect(() => {
+    if (previewAfterGeneration.current && generatedImages.length > 0) {
+      setGenerationProgress(100);
+      setActiveModalImage(generatedImages[0]);
+      previewAfterGeneration.current = false;
+    }
+  }, [generatedImages]);
 
   const categories = [
     { name: 'Nature', emoji: '🌿' },
@@ -103,9 +125,12 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
     e.preventDefault();
     if (!prompt.trim() || isGenerating) return;
     setGenerationError('');
+    previewAfterGeneration.current = true;
     try {
       await onGenerateImage(prompt, selectedCategory);
     } catch (error) {
+      previewAfterGeneration.current = false;
+      setGenerationProgress(0);
       setGenerationError(error instanceof Error ? error.message : 'Image generation failed. Please try again.');
     }
   };
@@ -178,6 +203,19 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
         {generationError && (
           <div role="alert" className="rounded-xl border border-red-500/40 bg-red-950/40 px-4 py-3 text-sm text-red-200">
             {generationError}
+          </div>
+        )}
+
+        {isGenerating && (
+          <div className="rounded-xl border border-purple-500/30 bg-[#0c0f30]/90 p-3 space-y-2" role="status" aria-live="polite">
+            <div className="flex items-center justify-between text-xs font-semibold text-purple-100">
+              <span>Creating your image...</span>
+              <span className="tabular-nums">{generationProgress}%</span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
+              <div className="h-full rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-blue-500 transition-all duration-700" style={{ width: `${generationProgress}%` }} />
+            </div>
+            <p className="text-[11px] text-slate-400">Estimated progress — the image will open automatically when ready.</p>
           </div>
         )}
 
