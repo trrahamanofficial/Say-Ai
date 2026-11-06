@@ -41,7 +41,35 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
   const [testingProviderId, setTestingProviderId] = useState<string | null>(null);
 
   // Initial user profile matching the screenshots
-  const [userProfile, setUserProfile] = useState<UserProfile>(profile);
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    try {
+      const saved = localStorage.getItem(`sayai-appearance-${profile.id}`);
+      const appearance = saved ? JSON.parse(saved) : null;
+      return appearance && typeof appearance === 'object'
+        ? { ...profile, appearance: { ...profile.appearance, ...appearance } }
+        : profile;
+    } catch {
+      return profile;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`sayai-appearance-${profile.id}`, JSON.stringify(userProfile.appearance));
+    } catch {
+      // Appearance still works for this session if browser storage is unavailable.
+    }
+  }, [profile.id, userProfile.appearance]);
+
+  const updateUserProfile = (updated: Partial<UserProfile>) => {
+    setUserProfile((prev) => ({
+      ...prev,
+      ...updated,
+      appearance: updated.appearance
+        ? { ...prev.appearance, ...updated.appearance }
+        : prev.appearance
+    }));
+  };
 
   // System diagnostic state
   const [systemHealth, setSystemHealth] = useState<SystemHealth>({
@@ -408,7 +436,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
             onOpenPro={() => setCurrentScreen('pro')}
             onLogout={onSignOut}
             userProfile={userProfile}
-            onUpdateProfile={(updated) => setUserProfile((prev) => ({ ...prev, ...updated }))}
+            onUpdateProfile={updateUserProfile}
           />
         );
       case 'history':
@@ -483,7 +511,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
   }
 
   return (
-    <div className="min-h-screen bg-[#050614] text-white flex flex-col font-sans selection:bg-purple-500/30 selection:text-purple-200">
+    <div className="sayai-app min-h-screen bg-[#050614] text-white flex flex-col font-sans selection:bg-purple-500/30 selection:text-purple-200" data-sayai-theme={userProfile.appearance.theme} style={{ filter: `brightness(${Math.min(100, Math.max(20, userProfile.appearance.brightness))}%)${userProfile.appearance.theme === "light" ? " invert(1) hue-rotate(180deg)" : ""}` }}>
       {/* Top Application Header */}
       <Header
         currentScreen={currentScreen}

@@ -192,7 +192,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         <button
-          onClick={() => setActiveModal('login')}
+          onClick={onLogout}
           className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-purple-950/30 transition-all cursor-pointer text-left"
         >
           <div className="flex items-center gap-3">
