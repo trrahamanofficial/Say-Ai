@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { AppShell } from './App';
 import type { UserProfile } from './types';
+import { SayAiLogo } from './components/Logo';
 
 type AuthMode = 'login' | 'signup';
 
@@ -180,9 +181,8 @@ export default function AuthGate() {
   return (
     <div className="min-h-screen bg-[#050614] text-white flex items-center justify-center p-4">
       <div className="w-full max-w-md rounded-3xl border border-purple-500/30 bg-[#0a0e2a]/90 p-6 sm:p-8 shadow-[0_0_45px_rgba(139,92,246,0.18)]">
-        <div className="text-center mb-7">
-          <div className="text-3xl font-black tracking-wide">SAY <span className="text-purple-400">AI</span></div>
-          <p className="text-slate-400 text-sm mt-2">Your personal AI universe</p>
+        <div className="mb-7 flex justify-center">
+          <SayAiLogo size="lg" showSubtitle={true} className="justify-center" />
         </div>
         <div className="grid grid-cols-2 rounded-xl bg-[#050614] p-1 mb-6">
           <button onClick={() => { setMode('login'); setMessage(''); }} className={`rounded-lg py-2.5 text-sm font-semibold ${mode === 'login' ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>Login</button>
