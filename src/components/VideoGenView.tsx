@@ -14,7 +14,7 @@ export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate }) => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [generationMessage, setGenerationMessage] = useState<string>('');
 
-mport React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Video, Sparkles, Play, RefreshCw, Download, ArrowRight, Film, Sliders } from 'lucide-react';
 import { ScreenType } from '../types';
 
