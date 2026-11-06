@@ -31,7 +31,7 @@ jobs:
         run: npm run build
 
       - name: Install Capacitor Android tooling
-        run: npm install --no-save @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+        run: npm install --legacy-peer-deps --no-save @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
       - name: Add Android platform and sync
         run: |
