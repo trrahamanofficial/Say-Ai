@@ -18,7 +18,7 @@ const emptyProfile = (id: string, email: string, name: string, role: 'user' | 'a
 });
 
 async function loadProfile(userId: string, email: string, metadata: Record<string, unknown> = {}) {
-  if (!supabase) return emptyProfile(userId, email, String(metadata.full_name || 'SAY AI User'));
+  if (!supabase) return emptyProfile(userId, email, String(metadata.full_name || metadata.name || 'SAY AI User'));
   const [primary, legacy] = await Promise.all([
     supabase.from('users_profiles').select('*').eq('id', userId).maybeSingle(),
     supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
@@ -88,6 +88,24 @@ export default function AuthGate() {
     } finally { setBusy(false); }
   };
 
+  const signInWithGoogle = async () => {
+    if (!supabase) return;
+    setBusy(true); setMessage('');
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}${window.location.pathname}`,
+          queryParams: { access_type: 'offline', prompt: 'select_account' }
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Google sign-in failed. Please try again.');
+      setBusy(false);
+    }
+  };
+
   const signOut = async () => { await supabase?.auth.signOut(); setProfile(null); setSession(null); };
 
   if (!isSupabaseConfigured || !supabase) {
@@ -119,6 +137,11 @@ export default function AuthGate() {
           <label className="block text-sm text-slate-300">Password<input type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} className="mt-1 w-full rounded-xl border border-purple-900/50 bg-[#050614] px-4 py-3 text-white outline-none focus:border-purple-500" placeholder="At least 6 characters" /></label>
           <button disabled={busy} className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 py-3 font-bold text-white disabled:opacity-60">{busy ? 'Please wait...' : mode === 'signup' ? 'Create Account' : 'Login to SAY AI'}</button>
         </form>
+        <div className="my-5 flex items-center gap-3 text-xs text-slate-500"><span className="h-px flex-1 bg-purple-900/60" /><span>OR</span><span className="h-px flex-1 bg-purple-900/60" /></div>
+        <button type="button" onClick={signInWithGoogle} disabled={busy} className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-600/70 bg-white py-3 font-semibold text-slate-800 transition hover:bg-slate-100 disabled:opacity-60">
+          <svg aria-hidden="true" viewBox="0 0 48 48" className="h-5 w-5"><path fill="#FFC107" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-8.9 6-15Z"/><path fill="#FF3D00" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5.1c-1.8 1.2-4.1 2-6.8 2-5.2 0-9.6-3.5-11.2-8.2H5.9v5.2A20 20 0 0 0 24 44Z"/><path fill="#4CAF50" d="M12.8 27.8a12 12 0 0 1 0-7.6V15H5.9a20 20 0 0 0 0 18l6.9-5.2Z"/><path fill="#1976D2" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6.1 29.5 4 24 4A20 20 0 0 0 5.9 15l6.9 5.2c1.6-4.7 6-8.1 11.2-8.1Z"/></svg>
+          Continue with Google
+        </button>
         {message && <p className="mt-4 rounded-xl border border-purple-500/20 bg-purple-950/30 p-3 text-sm text-slate-200">{message}</p>}
         <p className="mt-6 text-center text-xs text-slate-500">Secure sign-in powered by Supabase</p>
       </div>
