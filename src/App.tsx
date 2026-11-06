@@ -30,7 +30,7 @@ import { NotificationModal } from './components/NotificationModal';
 import { isSupabaseConfigured, testSupabaseConnection } from './lib/supabase';
 import { X, Smartphone, Monitor } from 'lucide-react';
 
-export default function App() {
+export function AppShell({ profile, onSignOut, adminMode = false }: { profile: UserProfile; onSignOut: () => void; adminMode?: boolean }) {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('dashboard');
   const [isMobileFrame, setIsMobileFrame] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
@@ -41,26 +41,7 @@ export default function App() {
   const [testingProviderId, setTestingProviderId] = useState<string | null>(null);
 
   // Initial user profile matching the screenshots
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    id: 'usr-default',
-    name: 'SAY AI User',
-    email: 'trrahaman.official@gmail.com',
-    role: 'admin',
-    plan: 'Free',
-    avatarUrl: '/assets/extracted/user-avatar.png',
-    stats: {
-      chatUsed: 46,
-      chatLimit: 50,
-      imagesUsed: 15,
-      imagesLimit: 20,
-      voiceUsed: 18,
-      voiceLimit: 30
-    },
-    appearance: {
-      theme: 'dark',
-      brightness: 80
-    }
-  });
+  const [userProfile, setUserProfile] = useState<UserProfile>(profile);
 
   // System diagnostic state
   const [systemHealth, setSystemHealth] = useState<SystemHealth>({
@@ -372,15 +353,6 @@ export default function App() {
     setProviders((prev) => [...prev, created]);
   };
 
-  const handleDownloadProjectZip = () => {
-    const a = document.createElement('a');
-    a.href = '/SAY-AI-FULL-PROJECT.zip';
-    a.download = 'SAY-AI-FULL-PROJECT.zip';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
-
   const handleUpgradePlan = (plan: 'Free' | 'Pro' | 'Enterprise') => {
     setUserProfile((prev) => ({ ...prev, plan }));
   };
@@ -398,7 +370,6 @@ export default function App() {
             systemHealth={systemHealth}
             isMobileFrame={isMobileFrame}
             onToggleMobileFrame={() => setIsMobileFrame(!isMobileFrame)}
-            onDownloadProjectZip={handleDownloadProjectZip}
           />
         );
       case 'chat':
@@ -435,7 +406,7 @@ export default function App() {
           <SettingsView
             onNavigate={setCurrentScreen}
             onOpenPro={() => setCurrentScreen('pro')}
-            onLogout={() => setCurrentScreen('dashboard')}
+            onLogout={onSignOut}
             userProfile={userProfile}
             onUpdateProfile={(updated) => setUserProfile((prev) => ({ ...prev, ...updated }))}
           />
@@ -492,11 +463,24 @@ export default function App() {
             systemHealth={systemHealth}
             isMobileFrame={isMobileFrame}
             onToggleMobileFrame={() => setIsMobileFrame(!isMobileFrame)}
-            onDownloadProjectZip={handleDownloadProjectZip}
-          />
+              />
         );
     }
   };
+
+  if (adminMode) {
+    return (
+      <div className="min-h-screen bg-[#050614] text-white p-3 sm:p-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-center justify-between border-b border-purple-900/30 pb-4 mb-6">
+            <div><div className="text-xl font-black">SAY AI <span className="text-purple-400">ADMIN</span></div><p className="text-xs text-slate-400 mt-1">Private administration area</p></div>
+            <button onClick={onSignOut} className="rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-300">Logout</button>
+          </div>
+          <AdminView onNavigate={setCurrentScreen} systemHealth={systemHealth} currentUser={userProfile} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#050614] text-white flex flex-col font-sans selection:bg-purple-500/30 selection:text-purple-200">
@@ -509,7 +493,6 @@ export default function App() {
         onOpenNotifications={() => setIsNotificationOpen(true)}
         onOpenPro={() => setCurrentScreen('pro')}
         onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
-        onDownloadProjectZip={handleDownloadProjectZip}
         unreadCount={unreadNotifications}
       />
 
@@ -522,7 +505,7 @@ export default function App() {
               currentScreen={currentScreen}
               onNavigate={setCurrentScreen}
               onOpenPro={() => setCurrentScreen('pro')}
-              onLogout={() => setCurrentScreen('dashboard')}
+              onLogout={onSignOut}
               onDownloadProjectZip={handleDownloadProjectZip}
             />
           </div>
@@ -589,10 +572,7 @@ export default function App() {
                 setIsMobileDrawerOpen(false);
                 setCurrentScreen('pro');
               }}
-              onLogout={() => {
-                setIsMobileDrawerOpen(false);
-                setCurrentScreen('dashboard');
-              }}
+              onLogout={() => { setIsMobileDrawerOpen(false); onSignOut(); }}
               onDownloadProjectZip={handleDownloadProjectZip}
               onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
             />
