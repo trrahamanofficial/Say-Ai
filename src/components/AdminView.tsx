@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 import {
   ShieldAlert,
   Users,
@@ -30,6 +31,44 @@ export const AdminView: React.FC<AdminViewProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'logs' | 'brain' | 'video' | 'image'>('overview');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [realUsers, setRealUsers] = useState<Array<{id:string;name:string;email:string;role:string;plan:string;joined:string}>>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [usersError, setUsersError] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadRealUsers() {
+      if (!supabase) { if (mounted) { setUsersError('Supabase is not configured'); setUsersLoading(false); } return; }
+      try {
+        let rows: any[] = [];
+        const primary = await supabase.from('users_profiles').select('*').order('created_at', { ascending: false });
+        if (!primary.error && Array.isArray(primary.data)) rows = primary.data;
+        else {
+          const legacy = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+          if (legacy.error) throw legacy.error;
+          rows = legacy.data || [];
+        }
+        const mapped = rows.map((u:any) => ({
+          id: String(u.id || u.user_id || u.email || Math.random()),
+          name: String(u.name || u.full_name || u.display_name || 'SAY AI User'),
+          email: String(u.email || 'Email unavailable'),
+          role: String(u.role || 'user'),
+          plan: String(u.plan || 'Free'),
+          joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : 'Unknown'
+        }));
+        if (mounted) { setRealUsers(mapped); setUsersError(''); }
+      } catch (e) {
+        if (mounted) setUsersError(e instanceof Error ? e.message : 'Could not load real user records');
+      } finally { if (mounted) setUsersLoading(false); }
+    }
+    loadRealUsers();
+    return () => { mounted = false; };
+  }, []);
+
+  const registeredLast30Days = realUsers.filter(u => {
+    const t = Date.parse(u.joined);
+    return Number.isFinite(t) && Date.now() - t <= 30 * 24 * 60 * 60 * 1000;
+  }).length;
 
   const mockUsers = [
     { id: 'usr-1', name: 'SAY AI User', email: 'trrahaman.official@gmail.com', role: 'admin', plan: 'Free', joined: 'Nov 2026' },
@@ -87,7 +126,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               : 'text-slate-400 hover:text-white'
           }`}
         >
-          User Accounts ({mockUsers.length})
+          User Accounts ({usersLoading ? '…' : realUsers.length})
         </button>
         <button
           onClick={() => setActiveTab('logs')}
@@ -169,7 +208,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-purple-900/20 text-slate-200">
-                {mockUsers.map((u) => (
+                {(usersLoading ? [] : realUsers).map((u) => (
                   <tr key={u.id} className="hover:bg-purple-950/20">
                     <td className="p-3.5 font-semibold text-white">
                       <div>{u.name}</div>
@@ -196,6 +235,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     <td className="p-3.5 text-slate-400">{u.joined}</td>
                   </tr>
                 ))}
+                { !usersLoading && realUsers.length === 0 && <tr><td colSpan={4} className="p-5 text-center text-slate-400">{usersError || 'No registered users found.'}</td></tr> }
+                { usersLoading && <tr><td colSpan={4} className="p-5 text-center text-slate-400">Loading Supabase accounts…</td></tr> }
               </tbody>
             </table>
           </div>
