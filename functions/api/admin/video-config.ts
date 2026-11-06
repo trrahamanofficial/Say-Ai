@@ -3,7 +3,7 @@ type VideoConfig = { provider: 'huggingface'; model: string; apiKey: string; ena
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 const trimSlash = (value: string) => value.endsWith('/') ? value.slice(0, -1) : value;
 async function isAdmin(request: Request, env: Env) {
-  const token = request.headers.get('Authorization')?.replace(/^Bearer\\s+/i, '');
+  const token = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
   if (!token || !env.VITE_SUPABASE_URL || !env.VITE_SUPABASE_ANON_KEY) return false;
   try {
     const response = await fetch(trimSlash(env.VITE_SUPABASE_URL) + '/auth/v1/user', { headers: { Authorization: 'Bearer ' + token, apikey: env.VITE_SUPABASE_ANON_KEY } });
