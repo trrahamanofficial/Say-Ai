@@ -28,7 +28,7 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
     if (imageConfig?.provider === 'huggingface') {
       if (!imageConfig.apiKey) return Response.json({ error: 'Hugging Face token is not configured in Image AI Management.' }, { status: 503 });
       const model = imageConfig.model || 'black-forest-labs/FLUX.1-schnell';
-      const response = await fetch('https://router.huggingface.co/hf-inference/models/' + encodeURIComponent(model), {
+      const response = await fetch('https://router.huggingface.co/hf-inference/models/' + model.split('/').map(encodeURIComponent).join('/'), {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + imageConfig.apiKey, 'Content-Type': 'application/json', Accept: 'image/*' },
         body: JSON.stringify({ inputs: finalPrompt })
