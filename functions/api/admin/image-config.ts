@@ -3,10 +3,10 @@ type ImageConfig = { provider: 'cloudflare'; model: '@cf/black-forest-labs/flux-
 const defaults: ImageConfig = { provider: 'cloudflare', model: '@cf/black-forest-labs/flux-1-schnell', enabled: true };
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 async function isAdmin(request: Request, env: Env) {
-  const token = request.headers.get('Authorization')?.replace(/^Bearer\\s+/i, '');
+  const token = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
   if (!token || !env.VITE_SUPABASE_URL || !env.VITE_SUPABASE_ANON_KEY) return false;
   try {
-    const response = await fetch(env.VITE_SUPABASE_URL.replace(/\\/$/, '') + '/auth/v1/user', { headers: { Authorization: 'Bearer ' + token, apikey: env.VITE_SUPABASE_ANON_KEY } });
+    const response = await fetch(env.VITE_SUPABASE_URL.replace(/\/$/, '') + '/auth/v1/user', { headers: { Authorization: 'Bearer ' + token, apikey: env.VITE_SUPABASE_ANON_KEY } });
     if (!response.ok) return false;
     const user = await response.json() as { email?: string };
     return (user.email || '').toLowerCase() === 'trrahaman.official0.6@gmail.com';
