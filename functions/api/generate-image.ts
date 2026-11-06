@@ -11,7 +11,7 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
   try {
     const body = await request.json() as { prompt?: unknown; category?: unknown };
     const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
-    const category = typeof body.category === 'string' ? body.category : 'General';
+    const category = typeof body.category === 'string' ? body.category : 'Photorealistic';
 
     if (!prompt) {
       return Response.json({ error: 'Please enter an image description.' }, { status: 400 });
@@ -26,15 +26,17 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
     }
 
     const categoryStyle: Record<string, string> = {
-      Nature: 'beautiful natural scenery, detailed realistic photography',
-      Fantasy: 'magical fantasy art, cinematic lighting, intricate details',
+      Photorealistic: 'strict photorealism, real-world photographic image',
+      Nature: 'realistic nature and wildlife photography, natural colors and lighting',
+      Fantasy: 'photorealistic live-action fantasy scene, physically realistic materials and lighting, not an illustration',
       Anime: 'high-quality anime illustration, expressive colors',
-      Business: 'professional commercial photography, clean composition',
-      Technology: 'futuristic technology concept art, crisp details',
-      Cyberpunk: 'cyberpunk neon atmosphere, cinematic violet and blue lighting'
+      Business: 'professional photorealistic commercial photography, clean composition',
+      Technology: 'photorealistic technology product photography, realistic materials and reflections',
+      Cyberpunk: 'photorealistic cinematic cyberpunk scene, realistic neon lighting and physical details'
     };
-    const style = categoryStyle[category] || '';
-    const finalPrompt = style ? `${prompt}. Visual style: ${style}.` : prompt;
+    const style = categoryStyle[category] || 'strict photorealism, realistic photography';
+    const realismDirection = category === 'Anime' ? '' : 'Create a highly photorealistic image as if captured by a professional full-frame DSLR camera. Realistic anatomy, authentic textures, natural imperfections, physically accurate lighting, lifelike shadows, true-to-life colors, fine photographic detail, realistic depth of field. The result must look like an actual photograph, not digital art. Avoid cartoon, anime, illustration, painting, 3D render, CGI, game art, plastic textures, oversaturated colors, and artificial fantasy-art styling.';
+    const finalPrompt = `${prompt}. ${style}. ${realismDirection}`;
 
     const result = await env.AI.run('@cf/black-forest-labs/flux-1-schnell', {
       prompt: finalPrompt,
