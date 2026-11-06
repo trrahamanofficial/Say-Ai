@@ -19,14 +19,12 @@ const emptyProfile = (id: string, email: string, name: string, role: 'user' | 'a
 
 async function loadProfile(userId: string, email: string, metadata: Record<string, unknown> = {}) {
   if (!supabase) return emptyProfile(userId, email, String(metadata.full_name || 'SAY AI User'));
-  let row: any = null;
-  const primary = await supabase.from('users_profiles').select('*').eq('id', userId).maybeSingle();
-  if (!primary.error) row = primary.data;
-  if (!row) {
-    const legacy = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
-    if (!legacy.error) row = legacy.data;
-  }
-  const role = row?.role === 'admin' || String(row?.role).toLowerCase() === 'admin' ? 'admin' : 'user';
+  const [primary, legacy] = await Promise.all([
+    supabase.from('users_profiles').select('*').eq('id', userId).maybeSingle(),
+    supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+  ]);
+  const row: any = primary.data || legacy.data || null;
+  const role = [primary.data?.role, legacy.data?.role].some(value => String(value).toLowerCase() === 'admin') ? 'admin' : 'user';
   return {
     ...emptyProfile(userId, email, String(row?.name || row?.full_name || metadata.full_name || 'SAY AI User'), role),
     plan: row?.plan === 'Pro' || row?.plan === 'Enterprise' ? row.plan : 'Free',
