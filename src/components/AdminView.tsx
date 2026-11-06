@@ -152,7 +152,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="rounded-2xl p-4 bg-[#0a0e2a]/80 border border-purple-900/30">
-              <span className="text-xs text-slate-400 font-medium">Active Users</span>
+              <span className="text-xs text-slate-400 font-medium">Registered Users</span>
               <div className="text-2xl font-black text-white mt-1">1,248</div>
               <span className="text-[10px] text-emerald-400 font-semibold">+18% this week</span>
             </div>
