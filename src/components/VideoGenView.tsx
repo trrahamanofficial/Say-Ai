@@ -6,7 +6,7 @@ interface VideoGenViewProps { onNavigate: (screen: ScreenType) => void; }
 
 export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate }) => {
   const [prompt, setPrompt] = useState('');
-  const [cameraMotion, setCameraMotion] = useState('Orbit 360');
+  const [cameraMotion, setCameraMotion] = useState('Slow Pan');
   const [aspect, setAspect] = useState('16:9');
   const [isGenerating, setIsGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
