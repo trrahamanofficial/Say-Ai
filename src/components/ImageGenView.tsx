@@ -31,6 +31,7 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
   const [selectedCategory, setSelectedCategory] = useState('Fantasy');
   const [activeModalImage, setActiveModalImage] = useState<GeneratedImage | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [generationError, setGenerationError] = useState('');
 
   const categories = [
     { name: 'Nature', emoji: '🌿' },
@@ -101,7 +102,12 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || isGenerating) return;
-    await onGenerateImage(prompt, selectedCategory);
+    setGenerationError('');
+    try {
+      await onGenerateImage(prompt, selectedCategory);
+    } catch (error) {
+      setGenerationError(error instanceof Error ? error.message : 'Image generation failed. Please try again.');
+    }
   };
 
   const handleSelectTrending = (p: string, cat: string) => {
@@ -168,6 +174,12 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
             </span>
           </div>
         </div>
+
+        {generationError && (
+          <div role="alert" className="rounded-xl border border-red-500/40 bg-red-950/40 px-4 py-3 text-sm text-red-200">
+            {generationError}
+          </div>
+        )}
 
         {/* Categories Pills matching Image 2 */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
