@@ -31,6 +31,22 @@ const saved=await env.SAY_AI_CONFIG.get<Config>(key,'json');
 const cfg=saved||defaults;
 return json({...cfg,providers:cfg.providers.map(p=>({...p,apiKeyConfigured:Boolean(p.apiKey),apiKey:''}))});
 }
+if(request.method==='POST'){
+try{
+const p=await request.json() as Provider;
+if(!p.apiKey||!p.model||!p.baseUrl)return json({error:'API key, model and endpoint are required.'},400);
+const start=Date.now();
+let response:Response;
+if(p.type==='gemini'){
+response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(p.model)+':generateContent?key='+encodeURIComponent(p.apiKey),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts:[{text:'Reply with OK.'}]}]})});
+}else{
+response=await fetch((p.baseUrl.endsWith('/')?p.baseUrl.slice(0,-1):p.baseUrl)+'/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+p.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:p.model,messages:[{role:'user',content:'Reply with OK.'}],max_tokens:8})});
+}
+const data=await response.json() as {error?:{message?:string}};
+if(!response.ok)return json({error:data.error?.message||'Provider returned HTTP '+response.status},502);
+return json({success:true,message:'Connected · '+(Date.now()-start)+' ms'});
+}catch(e){return json({error:e instanceof Error?e.message:'Provider test failed.'},502);}
+}
 if(request.method==='PUT'){
 try{
 const input=await request.json() as Config;
