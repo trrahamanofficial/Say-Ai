@@ -253,11 +253,8 @@ jobs:
           }
           EOF
 
-      - name: Generate Gradle wrapper
-        run: gradle wrapper --gradle-version 8.13
-
       - name: Build debug APK
-        run: ./gradlew --no-daemon assembleDebug
+        run: gradle --no-daemon assembleDebug
 
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
