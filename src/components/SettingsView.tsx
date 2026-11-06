@@ -267,33 +267,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </button>
       </div>
 
-      {/* Dedicated 1-Click ZIP Download Card in Settings */}
-      <div className="rounded-2xl p-4 bg-gradient-to-r from-purple-950/80 to-indigo-950/80 border border-purple-500/40 shadow-[0_0_20px_rgba(147,51,234,0.3)] space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-xl shadow-md">
-              📦
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white tracking-wide">
-                Download Full Project ZIP
-              </h4>
-              <p className="text-xs text-purple-200/80">
-                Complete project source • One-tap download
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <a
-          href="/SAY-AI-FULL-PROJECT.zip"
-          download="SAY-AI-FULL-PROJECT.zip"
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-[0_0_15px_rgba(168,85,247,0.5)] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <span>📦 Tap to Download ZIP (1-Click)</span>
-        </a>
-      </div>
-
       {/* Bottom Badge matching Image 1 right */}
       <div className="pt-2 pb-6 flex justify-center">
         <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-purple-950/60 to-indigo-950/60 border border-purple-500/30 text-xs font-semibold text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
