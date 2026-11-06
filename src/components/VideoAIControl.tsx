@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-type VideoConfig = { provider: 'huggingface'; model: string; apiKey: string; apiKeyConfigured?: boolean; enabled: boolean };
-const defaults: VideoConfig = { provider: 'huggingface', model: 'Wan-AI/Wan2.2-TI2V-5B', apiKey: '', enabled: false };
+type VideoConfig = { provider: 'zerogpu' | 'huggingface'; model: string; apiKey: string; apiKeyConfigured?: boolean; enabled: boolean };
+const defaults: VideoConfig = { provider: 'zerogpu', model: 'Wan-AI/Wan2.2-TI2V-5B', apiKey: '', enabled: false };
 
 export const VideoAIControl: React.FC = () => {
   const [config, setConfig] = useState<VideoConfig>(defaults);
@@ -42,7 +42,7 @@ export const VideoAIControl: React.FC = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Save failed.');
       setConfig(value => ({ ...value, apiKey: '', apiKeyConfigured: true }));
-      setMessage('Hugging Face settings saved securely in global server storage.');
+      setMessage('Video provider settings saved securely. The selected provider will be used by all Video Generator users.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Save failed.');
     } finally { setBusy(false); }
@@ -71,6 +71,15 @@ export const VideoAIControl: React.FC = () => {
       <p className="mt-1 text-xs text-slate-400">Private admin controls. Hugging Face token is stored server-side in Cloudflare KV and is never returned to the browser.</p>
     </div>
     <div className="rounded-2xl border border-purple-900/40 bg-[#0a0e2a] p-4 space-y-4">
+      <div className="space-y-2">
+        <h4 className="font-bold text-white">Active Video Provider</h4>
+        <p className="text-xs text-slate-400">Choose which provider every user will use. Users cannot change this setting.</p>
+        <div className="grid grid-cols-1 gap-2">
+          <button type="button" onClick={() => setConfig(v => ({ ...v, provider: 'zerogpu' }))} className={'rounded-xl border p-3 text-left text-sm font-semibold ' + (config.provider === 'zerogpu' ? 'border-purple-400 bg-purple-600/30 text-white' : 'border-purple-900/40 bg-[#0d1238] text-slate-400')}>Free ZeroGPU · LTX Video<span className="mt-1 block text-xs font-normal opacity-80">Free account GPU quota · queue may apply · no paid fallback</span></button>
+          <button type="button" onClick={() => setConfig(v => ({ ...v, provider: 'huggingface' }))} className={'rounded-xl border p-3 text-left text-sm font-semibold ' + (config.provider === 'huggingface' ? 'border-purple-400 bg-purple-600/30 text-white' : 'border-purple-900/40 bg-[#0d1238] text-slate-400')}>Hugging Face Inference API<span className="mt-1 block text-xs font-normal opacity-80">Uses available inference credits · no paid fallback</span></button>
+        </div>
+      </div>
+      <div className="border-t border-purple-900/40 pt-4">
       <div className="flex items-center justify-between gap-3">
         <div><h4 className="font-bold text-white">Hugging Face</h4><p className="text-xs text-slate-400">{config.apiKeyConfigured ? 'Token saved securely' : 'Token not configured'}</p></div>
         <button onClick={() => setConfig(v => ({ ...v, enabled: !v.enabled }))} className={'rounded-full px-3 py-2 text-xs font-bold ' + (config.enabled ? 'bg-emerald-700 text-white' : 'bg-slate-700 text-slate-200')}>{config.enabled ? 'Enabled' : 'Disabled'}</button>
@@ -88,6 +97,7 @@ export const VideoAIControl: React.FC = () => {
       {status && <p role="status" className="rounded-xl border border-purple-500/30 bg-purple-950/30 p-3 text-xs text-slate-200">{status}</p>}
       {message && <p role="status" className="rounded-xl border border-purple-500/30 bg-purple-950/30 p-3 text-xs text-slate-200">{message}</p>}
       <p className="text-[11px] leading-relaxed text-amber-200/80">Token authentication does not test video generation. The backend now uses Hugging Face Text-to-Video through Fal AI. Hugging Face Free accounts receive only a small monthly credit (currently $0.10); video generation may exceed it. No paid fallback is used, and generation may fail when free credits are exhausted.</p>
+      </div>
     </div>
   </section>;
 };
