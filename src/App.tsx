@@ -320,6 +320,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
       setGeneratedImages((prev) => [newImg, ...prev]);
     } catch (error) {
       console.error('Image generation unavailable:', error);
+      throw error;
     } finally {
       setIsGeneratingImage(false);
     }
