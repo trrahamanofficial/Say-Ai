@@ -3,13 +3,14 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { AppShell } from './App';
 import type { UserProfile } from './types';
+import { SayAiLogo } from './components/Logo';
 
 type AuthMode = 'login' | 'signup';
 
 declare global {
   interface Window {
     SayAiAndroid?: { openExternal: (url: string) => void };
-    handleSayAiGoogleCallback?: (code: string) => void;
+    handleSayAiGoogleCallback?: (code: string, error?: string) => void;
   }
 }
 
@@ -79,14 +80,17 @@ export default function AuthGate() {
   // Receive the OAuth authorization code returned to the Android deep link.
   useEffect(() => {
     if (!supabase) return;
-    window.handleSayAiGoogleCallback = async (code: string) => {
+    window.handleSayAiGoogleCallback = async (code: string, callbackError?: string) => {
       setBusy(true);
       setMessage('');
       try {
+        if (callbackError) throw new Error(callbackError);
+        if (!code) throw new Error('Google sign-in returned no authorization code. Please try again.');
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) throw error;
-        if (!data.session) throw new Error('Google sign-in did not return a session. Please try again.');
-        setSession(data.session);
+        const sessionData = data.session ? data : await supabase.auth.getSession();
+        if (!sessionData.data.session) throw new Error('Google sign-in did not return a session. Please try again.');
+        setSession(sessionData.data.session);
       } catch (error) {
         setMessage(error instanceof Error ? error.message : 'Google sign-in could not be completed. Please try again.');
         setBusy(false);
@@ -145,6 +149,9 @@ export default function AuthGate() {
         if (error) throw error;
         if (!data.url) throw new Error('Google sign-in link could not be created.');
         window.SayAiAndroid.openExternal(data.url);
+        // Keep the login screen responsive while Chrome is handling Google sign-in.
+        // The native deep-link callback will set busy=true again when it returns.
+        setBusy(false);
         return;
       }
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -181,8 +188,8 @@ export default function AuthGate() {
     <div className="min-h-screen bg-[#050614] text-white flex items-center justify-center p-4">
       <div className="w-full max-w-md rounded-3xl border border-purple-500/30 bg-[#0a0e2a]/90 p-6 sm:p-8 shadow-[0_0_45px_rgba(139,92,246,0.18)]">
         <div className="text-center mb-7">
-          <div className="text-3xl font-black tracking-wide">SAY <span className="text-purple-400">AI</span></div>
-          <p className="text-slate-400 text-sm mt-2">Your personal AI universe</p>
+          <SayAiLogo size="xl" showSubtitle={false} className="justify-center" />
+          <p className="text-slate-400 text-sm mt-3">Your personal AI universe</p>
         </div>
         <div className="grid grid-cols-2 rounded-xl bg-[#050614] p-1 mb-6">
           <button onClick={() => { setMode('login'); setMessage(''); }} className={`rounded-lg py-2.5 text-sm font-semibold ${mode === 'login' ? 'bg-purple-600 text-white' : 'text-slate-400'}`}>Login</button>
