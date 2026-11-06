@@ -20,7 +20,13 @@ const emptyProfile = (id: string, email: string, name: string, role: 'user' | 'a
 async function loadProfile(userId: string, email: string, metadata: Record<string, unknown> = {}) {
   if (!supabase) return emptyProfile(userId, email, String(metadata.full_name || metadata.name || 'SAY AI User'));
   // This project uses public.profiles. Avoid querying the non-existent users_profiles table.
-  const { data: row } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+  // Do not keep the entire app on the security-check screen if the profile query is slow.
+  const profileRequest = supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+  const profileResult = await Promise.race([
+    profileRequest,
+    new Promise< never >((_, reject) => window.setTimeout(() => reject(new Error('Profile lookup timed out')), 5000))
+  ]).catch(() => ({ data: null, error: null }));
+  const row = profileResult.data;
   // Keep the owner account recognized even if the profiles SELECT policy hides the row from the client.
   const isOwner = email.trim().toLowerCase() === 'trrahaman.official0.6@gmail.com';
   const role = String(row?.role || '').trim().toLowerCase() === 'admin' || isOwner ? 'admin' : 'user';
@@ -48,9 +54,19 @@ export default function AuthGate() {
 
   useEffect(() => {
     if (!supabase) { setBusy(false); return; }
-    supabase.auth.getSession().then(({ data }) => { setSession(data.session); if (!data.session) setBusy(false); });
+    let mounted = true;
+    Promise.race([
+      supabase.auth.getSession(),
+      new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('Session check timed out')), 7000))
+    ]).then(({ data }) => {
+      if (!mounted) return;
+      setSession(data.session);
+      if (!data.session) setBusy(false);
+    }).catch(() => {
+      if (mounted) { setSession(null); setBusy(false); }
+    });
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
-    return () => data.subscription.unsubscribe();
+    return () => { mounted = false; data.subscription.unsubscribe(); };
   }, []);
 
   useEffect(() => {
@@ -91,7 +107,7 @@ export default function AuthGate() {
     if (!supabase) return;
     setBusy(true); setMessage('');
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}${window.location.pathname}`,
@@ -99,6 +115,9 @@ export default function AuthGate() {
         }
       });
       if (error) throw error;
+      // Explicitly navigate when the OAuth URL is returned; this avoids leaving
+      // embedded browsers on the local loading screen after the provider handoff.
+      if (data?.url) window.location.assign(data.url);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Google sign-in failed. Please try again.');
       setBusy(false);
