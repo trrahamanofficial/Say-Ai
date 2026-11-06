@@ -22,8 +22,15 @@ async function generateZeroGpu(prompt: string, motion: string, ratio: string, to
   const dimensions = ratio === '9:16' ? { width: 384, height: 672 } : ratio === '1:1' ? { width: 512, height: 512 } : { width: 704, height: 396 };
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = 'Bearer ' + token;
+  const motionGuide: Record<string, string> = {
+    'Orbit 360': 'Use a slow smooth camera arc while the subject keeps moving naturally.',
+    'Slow Pan': 'Use a gentle tracking pan that follows the subject and keeps it visibly moving.',
+    'Zoom In': 'Use a gradual cinematic dolly-in while the subject performs clear natural movement.',
+    'FPV Drone': 'Use a smooth low-altitude tracking move with controlled parallax.'
+  };
+  const cinematicPrompt = [prompt.trim(), 'Photorealistic live-action wildlife cinematography, realistic anatomy and detailed natural fur; not an illustration or stylized animation.', 'Keep the main subject animated throughout: natural breathing, blinking, head movement, body weight shift and tail movement; for an animal, show several slow natural steps.', 'Animate the environment with gently moving leaves and grass, drifting mist and changing natural light. Maintain consistent subject identity, anatomy and background across frames.', motionGuide[motion] || motionGuide['Slow Pan'], 'One continuous cinematic shot, smooth temporal motion, coherent frames, realistic physics, detailed textures and dramatic natural lighting.'].join(' ');
   const data = [
-    [prompt, 'Camera movement: ' + motion + '.', 'Create a coherent cinematic moving video, not a still image.'].join(' '),
+    [cinematicPrompt, 'cartoon, illustration, painting, frozen pose, still image, flicker, morphing, deformed anatomy, extra limbs, blurry, watermark, text', ''].join(' '),
     'worst quality, blurry, distorted, watermark',
     '',
     '',
