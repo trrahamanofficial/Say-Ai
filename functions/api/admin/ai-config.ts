@@ -9,5 +9,37 @@ const defaults:Config={mode:'brain',selectedProviderId:'gemini',providers:[
 {id:'groq',name:'Groq',type:'openai-compatible',model:'llama-3.3-70b-versatile',apiKey:'',enabled:false,baseUrl:'https://api.groq.com/openai/v1'},
 {id:'cerebras',name:'Cerebras',type:'openai-compatible',model:'llama-3.3-70b',apiKey:'',enabled:false,baseUrl:'https://api.cerebras.ai/v1'}
 ]};
-async function isAdmin(request:Request,env:Env){const token=request.headers.get('Authorization')?.replace(/^Bearer\\s+/i,'');if(!token||!env.VITE_SUPABASE_URL||!env.VITE_SUPABASE_ANON_KEY)return false;try{const r=await fetch(env.VITE_SUPABASE_URL.replace(/\\/$/,'')+'/auth/v1/user',{headers:{Authorization:'Bearer '+token,apikey:env.VITE_SUPABASE_ANON_KEY}});if(!r.ok)return false;const u=await r.json() as {email?:string};return (u.email||'').toLowerCase()==='trrahaman.official0.6@gmail.com';}catch{return false;}}
-export async function onRequest({request,env}:{request:Request;env:Env}):Promise<Response>{if(!await isAdmin(request,env))return json({error:'Admin access required.'},403);if(!env.SAY_AI_CONFIG)return json({error:'Global configuration storage is not connected.'},503);const key='private-ai-brain-config';if(request.method==='GET'){const saved=await env.SAY_AI_CONFIG.get<Config>(key,'json');const cfg=saved||defaults;return json({...cfg,providers:cfg.providers.map(p=>({...p,apiKeyConfigured:Boolean(p.apiKey),apiKey:''}))});}if(request.method==='PUT'){try{const input=await request.json() as Config;if(!Array.isArray(input.providers)||!['brain','single'].includes(input.mode))return json({error:'Invalid AI Brain settings.'},400);const clean:Config={mode:input.mode,selectedProviderId:String(input.selectedProviderId||''),providers:input.providers.slice(0,5).map(p=>({id:String(p.id),name:String(p.name),type:String(p.type),model:String(p.model),apiKey:String(p.apiKey||''),enabled:Boolean(p.enabled),baseUrl:String(p.baseUrl)}))};if(clean.providers.some(p=>!p.id||!p.model||!p.baseUrl))return json({error:'Every provider needs a model and endpoint.'},400);await env.SAY_AI_CONFIG.put(key,JSON.stringify(clean));return json({success:true,message:'Settings saved globally.'});}catch{return json({error:'Invalid settings payload.'},400);}}return json({error:'Method not allowed.'},405);}
+async function isAdmin(request:Request,env:Env){
+const auth=request.headers.get('Authorization')||'';
+const token=auth.toLowerCase().startsWith('bearer ')?auth.slice(7).trim():'';
+const base=env.VITE_SUPABASE_URL||'';
+if(!token||!base||!env.VITE_SUPABASE_ANON_KEY)return false;
+try{
+const url=base.endsWith('/')?base.slice(0,-1):base;
+const r=await fetch(url+'/auth/v1/user',{headers:{Authorization:'Bearer '+token,apikey:env.VITE_SUPABASE_ANON_KEY}});
+if(!r.ok)return false;
+const u=await r.json() as {email?:string};
+return (u.email||'').toLowerCase()==='trrahaman.official0.6@gmail.com';
+}catch{return false;}
+}
+export async function onRequest({request,env}:{request:Request;env:Env}):Promise<Response>{
+if(!await isAdmin(request,env))return json({error:'Admin access required.'},403);
+if(!env.SAY_AI_CONFIG)return json({error:'Global configuration storage is not connected.'},503);
+const key='private-ai-brain-config';
+if(request.method==='GET'){
+const saved=await env.SAY_AI_CONFIG.get<Config>(key,'json');
+const cfg=saved||defaults;
+return json({...cfg,providers:cfg.providers.map(p=>({...p,apiKeyConfigured:Boolean(p.apiKey),apiKey:''}))});
+}
+if(request.method==='PUT'){
+try{
+const input=await request.json() as Config;
+if(!Array.isArray(input.providers)||!['brain','single'].includes(input.mode))return json({error:'Invalid AI Brain settings.'},400);
+const clean:Config={mode:input.mode,selectedProviderId:String(input.selectedProviderId||''),providers:input.providers.slice(0,5).map(p=>({id:String(p.id),name:String(p.name),type:String(p.type),model:String(p.model),apiKey:String(p.apiKey||''),enabled:Boolean(p.enabled),baseUrl:String(p.baseUrl)}))};
+if(clean.providers.some(p=>!p.id||!p.model||!p.baseUrl))return json({error:'Every provider needs a model and endpoint.'},400);
+await env.SAY_AI_CONFIG.put(key,JSON.stringify(clean));
+return json({success:true,message:'Settings saved globally.'});
+}catch{return json({error:'Invalid settings payload.'},400);}
+}
+return json({error:'Method not allowed.'},405);
+}
