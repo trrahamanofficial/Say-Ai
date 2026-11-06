@@ -1,5 +1,10 @@
 name: Build SAY AI APK with supplied app icon
 on:
+  push:
+    branches:
+      - fix-say-ai-google-oauth
+    paths:
+      - '.github/workflows/build-say-ai-logo-apk.yml'
   workflow_dispatch:
 permissions:
   contents: read
