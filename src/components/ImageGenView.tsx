@@ -70,56 +70,23 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
       title: 'Beautiful Nature',
       prompt: 'Majestic mountain peaks over crystal alpine lake with pine forests and dramatic sunset',
       category: 'Nature',
-      image: '/assets/extracted/trending-nature.png',
-      fallback: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80'
     },
     {
       id: 'trend-2',
       title: 'Cute Cat',
       prompt: 'Adorable fluffy ginger kitten wearing an elegant red bowtie in warm soft ambient studio light',
       category: 'Fantasy',
-      image: '/assets/extracted/trending-cat.png',
-      fallback: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=600&q=80'
     },
     {
       id: 'trend-3',
       title: 'Futuristic City',
       prompt: 'Neon cybernetic cityscape with soaring glass skyscrapers, flying transports, and violet evening skyline',
       category: 'Technology',
-      image: '/assets/extracted/trending-city.png',
-      fallback: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=600&q=80'
     }
   ];
 
-  // Default gallery images from Image 2
-  const defaultGallery: GeneratedImage[] = [
-    {
-      id: 'gen-1',
-      prompt: 'Glowing iridescent neon butterfly on ethereal dark violet background',
-      category: 'Fantasy',
-      imageUrl: '/assets/extracted/gen-butterfly.png',
-      createdAt: Date.now() - 3600000,
-      dimensions: '1024x1024'
-    },
-    {
-      id: 'gen-2',
-      prompt: 'Cozy fairy tale cabin nestled under starlight with warm glowing windows and autumn trees',
-      category: 'Nature',
-      imageUrl: '/assets/extracted/gen-house.png',
-      createdAt: Date.now() - 7200000,
-      dimensions: '1024x1024'
-    },
-    {
-      id: 'gen-3',
-      prompt: 'Romantic silhouette of a couple embracing under a radiant orange and violet dusk',
-      category: 'Anime',
-      imageUrl: '/assets/extracted/gen-sunset.png',
-      createdAt: Date.now() - 10800000,
-      dimensions: '1024x1024'
-    }
-  ];
-
-  const allGalleryImages = [...generatedImages, ...defaultGallery];
+  // Only show images returned by the live AI image-generation endpoint.
+  const allGalleryImages = generatedImages;
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -285,14 +252,9 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
               onClick={() => handleSelectTrending(item.prompt, item.category)}
               className="group relative rounded-2xl overflow-hidden aspect-[4/3] border border-purple-900/30 hover:border-purple-400/60 shadow-lg cursor-pointer transition-all duration-300 hover:-translate-y-1"
             >
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                onError={(e) => {
-                  e.currentTarget.src = item.fallback;
-                }}
-              />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#171044] via-[#18245a] to-[#071b35] flex items-center justify-center">
+                <ImageIcon className="w-12 h-12 text-purple-200/70" />
+              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-[#050614] via-[#050614]/40 to-transparent" />
               <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
                 <span className="text-xs font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
@@ -323,27 +285,32 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {allGalleryImages.map((img) => (
-            <div
-              key={img.id}
-              onClick={() => setActiveModalImage(img)}
-              className="group relative rounded-2xl overflow-hidden aspect-[4/3] bg-[#0c102a] border border-purple-900/30 hover:border-purple-400/60 shadow-md cursor-pointer transition-all duration-300 hover:-translate-y-1"
-            >
-              <img
-                src={img.imageUrl}
-                alt={img.prompt}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80';
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
-                <p className="text-[11px] text-white line-clamp-1">{img.prompt}</p>
+        {allGalleryImages.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-purple-700/40 bg-[#0c102a]/60 px-4 py-8 text-center">
+            <ImageIcon className="w-9 h-9 mx-auto text-purple-300/70 mb-2" />
+            <p className="text-sm font-semibold text-white">No AI-created images yet</p>
+            <p className="text-xs text-slate-400 mt-1">Describe an image above and tap Generate Image. Only images actually returned by the AI will appear here.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {allGalleryImages.map((img) => (
+              <div
+                key={img.id}
+                onClick={() => setActiveModalImage(img)}
+                className="group relative rounded-2xl overflow-hidden aspect-[4/3] bg-[#0c102a] border border-purple-900/30 hover:border-purple-400/60 shadow-md cursor-pointer transition-all duration-300 hover:-translate-y-1"
+              >
+                <img
+                  src={img.imageUrl}
+                  alt={img.prompt}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
+                  <p className="text-[11px] text-white line-clamp-1">{img.prompt}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Image Detail Modal */}
