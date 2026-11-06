@@ -11,7 +11,13 @@ export const isSupabaseConfigured = Boolean(
 );
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        // Android returns OAuth to the app via a custom deep link; PKCE is required
+        // so the returned authorization code can be exchanged for a persistent session.
+        flowType: 'pkce'
+      }
+    })
   : null;
 
 export interface SupabaseStatusInfo {
