@@ -11,7 +11,10 @@ import {
   Shield,
   FileText,
   ChevronRight,
-  Sliders
+  Crown,
+  Heart,
+  Sliders,
+  Check
 } from 'lucide-react';
 import { SayAiLogo } from './Logo';
 import { ScreenType, UserProfile } from '../types';
@@ -58,7 +61,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="flex-1 max-w-xl mx-auto w-full p-3 sm:p-6 space-y-5">
-
+      {/* Top Header matching Image 1 right */}
       <div className="flex items-center gap-3 pb-3 border-b border-purple-900/20">
         <button
           onClick={() => onNavigate('dashboard')}
@@ -74,8 +77,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
+      {/* User Profile Card matching Image 1 right */}
       <div className="relative rounded-3xl p-4 sm:p-5 bg-gradient-to-r from-[#0e123b] to-[#1a1147] border border-purple-500/30 flex items-center justify-between shadow-[0_0_25px_rgba(147,51,234,0.2)]">
         <div className="flex items-center gap-3.5">
+          {/* Avatar with cyan/purple ring */}
           <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 to-purple-600 flex-shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.5)]">
             <img
               src="/assets/extracted/user-avatar.png"
@@ -97,6 +102,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
 
+        {/* Upgrade Button */}
         <button
           onClick={onOpenPro}
           className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs tracking-wide shadow-[0_0_15px_rgba(168,85,247,0.5)] active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
@@ -106,12 +112,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </button>
       </div>
 
+      {/* Section: Appearance matching Image 1 right */}
       <div className="rounded-2xl p-4 bg-[#0a0e2a]/80 border border-purple-900/30 space-y-4">
         <div className="flex items-center gap-2 text-slate-300 text-sm font-bold pb-2 border-b border-purple-900/20">
           <Sliders className="w-4 h-4 text-purple-400" />
           <span>Appearance</span>
         </div>
 
+        {/* Dark Mode Row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-indigo-950/60 border border-indigo-700/30 flex items-center justify-center text-cyan-400">
@@ -120,6 +128,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <span className="text-sm font-medium text-white">Dark Mode</span>
           </div>
 
+          {/* Toggle Switch */}
           <button
             onClick={handleToggleDark}
             aria-label="Toggle dark mode"
@@ -131,6 +140,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </button>
         </div>
 
+        {/* Light Mode Row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-amber-950/60 border border-amber-700/30 flex items-center justify-center text-amber-400">
@@ -139,6 +149,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <span className="text-sm font-medium text-white">Light Mode</span>
           </div>
 
+          {/* Toggle Switch (off) */}
           <button
             onClick={handleToggleDark}
             aria-label="Toggle light mode"
@@ -150,6 +161,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </button>
         </div>
 
+        {/* Brightness Slider */}
         <div className="space-y-2 pt-1">
           <div className="flex items-center justify-between text-xs text-slate-300 font-medium">
             <div className="flex items-center gap-3">
@@ -172,6 +184,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
+      {/* Section: Account matching Image 1 right */}
       <div className="rounded-2xl p-4 bg-[#0a0e2a]/80 border border-purple-900/30 space-y-2">
         <div className="flex items-center gap-2 text-slate-300 text-sm font-bold pb-2 border-b border-purple-900/20">
           <User className="w-4 h-4 text-purple-400" />
@@ -201,11 +214,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </button>
       </div>
 
+      {/* Section: About matching Image 1 right */}
       <div className="rounded-2xl p-4 bg-[#0a0e2a]/80 border border-purple-900/30 space-y-2">
         <div className="flex items-center gap-2 text-slate-300 text-sm font-bold pb-2 border-b border-purple-900/20">
           <Info className="w-4 h-4 text-purple-400" />
           <span>About</span>
         </div>
+
 
         <button
           onClick={() => setActiveModal('about')}
@@ -252,6 +267,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </button>
       </div>
 
+      {/* Dedicated 1-Click ZIP Download Card in Settings */}
+      <div className="rounded-2xl p-4 bg-gradient-to-r from-purple-950/80 to-indigo-950/80 border border-purple-500/40 shadow-[0_0_20px_rgba(147,51,234,0.3)] space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-xl shadow-md">
+              📦
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white tracking-wide">
+                Download Full Project ZIP
+              </h4>
+              <p className="text-xs text-purple-200/80">
+                Complete project source • One-tap download
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <a
+          href="/SAY-AI-FULL-PROJECT.zip"
+          download="SAY-AI-FULL-PROJECT.zip"
+          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-[0_0_15px_rgba(168,85,247,0.5)] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>📦 Tap to Download ZIP (1-Click)</span>
+        </a>
+      </div>
+
+      {/* Bottom Badge matching Image 1 right */}
       <div className="pt-2 pb-6 flex justify-center">
         <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-purple-950/60 to-indigo-950/60 border border-purple-500/30 text-xs font-semibold text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
           <span>💜</span>
@@ -259,6 +302,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
+      {/* Info / Auth Modal */}
       {activeModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="max-w-md w-full rounded-3xl bg-[#0c0f30] border border-purple-500/40 p-6 space-y-4 shadow-[0_0_40px_rgba(147,51,234,0.4)]">
