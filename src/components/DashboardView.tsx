@@ -25,7 +25,6 @@ interface DashboardViewProps {
   onSearch?: (query: string) => void;
   isMobileFrame?: boolean;
   onToggleMobileFrame?: () => void;
-  onDownloadProjectZip?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -37,7 +36,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSearch,
   isMobileFrame,
   onToggleMobileFrame,
-  onDownloadProjectZip
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
