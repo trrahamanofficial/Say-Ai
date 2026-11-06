@@ -32,11 +32,4 @@ BEGIN
 END;
 $$;
 
--- Verify the role rows (one or both tables may exist).
-SELECT 'users_profiles' AS source, email, role
-FROM public.users_profiles
-WHERE lower(email) = lower('trrahaman.official0.6@gmail.com')
-UNION ALL
-SELECT 'profiles' AS source, email, role
-FROM public.profiles
-WHERE lower(email) = lower('trrahaman.official0.6@gmail.com');
+-- The app reads the authenticated user's role from either profile table.\n-- The administrator role is assigned above only to the configured owner email.\n
