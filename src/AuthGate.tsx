@@ -49,7 +49,7 @@ export default function AuthGate() {
 
   useEffect(() => {
     if (!supabase) { setBusy(false); return; }
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    supabase.auth.getSession().then(({ data }) => { setSession(data.session); if (!data.session) setBusy(false); });
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
     return () => data.subscription.unsubscribe();
   }, []);
