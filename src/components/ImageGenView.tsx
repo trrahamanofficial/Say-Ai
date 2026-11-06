@@ -28,7 +28,7 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
   isGenerating
 }) => {
   const [prompt, setPrompt] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Fantasy');
+  const [selectedCategory, setSelectedCategory] = useState('Photorealistic');
   const [activeModalImage, setActiveModalImage] = useState<GeneratedImage | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [generationError, setGenerationError] = useState('');
@@ -56,6 +56,7 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
   }, [generatedImages]);
 
   const categories = [
+    { name: 'Photorealistic', emoji: '📷' },
     { name: 'Nature', emoji: '🌿' },
     { name: 'Fantasy', emoji: '✨' },
     { name: 'Anime', emoji: '🎭' },
