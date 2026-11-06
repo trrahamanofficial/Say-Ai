@@ -19,12 +19,11 @@ const emptyProfile = (id: string, email: string, name: string, role: 'user' | 'a
 
 async function loadProfile(userId: string, email: string, metadata: Record<string, unknown> = {}) {
   if (!supabase) return emptyProfile(userId, email, String(metadata.full_name || metadata.name || 'SAY AI User'));
-  const [primary, legacy] = await Promise.all([
-    supabase.from('users_profiles').select('*').eq('id', userId).maybeSingle(),
-    supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
-  ]);
-  const row: any = primary.data || legacy.data || null;
-  const role = [primary.data?.role, legacy.data?.role].some(value => String(value).toLowerCase() === 'admin') ? 'admin' : 'user';
+  // This project uses public.profiles. Avoid querying the non-existent users_profiles table.
+  const { data: row } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+  // Keep the owner account recognized even if the profiles SELECT policy hides the row from the client.
+  const isOwner = email.trim().toLowerCase() === 'trrahaman.official0.6@gmail.com';
+  const role = String(row?.role || '').trim().toLowerCase() === 'admin' || isOwner ? 'admin' : 'user';
   return {
     ...emptyProfile(userId, email, String(row?.name || row?.full_name || metadata.full_name || 'SAY AI User'), role),
     plan: row?.plan === 'Pro' || row?.plan === 'Enterprise' ? row.plan : 'Free',
@@ -113,11 +112,11 @@ export default function AuthGate() {
   }
   if (busy) return <AuthMessage title="SAY AI" detail="Checking your secure account..." />;
   if (session?.user && profile) {
-    const adminRoute = window.location.pathname.replace(/\/$/, '') === '/admin';
-    if (adminRoute && profile.role !== 'admin') {
-      return <AuthMessage title="Admin access only" detail="This account does not have administrator permission." action="Go to User Dashboard" onAction={() => { window.location.href = '/'; }} onSignOut={signOut} />;
-    }
-    return <AppShell profile={profile} onSignOut={signOut} adminMode={adminRoute} />;
+    const isAdmin = profile.role === 'admin';
+    const expectedPath = isAdmin ? '/admin' : '/';
+    const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+    if (currentPath !== expectedPath) window.history.replaceState({}, '', expectedPath);
+    return <AppShell profile={profile} onSignOut={signOut} adminMode={isAdmin} />;
   }
 
   return (
