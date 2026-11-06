@@ -165,6 +165,7 @@ jobs:
           public class MainActivity extends Activity {
               private WebView webView;
               private String pendingOAuthCode;
+              private String pendingOAuthError;
               private int oauthDeliveryAttempts = 0;
 
               public class SayAiBridge {
@@ -224,8 +225,11 @@ jobs:
                   if (uri == null || !"com.trofficial.sayai".equals(uri.getScheme())
                       || !"login-callback".equals(uri.getHost())) return;
                   String code = uri.getQueryParameter("code");
-                  if (code == null || webView == null) return;
-                  pendingOAuthCode = code;
+                  String error = uri.getQueryParameter("error_description");
+                  if (error == null) error = uri.getQueryParameter("error");
+                  if ((code == null || code.isEmpty()) && (error == null || error.isEmpty())) return;
+                  pendingOAuthCode = code == null ? "" : code;
+                  pendingOAuthError = error;
                   oauthDeliveryAttempts = 0;
                   deliverPendingOAuthCode();
               }
@@ -233,16 +237,24 @@ jobs:
               private void deliverPendingOAuthCode() {
                   if (pendingOAuthCode == null || webView == null) return;
                   String quotedCode = JSONObject.quote(pendingOAuthCode);
+                  String quotedError = JSONObject.quote(pendingOAuthError == null ? "" : pendingOAuthError);
                   webView.evaluateJavascript(
                       "(function(){if(typeof window.handleSayAiGoogleCallback==='function'){window.handleSayAiGoogleCallback("
-                          + quotedCode + ");return 'sent';}return 'wait';})()",
+                          + quotedCode + "," + quotedError + ");return 'sent';}return 'wait';})()",
                       result -> {
                           if ("\"sent\"".equals(result)) {
                               pendingOAuthCode = null;
-                          } else if (oauthDeliveryAttempts++ < 40 && webView != null) {
+                              pendingOAuthError = null;
+                          } else if (oauthDeliveryAttempts++ < 120 && webView != null) {
                               webView.postDelayed(this::deliverPendingOAuthCode, 250);
                           }
                       });
+              }
+
+              @Override
+              protected void onResume() {
+                  super.onResume();
+                  deliverPendingOAuthCode();
               }
 
               @Override
