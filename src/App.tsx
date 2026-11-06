@@ -506,7 +506,6 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
               onNavigate={setCurrentScreen}
               onOpenPro={() => setCurrentScreen('pro')}
               onLogout={onSignOut}
-              onDownloadProjectZip={handleDownloadProjectZip}
             />
           </div>
         )}
@@ -573,7 +572,6 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
                 setCurrentScreen('pro');
               }}
               onLogout={() => { setIsMobileDrawerOpen(false); onSignOut(); }}
-              onDownloadProjectZip={handleDownloadProjectZip}
               onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
             />
           </div>
