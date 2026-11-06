@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 type VideoConfig = { provider: 'huggingface'; model: string; apiKey: string; apiKeyConfigured?: boolean; enabled: boolean };
-const defaults: VideoConfig = { provider: 'huggingface', model: 'Wan-AI/Wan2.1-T2V-1.3B', apiKey: '', enabled: false };
+const defaults: VideoConfig = { provider: 'huggingface', model: 'Wan-AI/Wan2.2-TI2V-5B', apiKey: '', enabled: false };
 
 export const VideoAIControl: React.FC = () => {
   const [config, setConfig] = useState<VideoConfig>(defaults);
@@ -87,7 +87,7 @@ export const VideoAIControl: React.FC = () => {
       </div>
       {status && <p role="status" className="rounded-xl border border-purple-500/30 bg-purple-950/30 p-3 text-xs text-slate-200">{status}</p>}
       {message && <p role="status" className="rounded-xl border border-purple-500/30 bg-purple-950/30 p-3 text-xs text-slate-200">{message}</p>}
-      <p className="text-[11px] leading-relaxed text-amber-200/80">Token authentication only checks whether the token is valid. Actual video generation requires a compatible model/provider, available compute and may incur charges. Do not assume the model above is currently served for free.</p>
+      <p className="text-[11px] leading-relaxed text-amber-200/80">Token authentication does not test video generation. The backend now uses Hugging Face Text-to-Video through Fal AI. Hugging Face Free accounts receive only a small monthly credit (currently $0.10); video generation may exceed it. No paid fallback is used, and generation may fail when free credits are exhausted.</p>
     </div>
   </section>;
 };

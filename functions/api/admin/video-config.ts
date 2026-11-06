@@ -12,7 +12,7 @@ async function isAdmin(request: Request, env: Env) {
     return (user.email || '').toLowerCase() === 'trrahaman.official0.6@gmail.com';
   } catch { return false; }
 }
-const defaults: VideoConfig = { provider: 'huggingface', model: 'Wan-AI/Wan2.1-T2V-1.3B', apiKey: '', enabled: false };
+const defaults: VideoConfig = { provider: 'huggingface', model: 'Wan-AI/Wan2.2-TI2V-5B', apiKey: '', enabled: false };
 export async function onRequest({ request, env }: { request: Request; env: Env }): Promise<Response> {
   if (!await isAdmin(request, env)) return json({ error: 'Admin access required.' }, 403);
   if (!env.SAY_AI_CONFIG) return json({ error: 'Global configuration storage is not connected.' }, 503);
