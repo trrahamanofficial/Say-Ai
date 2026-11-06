@@ -66,7 +66,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     {
       id: 'msg-2',
       sender: 'assistant',
-      text: `SAY AI is your all-in-one AI assistant! 🚀\n\n✅ AI Chat – Smart & helpful conversation\n✅ Image Generator – Create stunning images\n✅ Voice Assistant – Speak & get answers\n✅ Chat History – Access your past chats\n\n📦 Download SAY-AI-FULL-PROJECT.zip directly below with 1 click!\n\nBuilt with love for a smarter tomorrow! ❤️`,
+      text: `SAY AI is your all-in-one AI assistant! 🚀\n\n✅ AI Chat – Smart & helpful conversation\n✅ Image Generator – Create stunning images\n✅ Voice Assistant – Speak & get answers\n✅ Chat History – Access your past chats\n\nBuilt with love for a smarter tomorrow! ❤️`,
       time: '9:41 PM',
       timestamp: Date.now() - 240000
     }
