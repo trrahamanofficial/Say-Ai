@@ -511,7 +511,8 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
   }
 
   return (
-    <div className="sayai-app min-h-screen bg-[#050614] text-white flex flex-col font-sans selection:bg-purple-500/30 selection:text-purple-200" data-sayai-theme={userProfile.appearance.theme} style={{ filter: `brightness(${Math.min(100, Math.max(20, userProfile.appearance.brightness))}%)${userProfile.appearance.theme === "light" ? " invert(1) hue-rotate(180deg)" : ""}` }}>
+    <div className="sayai-app min-h-screen bg-[#050614] text-white flex flex-col font-sans selection:bg-purple-500/30 selection:text-purple-200" data-sayai-theme={userProfile.appearance.theme}>
+      <div className="sayai-app-content flex flex-1 min-h-0 flex-col" style={{ filter: `brightness(${Math.min(100, Math.max(20, userProfile.appearance.brightness))}%)${userProfile.appearance.theme === "light" ? " invert(1) hue-rotate(180deg)" : ""}` }}>
       {/* Top Application Header */}
       <Header
         currentScreen={currentScreen}
@@ -569,6 +570,8 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
             </div>
           )}
         </main>
+      </div>
+
       </div>
 
       {/* Mobile Bottom Navigation (Visible on small screens) */}
