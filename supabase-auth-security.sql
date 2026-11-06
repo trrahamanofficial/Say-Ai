@@ -32,4 +32,5 @@ BEGIN
 END;
 $$;
 
--- The app reads the authenticated user's role from either profile table.\n-- The administrator role is assigned above only to the configured owner email.\n
+-- The app reads the authenticated user's role from either profile table.
+-- The administrator role is assigned above only to the configured owner email.
