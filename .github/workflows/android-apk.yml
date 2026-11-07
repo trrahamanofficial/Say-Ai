@@ -97,3 +97,5 @@ jobs:
               description: state === 'success' ? 'APK built and uploaded as an artifact' : 'Android APK build failed',
               target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             });
+
+# Rebuild with Android microphone permission declaration.
