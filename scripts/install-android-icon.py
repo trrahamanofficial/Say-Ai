@@ -1,3 +1,4 @@
+# Build density-specific Android launcher icons from the approved SAY AI neon swirl SVG.
 from pathlib import Path
 import io
 import cairosvg
