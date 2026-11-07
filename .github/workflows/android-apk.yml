@@ -9,6 +9,7 @@ on:
       - 'functions/**'
       - 'package.json'
       - 'capacitor.config.ts'
+      - 'capacitor.config.json'
       - 'scripts/**'
   workflow_dispatch:
 
