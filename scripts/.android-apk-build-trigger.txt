@@ -1,0 +1,1 @@
+This file triggers the Android APK build workflow after the latest main-branch chat-history fix.
