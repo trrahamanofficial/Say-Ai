@@ -39,7 +39,7 @@ export async function testSupabaseConnection(): Promise<SupabaseStatusInfo> {
 
   try {
     const start = performance.now();
-    const { error } = await supabase.from('users_profiles').select('count', { count: 'exact', head: true });
+    const { error } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
     const latency = Math.round(performance.now() - start);
 
     if (error && error.code !== 'PGRST116') {
