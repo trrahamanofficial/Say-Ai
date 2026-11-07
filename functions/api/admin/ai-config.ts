@@ -29,7 +29,7 @@ if(!env.SAY_AI_CONFIG)return json({error:'Global configuration storage is not co
 const key='private-ai-brain-config';
 if(request.method==='GET'){
 const saved=await env.SAY_AI_CONFIG.get<Config>(key,'json');
-const cfg=saved||defaults;
+const cfg=saved?{...saved,providers:[...saved.providers,...defaults.providers.filter(d=>!saved.providers.some(p=>p.id===d.id))]}:defaults;
 return json({...cfg,providers:cfg.providers.map(p=>({...p,apiKeyConfigured:Boolean(p.apiKey),apiKey:''}))});
 }
 if(request.method==='POST'){
