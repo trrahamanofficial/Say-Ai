@@ -1,4 +1,5 @@
 name: Build SAY AI Android APK
+# Rebuild after the latest mobile API and launcher icon fixes
 
 on:
   push:
@@ -30,6 +31,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       VITE_SUPABASE_URL: https://ssfxkcylqrmdrkacpive.supabase.co
       VITE_SUPABASE_ANON_KEY: sb_publishable_DjReYEEXsJKQSkPFqf7GCQ_IlikKpDf

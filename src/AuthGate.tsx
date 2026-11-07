@@ -11,6 +11,7 @@ declare global {
   interface Window {
     SayAiAndroid?: { openExternal: (url: string) => void };
     handleSayAiGoogleCallback?: (code: string, error?: string) => void;
+    SayAiOAuthPendingUrl?: string;
   }
 }
 
@@ -35,9 +36,8 @@ async function loadProfile(userId: string, email: string, metadata: Record<strin
     new Promise< never >((_, reject) => window.setTimeout(() => reject(new Error('Profile lookup timed out')), 5000))
   ]).catch(() => ({ data: null, error: null }));
   const row = profileResult.data;
-  // Keep the owner account recognized even if the profiles SELECT policy hides the row from the client.
-  const isOwner = email.trim().toLowerCase() === 'trrahaman.official0.6@gmail.com';
-  const role = String(row?.role || '').trim().toLowerCase() === 'admin' || isOwner ? 'admin' : 'user';
+  // Admin access follows the signed-in user's profiles.role value; no hard-coded Gmail address.
+  const role = String(row?.role || '').trim().toLowerCase() === 'admin' ? 'admin' : 'user';
   return {
     ...emptyProfile(userId, email, String(row?.name || row?.full_name || metadata.full_name || 'SAY AI User'), role),
     plan: row?.plan === 'Pro' || row?.plan === 'Enterprise' ? row.plan : 'Free',
@@ -80,13 +80,17 @@ export default function AuthGate() {
   // Receive the OAuth authorization code returned to the Android deep link.
   useEffect(() => {
     if (!supabase) return;
-    window.handleSayAiGoogleCallback = async (code: string, callbackError?: string) => {
+    const completeCallback = async (code: string, callbackError?: string) => {
       setBusy(true);
       setMessage('');
       try {
         if (callbackError) throw new Error(callbackError);
         if (!code) throw new Error('Google sign-in returned no authorization code. Please try again.');
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        const exchange = supabase.auth.exchangeCodeForSession(code);
+        const timedOut = new Promise<never>((_, reject) =>
+          window.setTimeout(() => reject(new Error('Google sign-in timed out. Please return to SAY AI and try again.')), 15000)
+        );
+        const { data, error } = await Promise.race([exchange, timedOut]);
         if (error) throw error;
         const sessionData = data.session ? data : await supabase.auth.getSession();
         if (!sessionData.data.session) throw new Error('Google sign-in did not return a session. Please try again.');
@@ -94,8 +98,18 @@ export default function AuthGate() {
       } catch (error) {
         setMessage(error instanceof Error ? error.message : 'Google sign-in could not be completed. Please try again.');
         setBusy(false);
+      } finally {
+        window.SayAiOAuthPendingUrl = undefined;
+        setBusy(false);
       }
     };
+    window.handleSayAiGoogleCallback = completeCallback;
+    // Handle the case where Android opens the app before React mounts this callback.
+    const pendingUrl = window.SayAiOAuthPendingUrl;
+    if (pendingUrl) {
+      const callback = new URL(pendingUrl);
+      void completeCallback(callback.searchParams.get('code') || '', callback.searchParams.get('error_description') || callback.searchParams.get('error') || undefined);
+    }
     return () => { delete window.handleSayAiGoogleCallback; };
   }, []);
 
@@ -175,7 +189,15 @@ export default function AuthGate() {
     return <AuthMessage title="SAY AI setup required" detail="Supabase is not configured in this deployment. Add the Supabase project URL and publishable key to the Cloudflare Pages environment, then rebuild the site." />;
   }
   // Keep the account/session check invisible: no blocking "Checking your secure account" screen.
-  if (busy) return <div className="min-h-screen bg-[#050614]" aria-hidden="true" />;
+  if (busy) return (
+    <div className="min-h-screen bg-[#050614] text-white flex items-center justify-center p-6">
+      <div className="text-center">
+        <SayAiLogo size="xl" showSubtitle={false} className="justify-center" />
+        <p className="mt-5 text-sm text-slate-300">Completing secure sign-in…</p>
+        <p className="mt-2 text-xs text-slate-500">If this takes too long, return to Login and try Google again.</p>
+      </div>
+    </div>
+  );
   if (session?.user && profile) {
     const isAdmin = profile.role === 'admin';
     const expectedPath = isAdmin ? '/admin' : '/';

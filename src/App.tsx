@@ -22,7 +22,7 @@ import { ImageGenView } from './components/ImageGenView';
 import { VoiceAssistantView } from './components/VoiceAssistantView';
 import { SettingsView } from './components/SettingsView';
 import { HistoryView } from './components/HistoryView';
-import { ApiManagementView } from './components/ApiManagementView';
+import { AIBrainControl } from './components/AIBrainControl';
 import { VideoGenView } from './components/VideoGenView';
 import { SubscriptionView } from './components/SubscriptionView';
 import { AdminView } from './components/AdminView';
@@ -31,6 +31,8 @@ import { isSupabaseConfigured, testSupabaseConnection } from './lib/supabase';
 import { X, Smartphone, Monitor } from 'lucide-react';
 
 export function AppShell({ profile, onSignOut, adminMode = false }: { profile: UserProfile; onSignOut: () => void; adminMode?: boolean }) {
+  // Use the production Pages API for both web and the Capacitor Android app.
+  const apiBase = 'https://say-ai.pages.dev';
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('dashboard');
   const [isMobileFrame, setIsMobileFrame] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
@@ -213,7 +215,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
 
   // Periodically query system health
   useEffect(() => {
-    fetch('/api/system-status')
+    fetch(apiBase + '/api/system-status')
       .then((res) => res.json())
       .then((data) => {
         if (data.backend) {
@@ -250,7 +252,8 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     setIsChatLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      const apiBase = 'https://say-ai.pages.dev';
+      const response = await fetch(`${apiBase}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -259,6 +262,11 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
         })
       });
 
+      const responseType = response.headers.get('content-type') || '';
+      if (!responseType.includes('application/json')) {
+        const bodyPreview = (await response.text()).slice(0, 160).replace(/\\s+/g, ' ');
+        throw new Error(`Chat API returned a non-JSON response (${response.status}). Check the SAY AI server route. ${bodyPreview}`);
+      }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `Chat request failed (${response.status}).`);
       const replyText = data.reply || "The AI provider returned an empty response. Please try again.";
@@ -300,7 +308,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
   const handleGenerateImage = async (prompt: string, category: string) => {
     setIsGeneratingImage(true);
     try {
-      const res = await fetch('/api/generate-image', {
+      const res = await fetch(apiBase + '/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, category })
@@ -333,7 +341,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     if (!target) return;
 
     try {
-      const res = await fetch('/api/test-provider', {
+      const res = await fetch(apiBase + '/api/test-provider', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: target.type, baseUrl: target.baseUrl })
@@ -454,16 +462,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
           />
         );
       case 'api':
-        return (
-          <ApiManagementView
-            onNavigate={setCurrentScreen}
-            providers={providers}
-            onToggleProvider={handleToggleProvider}
-            onTestProvider={handleTestProvider}
-            onAddProvider={handleAddProvider}
-            isTestingId={testingProviderId}
-          />
-        );
+        return <AIBrainControl />;
       case 'video':
         return <VideoGenView onNavigate={setCurrentScreen} />;
       case 'pro':
