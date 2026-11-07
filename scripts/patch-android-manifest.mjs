@@ -6,7 +6,7 @@ if (xml.includes('android:scheme="com.trofficial.sayai"')) {
   console.log('SAY AI OAuth deep link already present.');
   process.exit(0);
 }
-const activity = /(<activity\\b(?=[^>]*android:name="[^"]*MainActivity")[\\s\\S]*?)(<\\/activity>)/;
+const activity = /(<activity\b(?=[^>]*android:name="[^"]*MainActivity")[\s\S]*?)(<\/activity>)/;
 if (!activity.test(xml)) throw new Error('Could not find MainActivity in AndroidManifest.xml');
 const filter = `
             <intent-filter>
