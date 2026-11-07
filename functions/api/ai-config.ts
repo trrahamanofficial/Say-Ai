@@ -17,10 +17,15 @@ const base=env.VITE_SUPABASE_URL||'';
 if(!token||!base||!env.VITE_SUPABASE_ANON_KEY)return false;
 try{
 const url=base.endsWith('/')?base.slice(0,-1):base;
-const r=await fetch(url+'/auth/v1/user',{headers:{Authorization:'Bearer '+token,apikey:env.VITE_SUPABASE_ANON_KEY}});
-if(!r.ok)return false;
-const u=await r.json() as {email?:string};
-return (u.email||'').toLowerCase()==='trrahaman.official0.6@gmail.com';
+const headers={Authorization:'Bearer '+token,apikey:env.VITE_SUPABASE_ANON_KEY};
+const userResponse=await fetch(url+'/auth/v1/user',{headers});
+if(!userResponse.ok)return false;
+const user=await userResponse.json() as {id?:string};
+if(!user.id)return false;
+const profileResponse=await fetch(url+'/rest/v1/profiles?id=eq.'+encodeURIComponent(user.id)+'&select=role',{headers});
+if(!profileResponse.ok)return false;
+const rows=await profileResponse.json() as Array<{role?:string}>;
+return String(rows?.[0]?.role||'').trim().toLowerCase()==='admin';
 }catch{return false;}
 }
 export async function onRequest({request,env}:{request:Request;env:Env}):Promise<Response>{
