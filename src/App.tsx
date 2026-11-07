@@ -31,6 +31,8 @@ import { isSupabaseConfigured, testSupabaseConnection } from './lib/supabase';
 import { X, Smartphone, Monitor } from 'lucide-react';
 
 export function AppShell({ profile, onSignOut, adminMode = false }: { profile: UserProfile; onSignOut: () => void; adminMode?: boolean }) {
+  // Use the production Pages API for both web and the Capacitor Android app.
+  const apiBase = 'https://say-ai.pages.dev';
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('dashboard');
   const [isMobileFrame, setIsMobileFrame] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
