@@ -457,7 +457,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
       case 'api':
         return <AIBrainControl />;
       case 'video':
-        return <VideoGenView onNavigate={setCurrentScreen} />;
+        return <VideoGenView onNavigate={setCurrentScreen} apiBase={apiBase} />;
       case 'pro':
         return (
           <SubscriptionView
