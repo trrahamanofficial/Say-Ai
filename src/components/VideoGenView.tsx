@@ -6,7 +6,7 @@ interface VideoGenViewProps { onNavigate: (screen: ScreenType) => void; apiBase?
 
 export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate, apiBase }) => {
   // Android WebView can occasionally omit the optional base URL; always use the live site API in that case.
-  const safeApiBase = (typeof apiBase === 'string' && apiBase.trim()) ? apiBase.trim().replace(/\\/+$/, '') : 'https://say-ai.pages.dev';
+  const safeApiBase = (typeof apiBase === 'string' && apiBase.trim()) ? apiBase.trim().replace(/\/+$/, '') : 'https://say-ai.pages.dev';
   const [prompt, setPrompt] = useState('');
   const [cameraMotion, setCameraMotion] = useState('Slow Pan');
   const [aspect, setAspect] = useState('16:9');
