@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase';
 
 type VideoConfig = { provider: 'zerogpu' | 'huggingface'; model: string; apiKey: string; apiKeyConfigured?: boolean; enabled: boolean };
 const defaults: VideoConfig = { provider: 'zerogpu', model: 'Wan-AI/Wan2.2-TI2V-5B', apiKey: '', enabled: false };
+// Capacitor Android runs on localhost, so admin API calls must use the live Pages origin.
+const API_BASE = 'https://say-ai.pages.dev';
 
 export const VideoAIControl: React.FC = () => {
   const [config, setConfig] = useState<VideoConfig>(defaults);
@@ -20,7 +22,7 @@ export const VideoAIControl: React.FC = () => {
     (async () => {
       try {
         const token = await getToken();
-        const response = await fetch('/api/admin/video-config', { headers: { Authorization: 'Bearer ' + token } });
+        const response = await fetch(API_BASE + '/api/admin/video-config', { headers: { Authorization: 'Bearer ' + token } });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Could not load video settings.');
         setConfig(data);
@@ -34,7 +36,7 @@ export const VideoAIControl: React.FC = () => {
     setBusy(true); setMessage('');
     try {
       const token = await getToken();
-      const response = await fetch('/api/admin/video-config', {
+      const response = await fetch(API_BASE + '/api/admin/video-config', {
         method: 'PUT',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
@@ -52,7 +54,7 @@ export const VideoAIControl: React.FC = () => {
     setTesting(true); setStatus('Checking Hugging Face token…'); setMessage('');
     try {
       const token = await getToken();
-      const response = await fetch('/api/admin/video-config', {
+      const response = await fetch(API_BASE + '/api/admin/video-config', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ apiKey: config.apiKey })
