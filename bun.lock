@@ -5,6 +5,7 @@
     "": {
       "name": "react-example",
       "dependencies": {
+        "@capacitor-community/speech-recognition": "^7.0.1",
         "@capacitor/android": "^7.4.3",
         "@capacitor/app": "^7.1.2",
         "@capacitor/browser": "^7.0.5",
@@ -38,6 +39,8 @@
     },
   },
   "packages": {
+    "@capacitor-community/speech-recognition": ["@capacitor-community/speech-recognition@7.0.1", "", { "peerDependencies": { "@capacitor/core": ">=7.0.0" } }, "sha512-ykpBZziR575X0eURO5vXaD9gVrXXC/7Ra2qql/2KP6/jxWOqAFuw4eKjSPjwdAgGE6a/Z+v8FJm4SVh57MVwDA=="],
+
     "@capacitor/android": ["@capacitor/android@7.6.10", "", { "peerDependencies": { "@capacitor/core": "^7.6.0" } }, "sha512-94DBImYZyDA9RnO5ks3MI/j6rRFs1uK5DR2ft/rBIsvsltDT4w1CSuM8U7vKmKEGRmAfP6vH/woJkBF69fZa4A=="],
 
     "@capacitor/app": ["@capacitor/app@7.1.2", "", { "peerDependencies": { "@capacitor/core": ">=7.0.0" } }, "sha512-d4I/oF/PRu4megL7/IGKYfe5j7yzSON1FRFgq6kH+m5kH6g7V+wyjHRLauCzGNjdRx4S+nWOumINds0qcRBtKg=="],
