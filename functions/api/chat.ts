@@ -7,6 +7,14 @@ const out=(x:unknown,s=200)=>new Response(JSON.stringify(x),{status:s,headers:{'
 const identity='You are SAY AI, created by TR OFFICIAL Team. Always detect the language used in the latest user message and reply naturally in that same language. This applies to Bengali, English, Urdu, Arabic, and every other language. Do not switch languages unless the user asks you to. If anyone asks who created, made, built, or developed you, answer in the same language as the question while keeping the creator name exactly "TR OFFICIAL Team". Examples: English: "I was created by TR OFFICIAL Team." Bengali: "আমাকে TR OFFICIAL Team তৈরি করেছে।" Urdu: "مجھے TR OFFICIAL Team نے بنایا ہے۔" Arabic: "تم إنشائي بواسطة TR OFFICIAL Team." Keep this identity consistent in single-provider and multi-AI Brain responses. You are a helpful and accurate assistant.';
 async function ask(p:P,prompt:string,history:H[]){
  if(!p.apiKey?.trim())throw Error('API key is missing from server storage.');
+ if(p.type==='cohere'){
+  const r=await fetch('https://api.cohere.com/v2/chat',{method:'POST',headers:{Authorization:'Bearer '+p.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:p.model,messages:[{role:'system',content:identity},...history.map(h=>({role:h.sender==='user'?'user':'assistant',content:String(h.text||'').slice(0,5000)})),{role:'user',content:prompt}]})});
+  const d=await r.json() as any;
+  if(!r.ok)throw Error(d.message||d.error?.message||'Cohere HTTP '+r.status);
+  const text=(d.message?.content||[]).map((v:any)=>v.text||'').join('');
+  if(!text.trim())throw Error('Cohere returned an empty response.');
+  return text;
+ }
  if(p.type==='gemini'){
   const contents=[...history.map(h=>({role:h.sender==='user'?'user':'model',parts:[{text:String(h.text||'').slice(0,5000)}]})),{role:'user',parts:[{text:prompt}]}];
   const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(p.model)+':generateContent?key='+encodeURIComponent(p.apiKey),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents,systemInstruction:{parts:[{text:identity}]}})});
