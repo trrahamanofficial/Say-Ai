@@ -10,7 +10,7 @@ const identity='You are SAY AI, created by TR OFFICIAL Team. Always detect the l
 async function ask(p:P,prompt:string,history:H[]){
  if(!p.apiKey?.trim())throw Error('API key is missing from server storage.');
  if(p.type==='cohere'){
-  const r=await fetch('https://api.cohere.com/v2/chat',{method:'POST',headers:{Authorization:'Bearer '+p.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:p.model,messages:[{role:'system',content:identity},...history.map(h=>({role:h.sender==='user'?'user':'assistant',content:String(h.text||'').slice(0,5000)})),{role:'user',content:prompt}]})});
+  const r=await fetch('https://api.cohere.com/v2/chat',{method:'POST',headers:{Authorization:'Bearer '+p.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:p.model,messages:[{role:'system',content:identity},...history.map(h=>({role:h.sender==='user'?'user':'assistant',content:String(h.text||'').slice(0,2500)})),{role:'user',content:prompt}],max_tokens:700,temperature:0.3})});
   const d=await r.json() as any;
   if(!r.ok)throw Error(d.message||d.error?.message||'Cohere HTTP '+r.status);
   const text=(d.message?.content||[]).map((v:any)=>v.text||'').join('');
@@ -45,7 +45,7 @@ export async function onRequestPost({request,env}:{request:Request;env:Env}){
   if(!chosen.length)return out({error:'No enabled provider has a saved API key. Open AI Brain settings, confirm the provider shows “API key saved on server”, and save settings again.'},503);
   const results=await Promise.all(chosen.map(async p=>{
    const t=Date.now();
-   try{return {id:p.id,name:p.name,reply:await ask(p,b.message!.trim().slice(0,10000),Array.isArray(b.history)?b.history.slice(-6):[]),ms:Date.now()-t};}
+   try{return {id:p.id,name:p.name,reply:await ask(c.mode==='single'&&p.type==='cohere'?{...p,model:'command-r7b-12-2024'}:p,b.message!.trim().slice(0,10000),c.mode==='single'?[]:(Array.isArray(b.history)?b.history.slice(-4):[])),ms:Date.now()-t};}
    catch(e){return {id:p.id,name:p.name,error:e instanceof Error?e.message:'Provider failed',ms:Date.now()-t};}
   }));
   const good=results.filter(x=>'reply'in x&&x.reply?.trim());
