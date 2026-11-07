@@ -3,7 +3,9 @@ type P={id:string;name:string;type:string;model:string;apiKey:string;enabled:boo
 type C={mode:'brain'|'single';selectedProviderId:string;providers:P[]};
 type Env={SAY_AI_CONFIG?:KVNamespace};
 type H={sender?:string;text?:string};
-const out=(x:unknown,s=200)=>new Response(JSON.stringify(x),{status:s,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
+const corsHeaders:Record<string,string>={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Max-Age':'86400'};
+const out=(x:unknown,s=200)=>new Response(JSON.stringify(x),{status:s,headers:{'Content-Type':'application/json','Cache-Control':'no-store',...corsHeaders}});
+export async function onRequestOptions(){return new Response(null,{status:204,headers:corsHeaders});}
 const identity='You are SAY AI, created by TR OFFICIAL Team. Always detect the language used in the latest user message and reply naturally in that same language. This applies to Bengali, English, Urdu, Arabic, and every other language. Do not switch languages unless the user asks you to. If anyone asks who created, made, built, or developed you, answer in the same language as the question while keeping the creator name exactly "TR OFFICIAL Team". Examples: English: "I was created by TR OFFICIAL Team." Bengali: "আমাকে TR OFFICIAL Team তৈরি করেছে।" Urdu: "مجھے TR OFFICIAL Team نے بنایا ہے۔" Arabic: "تم إنشائي بواسطة TR OFFICIAL Team." Keep this identity consistent in single-provider and multi-AI Brain responses. You are a helpful and accurate assistant.';
 async function ask(p:P,prompt:string,history:H[]){
  if(!p.apiKey?.trim())throw Error('API key is missing from server storage.');
