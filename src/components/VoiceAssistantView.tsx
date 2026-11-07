@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 
 import { ScreenType } from '../types';
+import { Capacitor } from '@capacitor/core';
+import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 
 interface VoiceAssistantViewProps {
   onNavigate: (screen: ScreenType) => void;
@@ -62,6 +64,29 @@ export const VoiceAssistantView: React.FC<VoiceAssistantViewProps> = ({
     window.speechSynthesis.speak(utterance);
   });
 
+  const runNativeListeningLoop = async () => {
+    while (keepAliveRef.current) {
+      try {
+        setIsListening(true);
+        const result = await SpeechRecognition.start({ language: languageRef.current, maxResults: 1, partialResults: false, popup: false });
+        setIsListening(false);
+        const spoken = result.matches?.[0]?.trim();
+        if (spoken && keepAliveRef.current) {
+          setTranscript(spoken);
+          await handleLiveUtterance(spoken);
+        } else if (keepAliveRef.current) {
+          setLastResponse('I did not catch that. Please speak again.');
+          await new Promise(resolve => window.setTimeout(resolve, 450));
+        }
+      } catch (error) {
+        setIsListening(false);
+        keepAliveRef.current = false;
+        const message = error instanceof Error ? error.message : 'Speech recognition could not start. Check microphone permission and Google speech services.';
+        setLastResponse(message);
+      }
+    }
+  };
+
   const startListening = () => {
     if (!keepAliveRef.current || busyRef.current) return;
     const recognition = recognitionRef.current;
@@ -86,14 +111,15 @@ export const VoiceAssistantView: React.FC<VoiceAssistantViewProps> = ({
     } finally {
       setIsThinking(false);
       busyRef.current = false;
-      if (keepAliveRef.current) window.setTimeout(startListening, 350);
+      if (keepAliveRef.current && !Capacitor.isNativePlatform()) window.setTimeout(startListening, 350);
     }
   };
 
-  const toggleMic = () => {
+  const toggleMic = async () => {
     if (keepAliveRef.current) {
       keepAliveRef.current = false;
       recognitionRef.current?.stop();
+      if (Capacitor.isNativePlatform()) { try { await SpeechRecognition.stop(); } catch { /* already stopped */ } }
       window.speechSynthesis?.cancel();
       setIsListening(false);
       setIsSpeaking(false);
@@ -101,14 +127,39 @@ export const VoiceAssistantView: React.FC<VoiceAssistantViewProps> = ({
       return;
     }
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const availability = await SpeechRecognition.available();
+        if (!availability.available) {
+          setLastResponse('Speech recognition is not available. Please enable Google voice typing or install a speech recognition service.');
+          return;
+        }
+        let permission = await SpeechRecognition.checkPermissions();
+        if (permission.speechRecognition !== 'granted') permission = await SpeechRecognition.requestPermissions();
+        if (permission.speechRecognition !== 'granted') {
+          setLastResponse('Microphone permission was not granted. Open Android Settings → Apps → SAY AI → Permissions → Microphone and allow it.');
+          return;
+        }
+        languageRef.current = navigator.language || 'en-IN';
+        keepAliveRef.current = true;
+        setLastResponse('Listening… speak naturally. SAY AI will answer aloud.');
+        void runNativeListeningLoop();
+      } catch (error) {
+        keepAliveRef.current = false;
+        const message = error instanceof Error ? error.message : 'Could not access Android speech recognition.';
+        setLastResponse(message);
+      }
+      return;
+    }
+
+    const BrowserSpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!BrowserSpeechRecognition) {
       setLastResponse('Live voice recognition is not supported here. Please open SAY AI in Chrome on Android.');
       return;
     }
 
     try {
-      const recognition = new SpeechRecognition();
+      const recognition = new BrowserSpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
       // Use the phone's speech locale. SAY AI's AI prompt replies in the language it receives.
