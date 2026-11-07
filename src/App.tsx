@@ -213,7 +213,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
 
   // Periodically query system health
   useEffect(() => {
-    fetch('/api/system-status')
+    fetch(apiBase + '/api/system-status')
       .then((res) => res.json())
       .then((data) => {
         if (data.backend) {
@@ -250,7 +250,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     setIsChatLoading(true);
 
     try {
-      const apiBase = window.location.hostname === 'localhost' ? 'https://say-ai.pages.dev' : '';
+      const apiBase = 'https://say-ai.pages.dev';
       const response = await fetch(`${apiBase}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -306,7 +306,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
   const handleGenerateImage = async (prompt: string, category: string) => {
     setIsGeneratingImage(true);
     try {
-      const res = await fetch('/api/generate-image', {
+      const res = await fetch(apiBase + '/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, category })
@@ -339,7 +339,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     if (!target) return;
 
     try {
-      const res = await fetch('/api/test-provider', {
+      const res = await fetch(apiBase + '/api/test-provider', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: target.type, baseUrl: target.baseUrl })
