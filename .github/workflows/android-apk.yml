@@ -38,16 +38,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - name: Update Bun lockfile for Capacitor dependencies
-        run: |
-          bun install
-          git add bun.lock
-          if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "Update Bun lockfile for Android build"
-            git push
-          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 22
