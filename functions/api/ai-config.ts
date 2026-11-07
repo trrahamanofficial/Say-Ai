@@ -1,7 +1,9 @@
 type Env = { SAY_AI_CONFIG?: KVNamespace; VITE_SUPABASE_URL?: string; VITE_SUPABASE_ANON_KEY?: string };
 type Provider = { id:string; name:string; type:string; model:string; apiKey:string; enabled:boolean; baseUrl:string };
 type Config = { mode:'brain'|'single'; providers:Provider[]; selectedProviderId:string };
-const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
+const corsHeaders:Record<string,string>={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, PUT, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Max-Age':'86400','Vary':'Origin'};
+const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...corsHeaders}});
+export async function onRequestOptions(){return new Response(null,{status:204,headers:corsHeaders});}
 const defaults:Config={mode:'brain',selectedProviderId:'gemini',providers:[
 {id:'gemini',name:'Google Gemini',type:'gemini',model:'gemini-2.5-flash',apiKey:'',enabled:false,baseUrl:'https://generativelanguage.googleapis.com'},
 {id:'openai',name:'OpenAI',type:'openai',model:'gpt-4o-mini',apiKey:'',enabled:false,baseUrl:'https://api.openai.com/v1'},
@@ -29,6 +31,7 @@ return String(rows?.[0]?.role||'').trim().toLowerCase()==='admin';
 }catch{return false;}
 }
 export async function onRequest({request,env}:{request:Request;env:Env}):Promise<Response>{
+if(request.method==='OPTIONS')return new Response(null,{status:204,headers:corsHeaders});
 if(!await isAdmin(request,env))return json({error:'Admin access required.'},403);
 if(!env.SAY_AI_CONFIG)return json({error:'Global configuration storage is not connected.'},503);
 const key='private-ai-brain-config';
