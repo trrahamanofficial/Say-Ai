@@ -1,6 +1,15 @@
 interface Env { SAY_AI_CONFIG?: KVNamespace }
 type VideoConfig = { provider?: 'zerogpu' | 'huggingface'; model?: string; apiKey?: string; enabled?: boolean };
-const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400'
+};
+const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { ...corsHeaders, 'Cache-Control': 'no-store' } });
+export async function onRequestOptions(): Promise<Response> {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
 
 function providerError(status: number, detail: string) {
   const value = detail.toLowerCase();
