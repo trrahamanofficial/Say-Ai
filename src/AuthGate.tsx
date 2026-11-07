@@ -86,7 +86,11 @@ export default function AuthGate() {
       try {
         if (callbackError) throw new Error(callbackError);
         if (!code) throw new Error('Google sign-in returned no authorization code. Please try again.');
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        const exchange = supabase.auth.exchangeCodeForSession(code);
+        const timedOut = new Promise<never>((_, reject) =>
+          window.setTimeout(() => reject(new Error('Google sign-in timed out. Please return to SAY AI and try again.')), 15000)
+        );
+        const { data, error } = await Promise.race([exchange, timedOut]);
         if (error) throw error;
         const sessionData = data.session ? data : await supabase.auth.getSession();
         if (!sessionData.data.session) throw new Error('Google sign-in did not return a session. Please try again.');
@@ -96,6 +100,7 @@ export default function AuthGate() {
         setBusy(false);
       } finally {
         window.SayAiOAuthPendingUrl = undefined;
+        setBusy(false);
       }
     };
     window.handleSayAiGoogleCallback = completeCallback;
@@ -184,7 +189,15 @@ export default function AuthGate() {
     return <AuthMessage title="SAY AI setup required" detail="Supabase is not configured in this deployment. Add the Supabase project URL and publishable key to the Cloudflare Pages environment, then rebuild the site." />;
   }
   // Keep the account/session check invisible: no blocking "Checking your secure account" screen.
-  if (busy) return <div className="min-h-screen bg-[#050614]" aria-hidden="true" />;
+  if (busy) return (
+    <div className="min-h-screen bg-[#050614] text-white flex items-center justify-center p-6">
+      <div className="text-center">
+        <SayAiLogo size="xl" showSubtitle={false} className="justify-center" />
+        <p className="mt-5 text-sm text-slate-300">Completing secure sign-in…</p>
+        <p className="mt-2 text-xs text-slate-500">If this takes too long, return to Login and try Google again.</p>
+      </div>
+    </div>
+  );
   if (session?.user && profile) {
     const isAdmin = profile.role === 'admin';
     const expectedPath = isAdmin ? '/admin' : '/';
