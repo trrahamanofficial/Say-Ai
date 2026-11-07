@@ -47,6 +47,11 @@ jobs:
         run: npm run build
       - name: Generate Android project
         run: npx cap add android
+      - name: Install approved SAY AI launcher icon
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --upgrade pip pillow cairosvg
+          .venv/bin/python scripts/install-android-icon.py
       - name: Register Google sign-in callback
         run: node scripts/patch-android-manifest.mjs
       - name: Sync Capacitor plugins
