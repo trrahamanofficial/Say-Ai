@@ -1,4 +1,5 @@
 name: Build SAY AI Android APK
+# Rebuild after the latest mobile API and launcher icon fixes
 
 on:
   push:
