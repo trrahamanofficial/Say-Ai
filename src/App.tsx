@@ -210,7 +210,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
   }, []);
 
   // Save every chat message to the signed-in user's Supabase history.
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string): Promise<string> => {
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsg: ChatMessage = { id: `msg-${Date.now()}`, sender: 'user', text, time: timeStr, timestamp: Date.now() };
@@ -268,6 +268,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
           timeAgo: 'Just now', category: 'Chat', messages: [...priorMessages, userMsg, aiMsg]
         }, ...prev.filter((item) => item.id !== sessionId)]);
       }
+      return replyText;
     } catch (error) {
       const errorText = error instanceof Error ? error.message : 'Could not reach the AI service. Please try again.';
       const fallbackAiMsg: ChatMessage = {
@@ -275,6 +276,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), timestamp: Date.now()
       };
       setMessages((prev) => [...prev, fallbackAiMsg]);
+      return errorText;
     } finally {
       setIsChatLoading(false);
     }

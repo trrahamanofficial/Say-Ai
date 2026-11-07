@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Mic,
   MicOff,
@@ -14,12 +14,12 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
-import { parseVoiceCommand, VoiceCommandResult } from '../utils/ai-logic';
+
 import { ScreenType } from '../types';
 
 interface VoiceAssistantViewProps {
   onNavigate: (screen: ScreenType) => void;
-  onSendChatMessage: (text: string) => Promise<void>;
+  onSendChatMessage: (text: string) => Promise<string>;
   onTriggerImagePrompt: (prompt: string) => void;
 }
 
@@ -31,9 +31,14 @@ export const VoiceAssistantView: React.FC<VoiceAssistantViewProps> = ({
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [lastResponse, setLastResponse] = useState<string>(
-    'Listening... Speak now! Say something like: "Tell me a joke"'
+    'Tap to Speak to start a live conversation with SAY AI.'
   );
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const keepAliveRef = useRef(false);
+  const busyRef = useRef(false);
+  const languageRef = useRef(typeof navigator !== 'undefined' ? navigator.language || 'en-IN' : 'en-IN');
 
   const voiceCommands = [
     { id: '1', label: 'Open Chat', icon: MessageSquare, action: () => onNavigate('chat') },
@@ -44,88 +49,108 @@ export const VoiceAssistantView: React.FC<VoiceAssistantViewProps> = ({
     { id: '6', label: 'Open Settings', icon: SettingsIcon, action: () => onNavigate('settings') },
   ];
 
-  const speakText = (text: string) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.pitch = 1.0;
-      utterance.rate = 1.05;
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-    }
+  const speakText = (text: string) => new Promise<void>((resolve) => {
+    if (!('speechSynthesis' in window)) { resolve(); return; }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = languageRef.current;
+    utterance.pitch = 1;
+    utterance.rate = 1;
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => { setIsSpeaking(false); resolve(); };
+    utterance.onerror = () => { setIsSpeaking(false); resolve(); };
+    window.speechSynthesis.speak(utterance);
+  });
+
+  const startListening = () => {
+    if (!keepAliveRef.current || busyRef.current) return;
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+    try { recognition.start(); } catch { /* already starting */ }
   };
 
-  const handleCommandExecution = async (cmdText: string) => {
-    setTranscript(cmdText);
-    const result: VoiceCommandResult = parseVoiceCommand(cmdText);
-    setLastResponse(result.responsePreview);
-    speakText(result.responsePreview);
-
-    if (result.intent === 'chat' && result.payload) {
-      await onSendChatMessage(result.payload);
-      onNavigate('chat');
-    } else if (result.intent === 'image' && result.payload) {
-      onTriggerImagePrompt(result.payload);
-      onNavigate('image');
-    } else if (result.intent === 'settings') {
-      setTimeout(() => onNavigate('settings'), 800);
+  const handleLiveUtterance = async (spokenText: string) => {
+    const clean = spokenText.trim();
+    if (!clean || busyRef.current) return;
+    busyRef.current = true;
+    setIsThinking(true);
+    setLastResponse('SAY AI is thinking...');
+    try {
+      const reply = await onSendChatMessage(clean);
+      setLastResponse(reply);
+      await speakText(reply);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'I could not get a response. Please try again.';
+      setLastResponse(message);
+      await speakText(message);
+    } finally {
+      setIsThinking(false);
+      busyRef.current = false;
+      if (keepAliveRef.current) window.setTimeout(startListening, 350);
     }
   };
 
   const toggleMic = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      const simulatedCommands = [
-        'What time is it right now?',
-        'Tell me a creative sci-fi story',
-        'Generate image of a cybernetic dragon',
-        'Tell me a joke about robots'
-      ];
-      const randomCmd = simulatedCommands[Math.floor(Math.random() * simulatedCommands.length)];
-      handleCommandExecution(randomCmd);
+    if (keepAliveRef.current) {
+      keepAliveRef.current = false;
+      recognitionRef.current?.stop();
+      window.speechSynthesis?.cancel();
+      setIsListening(false);
+      setIsSpeaking(false);
+      setLastResponse('Live voice stopped. Tap to speak again.');
       return;
     }
 
-    if (isListening) {
-      setIsListening(false);
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setLastResponse('Live voice recognition is not supported here. Please open SAY AI in Chrome on Android.');
       return;
     }
 
     try {
-      const SpeechRecognition = (window as unknown as { SpeechRecognition: any; webkitSpeechRecognition: any }).SpeechRecognition ||
-        (window as unknown as { SpeechRecognition: any; webkitSpeechRecognition: any }).webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'en-US';
-
-      recognition.onstart = () => {
-        setIsListening(true);
-        setTranscript('');
-      };
-
+      // Use the phone's speech locale. SAY AI's AI prompt replies in the language it receives.
+      languageRef.current = navigator.language || 'en-IN';
+      recognition.lang = languageRef.current;
+      recognition.onstart = () => { setIsListening(true); setTranscript(''); };
       recognition.onend = () => {
         setIsListening(false);
+        if (keepAliveRef.current && !busyRef.current) window.setTimeout(startListening, 250);
       };
-
-      recognition.onerror = () => {
+      recognition.onerror = (event: any) => {
         setIsListening(false);
-      };
-
-      recognition.onresult = (event: any) => {
-        const text = event.results[0][0].transcript;
-        setTranscript(text);
-        if (event.results[0].isFinal) {
-          handleCommandExecution(text);
+        if (event?.error === 'not-allowed' || event?.error === 'service-not-allowed') {
+          keepAliveRef.current = false;
+          setLastResponse('Microphone permission is blocked. Allow microphone access for SAY AI.');
         }
       };
-
+      recognition.onresult = (event: any) => {
+        const result = event.results[event.results.length - 1];
+        const text = result?.[0]?.transcript || '';
+        if (text) setTranscript(text);
+        if (result?.isFinal) {
+          recognition.stop();
+          void handleLiveUtterance(text);
+        }
+      };
+      recognitionRef.current = recognition;
+      keepAliveRef.current = true;
+      setLastResponse('Listening… speak naturally. SAY AI will answer aloud.');
       recognition.start();
     } catch {
+      keepAliveRef.current = false;
       setIsListening(false);
+      setLastResponse('Could not start the microphone. Please allow microphone access and try again.');
     }
   };
+
+  useEffect(() => () => {
+    keepAliveRef.current = false;
+    recognitionRef.current?.stop();
+    window.speechSynthesis?.cancel();
+  }, []);
 
   return (
     <div className="flex-1 max-w-4xl mx-auto w-full p-3 sm:p-6 space-y-6">
@@ -214,7 +239,7 @@ export const VoiceAssistantView: React.FC<VoiceAssistantViewProps> = ({
             <span className={`w-2.5 h-2.5 rounded-full ${
               isListening ? 'bg-white shadow-[0_0_8px_#ffffff]' : 'bg-emerald-400 shadow-[0_0_8px_#10b981]'
             }`} />
-            <span>{isListening ? 'Listening... Tap to Stop' : 'Tap to Speak'}</span>
+            <span>{isListening ? (isThinking ? 'SAY AI is replying…' : 'Live Voice On · Tap to Stop') : 'Tap to Speak'}</span>
             {!isListening && (
               <span className="text-slate-300 text-xs font-normal">
                 or say <span className="text-amber-300 font-semibold">"Hey SAY AI"</span>
@@ -277,7 +302,7 @@ export const VoiceAssistantView: React.FC<VoiceAssistantViewProps> = ({
             {transcript ? `"${transcript}"` : lastResponse}
           </p>
           <p className="text-[11px] text-purple-200/70">
-            {isListening ? 'Speak now into your microphone' : 'Say something like: "Tell me a joke"'}
+            {isThinking ? 'SAY AI is speaking; it will listen again automatically' : isSpeaking ? 'SAY AI is speaking' : isListening ? 'Listening for your next sentence' : 'Tap to start a hands-free voice conversation'}
           </p>
         </div>
       </div>
