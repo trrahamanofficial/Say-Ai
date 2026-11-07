@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Video, Sparkles, RefreshCw, ArrowRight, Film } from 'lucide-react';
 import { ScreenType } from '../types';
 
-interface VideoGenViewProps { onNavigate: (screen: ScreenType) => void; apiBase: string; }
+interface VideoGenViewProps { onNavigate: (screen: ScreenType) => void; apiBase?: string; }
 
 export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate, apiBase }) => {
+  // Android WebView can occasionally omit the optional base URL; always use the live site API in that case.
+  const safeApiBase = (typeof apiBase === 'string' && apiBase.trim()) ? apiBase.trim().replace(/\\/+$/, '') : 'https://say-ai.pages.dev';
   const [prompt, setPrompt] = useState('');
   const [cameraMotion, setCameraMotion] = useState('Slow Pan');
   const [aspect, setAspect] = useState('16:9');
@@ -17,7 +19,7 @@ export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate, apiBase 
     if (!prompt.trim()) return;
     setIsGenerating(true); setGenerationMessage(''); setVideoUrl(null);
     try {
-      const response = await fetch(apiBase.replace(/\/$/, '') + '/api/generate-video', {
+      const response = await fetch(safeApiBase + '/api/generate-video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ prompt, cameraMotion, aspectRatio: aspect })
