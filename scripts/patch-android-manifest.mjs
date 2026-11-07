@@ -2,6 +2,15 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 const path = 'android/app/src/main/AndroidManifest.xml';
 let xml = readFileSync(path, 'utf8');
+
+// Declare Android microphone access so users can grant it in App permissions.
+if (!xml.includes('android.permission.RECORD_AUDIO')) {
+  xml = xml.replace(
+    /(<manifest\\b[^>]*>)/,
+    '$1\\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />'
+  );
+}
+
 if (xml.includes('android:scheme="com.trofficial.sayai"')) {
   console.log('SAY AI OAuth deep link already present.');
   process.exit(0);
