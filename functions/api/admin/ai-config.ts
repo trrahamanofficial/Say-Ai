@@ -7,7 +7,8 @@ const defaults:Config={mode:'brain',selectedProviderId:'gemini',providers:[
 {id:'openai',name:'OpenAI',type:'openai',model:'gpt-4o-mini',apiKey:'',enabled:false,baseUrl:'https://api.openai.com/v1'},
 {id:'grok',name:'Grok (xAI)',type:'openai-compatible',model:'grok-3-mini-fast',apiKey:'',enabled:false,baseUrl:'https://api.x.ai/v1'},
 {id:'groq',name:'Groq',type:'openai-compatible',model:'llama-3.3-70b-versatile',apiKey:'',enabled:false,baseUrl:'https://api.groq.com/openai/v1'},
-{id:'cerebras',name:'Cerebras',type:'openai-compatible',model:'llama-3.3-70b',apiKey:'',enabled:false,baseUrl:'https://api.cerebras.ai/v1'}
+{id:'cerebras',name:'Cerebras',type:'openai-compatible',model:'llama-3.3-70b',apiKey:'',enabled:false,baseUrl:'https://api.cerebras.ai/v1'},
+{id:'cohere',name:'Cohere',type:'cohere',model:'command-a-03-2025',apiKey:'',enabled:false,baseUrl:'https://api.cohere.com/v2'}
 ]};
 async function isAdmin(request:Request,env:Env){
 const auth=request.headers.get('Authorization')||'';
@@ -37,7 +38,9 @@ const p=await request.json() as Provider;
 if(!p.apiKey||!p.model||!p.baseUrl)return json({error:'API key, model and endpoint are required.'},400);
 const start=Date.now();
 let response:Response;
-if(p.type==='gemini'){
+if(p.type==='cohere'){
+response=await fetch('https://api.cohere.com/v2/chat',{method:'POST',headers:{Authorization:'Bearer '+p.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:p.model,messages:[{role:'user',content:'Reply with OK.'}]})});
+}else if(p.type==='gemini'){
 response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(p.model)+':generateContent?key='+encodeURIComponent(p.apiKey),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts:[{text:'Reply with OK.'}]}]})});
 }else{
 response=await fetch((p.baseUrl.endsWith('/')?p.baseUrl.slice(0,-1):p.baseUrl)+'/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+p.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:p.model,messages:[{role:'user',content:'Reply with OK.'}],max_tokens:8})});
@@ -51,7 +54,9 @@ if(request.method==='PUT'){
 try{
 const input=await request.json() as Config;
 if(!Array.isArray(input.providers)||!['brain','single'].includes(input.mode))return json({error:'Invalid AI Brain settings.'},400);
-const clean:Config={mode:input.mode,selectedProviderId:String(input.selectedProviderId||''),providers:input.providers.slice(0,5).map(p=>({id:String(p.id),name:String(p.name),type:String(p.type),model:String(p.model),apiKey:String(p.apiKey||''),enabled:Boolean(p.enabled),baseUrl:String(p.baseUrl)}))};
+const existing=await env.SAY_AI_CONFIG.get<Config>(key,'json');
+const previous=new Map((existing?.providers||[]).map(p=>[p.id,p]));
+const clean:Config={mode:input.mode,selectedProviderId:String(input.selectedProviderId||''),providers:input.providers.slice(0,6).map(p=>({id:String(p.id),name:String(p.name),type:String(p.type),model:String(p.model),apiKey:String(p.apiKey||previous.get(p.id)?.apiKey||''),enabled:Boolean(p.enabled),baseUrl:String(p.baseUrl)}))};
 if(clean.providers.some(p=>!p.id||!p.model||!p.baseUrl))return json({error:'Every provider needs a model and endpoint.'},400);
 await env.SAY_AI_CONFIG.put(key,JSON.stringify(clean));
 return json({success:true,message:'Settings saved globally.'});
