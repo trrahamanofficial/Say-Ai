@@ -2,15 +2,30 @@ interface Env {
   SAY_AI_CONFIG?: KVNamespace;
   AI?: { run(model: string, input: { prompt: string; steps?: number }): Promise<{ image?: string }> };
 }
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400'
+};
+function jsonResponse(data: unknown, init: ResponseInit = {}): Response {
+  return Response.json(data, {
+    ...init,
+    headers: { ...corsHeaders, ...(init.headers || {}) }
+  });
+}
+export async function onRequestOptions(): Promise<Response> {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
 export async function onRequestPost({ request, env }: { request: Request; env: Env }): Promise<Response> {
   try {
     const body = await request.json() as { prompt?: unknown; category?: unknown };
     const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
     const category = typeof body.category === 'string' ? body.category : 'Photorealistic';
-    if (!prompt) return Response.json({ error: 'Please enter an image description.' }, { status: 400 });
-    if (prompt.length > 2048) return Response.json({ error: 'Image description must be 2048 characters or less.' }, { status: 400 });
+    if (!prompt) return jsonResponse({ error: 'Please enter an image description.' }, { status: 400 });
+    if (prompt.length > 2048) return jsonResponse({ error: 'Image description must be 2048 characters or less.' }, { status: 400 });
     const imageConfig = env.SAY_AI_CONFIG ? await env.SAY_AI_CONFIG.get<{ provider?: string; enabled?: boolean; model?: string; apiKey?: string }>('private-image-ai-config', 'json') : null;
-    if (imageConfig?.enabled === false) return Response.json({ error: 'Image generation is currently disabled by the administrator.' }, { status: 503 });
+    if (imageConfig?.enabled === false) return jsonResponse({ error: 'Image generation is currently disabled by the administrator.' }, { status: 503 });
     const categoryStyle: Record<string, string> = {
       Photorealistic: 'strict photorealism, real-world photographic image',
       Nature: 'realistic nature and wildlife photography, natural colors and lighting',
@@ -26,7 +41,7 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
     let bytes: Uint8Array;
     let contentType = 'image/png';
     if (imageConfig?.provider === 'huggingface') {
-      if (!imageConfig.apiKey) return Response.json({ error: 'Hugging Face token is not configured in Image AI Management.' }, { status: 503 });
+      if (!imageConfig.apiKey) return jsonResponse({ error: 'Hugging Face token is not configured in Image AI Management.' }, { status: 503 });
       const model = imageConfig.model || 'black-forest-labs/FLUX.1-schnell';
       const response = await fetch('https://router.huggingface.co/hf-inference/models/' + model.split('/').map(encodeURIComponent).join('/'), {
         method: 'POST',
@@ -35,15 +50,15 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
       });
       if (!response.ok) {
         const detail = (await response.text()).slice(0, 500);
-        return Response.json({ error: `Hugging Face image request failed (${response.status}): ${detail}` }, { status: 502 });
+        return jsonResponse({ error: `Hugging Face image request failed (${response.status}): ${detail}` }, { status: 502 });
       }
       contentType = response.headers.get('content-type')?.split(';')[0] || 'image/png';
-      if (!contentType.startsWith('image/')) return Response.json({ error: 'The selected Hugging Face model did not return an image. Check the model ID and provider support.' }, { status: 502 });
+      if (!contentType.startsWith('image/')) return jsonResponse({ error: 'The selected Hugging Face model did not return an image. Check the model ID and provider support.' }, { status: 502 });
       bytes = new Uint8Array(await response.arrayBuffer());
     } else {
-      if (!env.AI) return Response.json({ error: 'Cloudflare Workers AI binding AI is not configured.' }, { status: 503 });
+      if (!env.AI) return jsonResponse({ error: 'Cloudflare Workers AI binding AI is not configured.' }, { status: 503 });
       const result = await env.AI.run(imageConfig?.model || '@cf/black-forest-labs/flux-1-schnell', { prompt: finalPrompt, steps: 4 });
-      if (!result?.image) return Response.json({ error: 'The image provider returned no image. Please try again.' }, { status: 502 });
+      if (!result?.image) return jsonResponse({ error: 'The image provider returned no image. Please try again.' }, { status: 502 });
       const binary = atob(result.image);
       bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -52,9 +67,9 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
     let binary = '';
     for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
     const imageBase64 = btoa(binary);
-    return Response.json({ success: true, imageUrl: `data:${contentType};base64,${imageBase64}`, prompt, category, dimensions: 'provider output', createdAt: Date.now() }, { headers: { 'Cache-Control': 'no-store' } });
+    return jsonResponse({ success: true, imageUrl: `data:${contentType};base64,${imageBase64}`, prompt, category, dimensions: 'provider output', createdAt: Date.now() }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown image generation error';
-    return Response.json({ error: `Image generation failed: ${message}` }, { status: 500 });
+    return jsonResponse({ error: `Image generation failed: ${message}` }, { status: 500 });
   }
 }
