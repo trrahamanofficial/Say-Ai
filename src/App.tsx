@@ -22,7 +22,7 @@ import { ImageGenView } from './components/ImageGenView';
 import { VoiceAssistantView } from './components/VoiceAssistantView';
 import { SettingsView } from './components/SettingsView';
 import { HistoryView } from './components/HistoryView';
-import { ApiManagementView } from './components/ApiManagementView';
+import { AIBrainControl } from './components/AIBrainControl';
 import { VideoGenView } from './components/VideoGenView';
 import { SubscriptionView } from './components/SubscriptionView';
 import { AdminView } from './components/AdminView';
@@ -454,16 +454,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
           />
         );
       case 'api':
-        return (
-          <ApiManagementView
-            onNavigate={setCurrentScreen}
-            providers={providers}
-            onToggleProvider={handleToggleProvider}
-            onTestProvider={handleTestProvider}
-            onAddProvider={handleAddProvider}
-            isTestingId={testingProviderId}
-          />
-        );
+        return <AIBrainControl />;
       case 'video':
         return <VideoGenView onNavigate={setCurrentScreen} />;
       case 'pro':
