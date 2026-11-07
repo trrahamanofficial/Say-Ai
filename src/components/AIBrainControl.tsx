@@ -7,7 +7,8 @@ const initial:C={mode:'brain',selectedProviderId:'gemini',providers:[
 {id:'openai',name:'OpenAI',type:'openai',model:'gpt-4o-mini',apiKey:'',enabled:false,baseUrl:'https://api.openai.com/v1'},
 {id:'grok',name:'Grok (xAI)',type:'compatible',model:'grok-3-mini-fast',apiKey:'',enabled:false,baseUrl:'https://api.x.ai/v1'},
 {id:'groq',name:'Groq',type:'compatible',model:'llama-3.3-70b-versatile',apiKey:'',enabled:false,baseUrl:'https://api.groq.com/openai/v1'},
-{id:'cerebras',name:'Cerebras',type:'compatible',model:'llama-3.3-70b',apiKey:'',enabled:false,baseUrl:'https://api.cerebras.ai/v1'}]};
+{id:'cerebras',name:'Cerebras',type:'compatible',model:'llama-3.3-70b',apiKey:'',enabled:false,baseUrl:'https://api.cerebras.ai/v1'},
+{id:'cohere',name:'Cohere',type:'cohere',model:'command-a-03-2025',apiKey:'',enabled:false,baseUrl:'https://api.cohere.com/v2'}]};
 export const AIBrainControl:React.FC=()=>{const [cfg,setCfg]=useState<C>(initial);const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');const [testing,setTesting]=useState('');const [tests,setTests]=useState<Record<string,string>>({});
 const auth=async()=>{const {data}=await supabase?.auth.getSession()||{data:{session:null}};return data.session?.access_token||'';};
 useEffect(()=>{(async()=>{const token=await auth();if(!token)return;const r=await fetch('/api/ai-config',{headers:{Authorization:'Bearer '+token}});const d=await r.json();if(r.ok)setCfg(d);else setMessage(d.error||'Could not load settings.');})();},[]);
