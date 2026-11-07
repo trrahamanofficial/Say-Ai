@@ -6,8 +6,8 @@ let xml = readFileSync(path, 'utf8');
 // Declare Android microphone access so users can grant it in App permissions.
 if (!xml.includes('android.permission.RECORD_AUDIO')) {
   xml = xml.replace(
-    /(<manifest\\b[^>]*>)/,
-    '$1\\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />'
+    /(<manifest\b[^>]*>)/,
+    '$1\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />'
   );
 }
 
