@@ -1,18 +1,35 @@
 type Env = { SAY_AI_CONFIG?: KVNamespace; VITE_SUPABASE_URL?: string; VITE_SUPABASE_ANON_KEY?: string };
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, PUT, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type, Accept',
+  'Access-Control-Max-Age': '86400',
+  'Vary': 'Origin'
+};
 type ImageConfig = { provider: 'cloudflare' | 'huggingface'; model: string; enabled: boolean; apiKey?: string };
 const defaults: ImageConfig = { provider: 'cloudflare', model: '@cf/black-forest-labs/flux-1-schnell', enabled: true };
-const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+export async function onRequestOptions(): Promise<Response> {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
 async function isAdmin(request: Request, env: Env) {
   const token = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
   if (!token || !env.VITE_SUPABASE_URL || !env.VITE_SUPABASE_ANON_KEY) return false;
   try {
     const response = await fetch(env.VITE_SUPABASE_URL.replace(/\/$/, '') + '/auth/v1/user', { headers: { Authorization: 'Bearer ' + token, apikey: env.VITE_SUPABASE_ANON_KEY } });
     if (!response.ok) return false;
-    const user = await response.json() as { email?: string };
-    return (user.email || '').toLowerCase() === 'trrahaman.official0.6@gmail.com';
+    const user = await response.json() as { id?: string };
+    if (!user.id) return false;
+    const profileResponse = await fetch(env.VITE_SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/profiles?id=eq.' + encodeURIComponent(user.id) + '&select=role', {
+      headers: { Authorization: 'Bearer ' + token, apikey: env.VITE_SUPABASE_ANON_KEY }
+    });
+    if (!profileResponse.ok) return false;
+    const profiles = await profileResponse.json() as Array<{ role?: string }>;
+    return profiles.some(profile => profile.role === 'admin');
   } catch { return false; }
 }
 export async function onRequest({ request, env }: { request: Request; env: Env }): Promise<Response> {
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
   if (!await isAdmin(request, env)) return json({ error: 'Admin access required.' }, 403);
   if (!env.SAY_AI_CONFIG) return json({ error: 'Global configuration storage is not connected.' }, 503);
   const key = 'private-image-ai-config';

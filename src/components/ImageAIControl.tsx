@@ -6,6 +6,8 @@ type Config = { provider: Provider; model: string; apiKey: string; apiKeyConfigu
 const defaults: Config = { provider: 'cloudflare', model: '@cf/black-forest-labs/flux-1-schnell', apiKey: '', enabled: true };
 const cloudflareModel = '@cf/black-forest-labs/flux-1-schnell';
 const huggingFaceModel = 'black-forest-labs/FLUX.1-schnell';
+// Android WebView runs on localhost; use the live Cloudflare Pages API origin.
+const API_BASE = 'https://say-ai.pages.dev';
 
 export const ImageAIControl: React.FC = () => {
   const [config, setConfig] = useState<Config>(defaults);
@@ -23,7 +25,7 @@ export const ImageAIControl: React.FC = () => {
     (async () => {
       try {
         const token = await getToken();
-        const response = await fetch('/api/admin/image-config', { headers: { Authorization: 'Bearer ' + token } });
+        const response = await fetch(API_BASE + '/api/admin/image-config', { headers: { Authorization: 'Bearer ' + token } });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Could not load image settings.');
         setConfig({ ...defaults, ...data, apiKey: '' });
@@ -50,7 +52,7 @@ export const ImageAIControl: React.FC = () => {
     setMessage('');
     try {
       const token = await getToken();
-      const response = await fetch('/api/admin/image-config', {
+      const response = await fetch(API_BASE + '/api/admin/image-config', {
         method: 'PUT',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
@@ -72,7 +74,7 @@ export const ImageAIControl: React.FC = () => {
     setMessage('');
     try {
       const token = await getToken();
-      const response = await fetch('/api/admin/image-config', {
+      const response = await fetch(API_BASE + '/api/admin/image-config', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: config.provider, apiKey: config.apiKey })
