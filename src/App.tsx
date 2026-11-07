@@ -27,7 +27,7 @@ import { VideoGenView } from './components/VideoGenView';
 import { SubscriptionView } from './components/SubscriptionView';
 import { AdminView } from './components/AdminView';
 import { NotificationModal } from './components/NotificationModal';
-import { isSupabaseConfigured, testSupabaseConnection } from './lib/supabase';
+import { isSupabaseConfigured, testSupabaseConnection, supabase } from './lib/supabase';
 import { X, Smartphone, Monitor } from 'lucide-react';
 
 export function AppShell({ profile, onSignOut, adminMode = false }: { profile: UserProfile; onSignOut: () => void; adminMode?: boolean }) {
@@ -41,6 +41,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [testingProviderId, setTestingProviderId] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // Initial user profile matching the screenshots
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -84,63 +85,38 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     environment: 'development'
   });
 
-  // Chat messages matching the reference screenshot in Image 4
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'msg-1',
-      sender: 'user',
-      text: 'Tell me about SAY AI',
-      time: '9:41 PM',
-      timestamp: Date.now() - 300000
-    },
-    {
-      id: 'msg-2',
-      sender: 'assistant',
-      text: `SAY AI is your all-in-one AI assistant! 🚀\n\n✅ AI Chat – Smart & helpful conversation\n✅ Image Generator – Create stunning images\n✅ Voice Assistant – Speak & get answers\n✅ Chat History – Access your past chats\n\nBuilt with love for a smarter tomorrow! ❤️`,
-      time: '9:41 PM',
-      timestamp: Date.now() - 240000
-    }
-  ]);
+  // Chat messages and sessions are loaded from Supabase for the signed-in user.
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
 
-  // Initial Chat Sessions
-  const [sessions, setSessions] = useState<ChatSession[]>([
-    {
-      id: 'ses-1',
-      title: 'AI Assistant Overview',
-      lastMessage: 'Built with love for a smarter tomorrow! ❤️',
-      timestamp: Date.now() - 120000,
-      timeAgo: '2m ago',
-      category: 'General',
-      messages: messages
-    },
-    {
-      id: 'ses-2',
-      title: 'Image Generator Ideas',
-      lastMessage: 'A beautiful sunset over mountain lakes...',
-      timestamp: Date.now() - 900000,
-      timeAgo: '15m ago',
-      category: 'Creative',
-      messages: []
-    },
-    {
-      id: 'ses-3',
-      title: 'Voice Assistant Commands',
-      lastMessage: 'Listening for Hey SAY AI trigger...',
-      timestamp: Date.now() - 3600000,
-      timeAgo: '1h ago',
-      category: 'Voice',
-      messages: []
-    },
-    {
-      id: 'ses-4',
-      title: 'SAY AI Exploration',
-      lastMessage: 'Always here for you!',
-      timestamp: Date.now() - 7200000,
-      timeAgo: '2h ago',
-      category: 'Support',
-      messages: []
-    }
-  ]);
+  useEffect(() => {
+    let active = true;
+    const loadChatHistory = async () => {
+      if (!supabase) return;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+      if (!userId) return;
+      const { data: rows, error } = await supabase
+        .from('chat_sessions')
+        .select('id,title,updated_at')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false });
+      if (error) { console.error('Could not load chat history:', error.message); return; }
+      if (!active) return;
+      const loaded: ChatSession[] = (rows || []).map((row: any) => ({
+        id: row.id,
+        title: row.title || 'New Chat',
+        lastMessage: '',
+        timestamp: new Date(row.updated_at).getTime(),
+        timeAgo: new Date(row.updated_at).toLocaleString(),
+        category: 'Chat',
+        messages: []
+      }));
+      setSessions(loaded);
+    };
+    void loadChatHistory();
+    return () => { active = false; };
+  }, [profile.id]);
 
   // Configured AI Providers
   const [providers, setProviders] = useState<AIProviderConfig[]>([
@@ -233,70 +209,70 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
       });
   }, []);
 
-  // Handle Chat Send
+  // Save every chat message to the signed-in user's Supabase history.
   const handleSendMessage = async (text: string) => {
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'user',
-      text,
-      time: timeStr,
-      timestamp: Date.now()
-    };
-
+    const userMsg: ChatMessage = { id: `msg-${Date.now()}`, sender: 'user', text, time: timeStr, timestamp: Date.now() };
+    const priorMessages = messages;
     setMessages((prev) => [...prev, userMsg]);
-
-
     setIsChatLoading(true);
-
+    let sessionId = currentSessionId;
+    let userId = profile.id;
     try {
-      const apiBase = 'https://say-ai.pages.dev';
+      if (supabase) {
+        const { data: authData } = await supabase.auth.getSession();
+        userId = authData.session?.user.id || profile.id;
+        if (!sessionId) {
+          const title = text.trim().slice(0, 70) || 'New Chat';
+          const { data: created, error } = await supabase.from('chat_sessions')
+            .insert({ user_id: userId, title }).select('id').single();
+          if (error) throw new Error('Could not create chat history: ' + error.message);
+          sessionId = created.id;
+          setCurrentSessionId(sessionId);
+        }
+        const { error: saveUserError } = await supabase.from('chat_messages').insert({
+          session_id: sessionId, user_id: userId, role: 'user', content: text
+        });
+        if (saveUserError) throw new Error('Could not save your message: ' + saveUserError.message);
+      }
+
       const response = await fetch(`${apiBase}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          history: messages.slice(-4)
-        })
+        body: JSON.stringify({ message: text, history: priorMessages.slice(-4) })
       });
-
       const responseType = response.headers.get('content-type') || '';
       if (!responseType.includes('application/json')) {
         const bodyPreview = (await response.text()).slice(0, 160).replace(/\\s+/g, ' ');
-        throw new Error(`Chat API returned a non-JSON response (${response.status}). Check the SAY AI server route. ${bodyPreview}`);
+        throw new Error(`Chat API returned a non-JSON response (${response.status}). ${bodyPreview}`);
       }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `Chat request failed (${response.status}).`);
-      const replyText = data.reply || "The AI provider returned an empty response. Please try again.";
-
+      const replyText = data.reply || 'The AI provider returned an empty response. Please try again.';
       const aiMsg: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        sender: 'assistant',
-        text: replyText,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        timestamp: Date.now()
+        id: `ai-${Date.now()}`, sender: 'assistant', text: replyText,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), timestamp: Date.now()
       };
-
       setMessages((prev) => [...prev, aiMsg]);
-
-      // Update session title & preview
-      setSessions((prev) => {
-        const updated = [...prev];
-        if (updated.length > 0) {
-          updated[0].lastMessage = replyText.slice(0, 50) + '...';
-          updated[0].timeAgo = 'Just now';
-        }
-        return updated;
-      });
+      if (supabase && sessionId) {
+        const { error: saveReplyError } = await supabase.from('chat_messages').insert({
+          session_id: sessionId, user_id: userId, role: 'assistant', content: replyText
+        });
+        if (saveReplyError) console.error('Could not save assistant reply:', saveReplyError.message);
+        await supabase.from('chat_sessions').update({ updated_at: new Date().toISOString() }).eq('id', sessionId).eq('user_id', userId);
+        const { data: savedSession } = await supabase.from('chat_sessions').select('id,title,updated_at').eq('id', sessionId).single();
+        setSessions((prev) => [{
+          id: sessionId!, title: savedSession?.title || text.slice(0, 70),
+          lastMessage: replyText.slice(0, 100), timestamp: Date.now(),
+          timeAgo: 'Just now', category: 'Chat', messages: [...priorMessages, userMsg, aiMsg]
+        }, ...prev.filter((item) => item.id !== sessionId)]);
+      }
     } catch (error) {
+      const errorText = error instanceof Error ? error.message : 'Could not reach the AI service. Please try again.';
       const fallbackAiMsg: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        sender: 'assistant',
-        text: error instanceof Error ? error.message : 'Could not reach the AI service. Please try again.',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        timestamp: Date.now()
+        id: `ai-${Date.now()}`, sender: 'assistant', text: errorText,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), timestamp: Date.now()
       };
       setMessages((prev) => [...prev, fallbackAiMsg]);
     } finally {
@@ -453,11 +429,26 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
           <HistoryView
             onNavigate={setCurrentScreen}
             sessions={sessions}
-            onSelectSession={(ses) => {
-              if (ses.messages.length > 0) setMessages(ses.messages);
+            onSelectSession={async (ses) => {
+              if (!supabase) return;
+              const { data, error } = await supabase.from('chat_messages')
+                .select('id,role,content,created_at').eq('session_id', ses.id).order('created_at', { ascending: true });
+              if (error) { console.error('Could not open chat history:', error.message); return; }
+              const restored: ChatMessage[] = (data || []).map((row: any) => ({
+                id: row.id, sender: row.role === 'user' ? 'user' : 'assistant',
+                text: row.content, time: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: new Date(row.created_at).getTime()
+              }));
+              setMessages(restored);
+              setCurrentSessionId(ses.id);
             }}
-            onDeleteSession={(id) => {
-              setSessions((prev) => prev.filter((s) => s.id !== id));
+            onDeleteSession={async (id) => {
+              if (supabase) {
+                const { error } = await supabase.from('chat_sessions').delete().eq('id', id).eq('user_id', profile.id);
+                if (error) { console.error('Could not delete chat history:', error.message); return; }
+              }
+              setSessions((prev) => prev.filter((item) => item.id !== id));
+              if (currentSessionId === id) { setCurrentSessionId(null); setMessages([]); }
             }}
           />
         );
