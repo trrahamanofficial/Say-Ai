@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Video, Sparkles, RefreshCw, ArrowRight, Film } from 'lucide-react';
 import { ScreenType } from '../types';
 
-interface VideoGenViewProps { onNavigate: (screen: ScreenType) => void; }
+interface VideoGenViewProps { onNavigate: (screen: ScreenType) => void; apiBase: string; }
 
-export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate }) => {
+export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate, apiBase }) => {
   const [prompt, setPrompt] = useState('');
   const [cameraMotion, setCameraMotion] = useState('Slow Pan');
   const [aspect, setAspect] = useState('16:9');
@@ -17,12 +17,18 @@ export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate }) => {
     if (!prompt.trim()) return;
     setIsGenerating(true); setGenerationMessage(''); setVideoUrl(null);
     try {
-      const response = await fetch('/api/generate-video', {
+      const response = await fetch(apiBase.replace(/\/$/, '') + '/api/generate-video', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ prompt, cameraMotion, aspectRatio: aspect })
       });
-      const data = await response.json();
+      const raw = await response.text();
+      let data: { videoUrl?: string; provider?: string; error?: string };
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        throw new Error('Video API returned a non-JSON response (HTTP ' + response.status + '). The video service route is not available on the server yet.');
+      }
       if (!response.ok || !data.videoUrl) throw new Error(data.error || 'Video provider is not configured yet.');
       setVideoUrl(data.videoUrl);
       setGenerationMessage('Video generated successfully with ' + (data.provider || 'the selected provider') + '.');
