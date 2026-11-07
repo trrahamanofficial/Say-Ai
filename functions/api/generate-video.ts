@@ -78,8 +78,12 @@ async function generateZeroGpu(prompt: string, motion: string, ratio: string, to
     if (event === 'error') throw new Error('ZeroGPU generation failed: ' + value.slice(0, 250));
     if (event === 'complete') {
       const payload = JSON.parse(value) as Array<{ video?: { url?: string } } | number>;
-      const videoUrl = (payload[0] as { video?: { url?: string } })?.video?.url;
-      if (!videoUrl) throw new Error('ZeroGPU returned no video file.');
+      const videoFile = (payload[0] as { video?: { url?: string; path?: string } })?.video;
+      const rawVideoUrl = videoFile?.url || videoFile?.path;
+      if (!rawVideoUrl) throw new Error('ZeroGPU returned no video file.');
+      // Gradio Spaces commonly return a site-relative file URL. Resolve it against
+      // the Space origin; otherwise the app loads it from say-ai.pages.dev (0:00).
+      const videoUrl = new URL(rawVideoUrl, base).toString();
       return { videoUrl, provider: 'Hugging Face ZeroGPU · LTX Video', model: 'LTX-Video Distilled', createdAt: Date.now() };
     }
   }
