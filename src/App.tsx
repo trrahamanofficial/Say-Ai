@@ -250,7 +250,8 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     setIsChatLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      const apiBase = window.location.hostname === 'localhost' ? 'https://say-ai.pages.dev' : '';
+      const response = await fetch(`${apiBase}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -259,6 +260,11 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
         })
       });
 
+      const responseType = response.headers.get('content-type') || '';
+      if (!responseType.includes('application/json')) {
+        const bodyPreview = (await response.text()).slice(0, 160).replace(/\\s+/g, ' ');
+        throw new Error(`Chat API returned a non-JSON response (${response.status}). Check the SAY AI server route. ${bodyPreview}`);
+      }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `Chat request failed (${response.status}).`);
       const replyText = data.reply || "The AI provider returned an empty response. Please try again.";
