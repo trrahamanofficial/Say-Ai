@@ -57,7 +57,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
       - name: Type-check application UI
         run: npx tsc --noEmit --skipLibCheck --strict false --jsx react-jsx --target ES2022 --module ESNext --moduleResolution bundler --types vite/client --ignoreConfig src/App.tsx
       - name: Build SAY AI web app
