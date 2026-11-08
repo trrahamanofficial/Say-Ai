@@ -49,7 +49,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps --legacy-peer-deps
       - name: Type-check application UI
         run: npx tsc --noEmit --skipLibCheck --strict false --jsx react-jsx --target ES2022 --module ESNext --moduleResolution bundler --types vite/client --ignoreConfig src/App.tsx
       - name: Build SAY AI web app
@@ -61,6 +61,8 @@ jobs:
           python3 -m venv .venv
           .venv/bin/pip install --upgrade pip pillow cairosvg
           .venv/bin/python scripts/install-android-icon.py
+      - name: Copy transparent SAY AI logo into web assets
+        run: cp resources/say-ai-logo.png public/assets/say-ai-logo.png
       - name: Copy transparent SAY AI logo into web assets
         run: cp resources/say-ai-logo.png public/assets/say-ai-logo.png
       - name: Register Google sign-in callback
