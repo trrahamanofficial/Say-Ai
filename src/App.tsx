@@ -31,13 +31,7 @@ import { isSupabaseConfigured, testSupabaseConnection } from './lib/supabase';
 import { X, Smartphone, Monitor } from 'lucide-react';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>(() => {
-    try {
-      const saved = localStorage.getItem('sayai:last-screen');
-      const allowed: ScreenType[] = ['dashboard', 'chat', 'image', 'voice', 'settings', 'history', 'video', 'api', 'profile', 'pro', 'admin'];
-      return saved && allowed.includes(saved as ScreenType) ? saved as ScreenType : 'dashboard';
-    } catch { return 'dashboard'; }
-  });
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>('dashboard');
   const [isMobileFrame, setIsMobileFrame] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -227,25 +221,6 @@ export default function App() {
         // Local fallback is running
       });
   }, []);
-
-  // Restore the last screen and conversation state after Android recreates the WebView.
-  useEffect(() => {
-    try { localStorage.setItem('sayai:last-screen', currentScreen); } catch { /* storage unavailable */ }
-  }, [currentScreen]);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('sayai:messages');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) setMessages(parsed);
-      }
-    } catch { /* keep the in-memory starter state */ }
-  }, []);
-
-  useEffect(() => {
-    try { localStorage.setItem('sayai:messages', JSON.stringify(messages.slice(-150))); } catch { /* storage quota */ }
-  }, [messages]);
 
   // Handle Chat Send
   const handleSendMessage = async (text: string) => {
