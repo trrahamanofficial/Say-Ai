@@ -11,13 +11,7 @@ export const isSupabaseConfigured = Boolean(
 );
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        // Android returns OAuth to the app via a custom deep link; PKCE is required
-        // so the returned authorization code can be exchanged for a persistent session.
-        flowType: 'pkce'
-      }
-    })
+  ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
 export interface SupabaseStatusInfo {
@@ -39,7 +33,7 @@ export async function testSupabaseConnection(): Promise<SupabaseStatusInfo> {
 
   try {
     const start = performance.now();
-    const { error } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
+    const { error } = await supabase.from('users_profiles').select('count', { count: 'exact', head: true });
     const latency = Math.round(performance.now() - start);
 
     if (error && error.code !== 'PGRST116') {

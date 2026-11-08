@@ -2,6 +2,7 @@ import React from 'react';
 import {
   LayoutDashboard,
   MessageSquare,
+  Image as ImageIcon,
   Mic,
   Sliders,
   History,
@@ -9,8 +10,10 @@ import {
   User,
   Crown,
   LogOut,
+  Video,
   ArrowRight,
   Sparkles,
+  Download
 } from 'lucide-react';
 import { SayAiLogo } from './Logo';
 import { ScreenType } from '../types';
@@ -20,6 +23,7 @@ interface SidebarProps {
   onNavigate: (screen: ScreenType) => void;
   onOpenPro: () => void;
   onLogout: () => void;
+  onDownloadProjectZip: () => void;
   className?: string;
   onCloseMobileDrawer?: () => void;
 }
@@ -29,12 +33,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onNavigate,
   onOpenPro,
   onLogout,
+  onDownloadProjectZip,
   className = '',
   onCloseMobileDrawer
 }) => {
   const navItems = [
     { id: 'dashboard' as ScreenType, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'chat' as ScreenType, label: 'AI Chat', icon: MessageSquare },
+    { id: 'image' as ScreenType, label: 'Image Generator', icon: ImageIcon },
+    { id: 'video' as ScreenType, label: 'Video Generator', icon: Video },
     { id: 'voice' as ScreenType, label: 'Voice Assistant', icon: Mic },
     { id: 'history' as ScreenType, label: 'Chat History', icon: History },
     { id: 'settings' as ScreenType, label: 'Settings', icon: Settings },
@@ -91,7 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Bottom Pro Card */}
+      {/* Bottom Pro Card & Project ZIP */}
       <div className="pt-4 space-y-3">
         {/* Pro Card matching Image 5 */}
         <div className="relative rounded-2xl p-4 bg-gradient-to-b from-purple-950/60 to-indigo-950/80 border border-purple-500/30 overflow-hidden shadow-[0_0_25px_rgba(147,51,234,0.2)]">

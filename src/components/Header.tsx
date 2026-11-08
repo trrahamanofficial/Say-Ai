@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Bell } from 'lucide-react';
+import { Menu, Bell, Download, Smartphone, Monitor } from 'lucide-react';
 import { SayAiLogo } from './Logo';
 import { ScreenType } from '../types';
 
@@ -11,6 +11,7 @@ interface HeaderProps {
   onOpenNotifications: () => void;
   onOpenPro: () => void;
   onOpenMobileMenu?: () => void;
+  onDownloadProjectZip: () => void;
   unreadCount?: number;
 }
 
@@ -21,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenNotifications,
   onOpenPro,
   onOpenMobileMenu,
+  onDownloadProjectZip,
   unreadCount = 2
 }) => {
   return (

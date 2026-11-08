@@ -60,7 +60,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   return (
-    <div className="sayai-screen sayai-screen-settings flex-1 max-w-xl mx-auto w-full p-3 sm:p-6 space-y-5">
+    <div className="flex-1 max-w-xl mx-auto w-full p-3 sm:p-6 space-y-5">
       {/* Top Header matching Image 1 right */}
       <div className="flex items-center gap-3 pb-3 border-b border-purple-900/20">
         <button
@@ -192,7 +192,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         <button
-          onClick={onLogout}
+          onClick={() => setActiveModal('login')}
           className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-purple-950/30 transition-all cursor-pointer text-left"
         >
           <div className="flex items-center gap-3">
@@ -265,6 +265,33 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
           <ChevronRight className="w-4 h-4 text-slate-500" />
         </button>
+      </div>
+
+      {/* Dedicated 1-Click ZIP Download Card in Settings */}
+      <div className="rounded-2xl p-4 bg-gradient-to-r from-purple-950/80 to-indigo-950/80 border border-purple-500/40 shadow-[0_0_20px_rgba(147,51,234,0.3)] space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-xl shadow-md">
+              📦
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white tracking-wide">
+                Download Full Project ZIP
+              </h4>
+              <p className="text-xs text-purple-200/80">
+                Complete project source • One-tap download
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <a
+          href="/SAY-AI-FULL-PROJECT.zip"
+          download="SAY-AI-FULL-PROJECT.zip"
+          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-[0_0_15px_rgba(168,85,247,0.5)] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>📦 Tap to Download ZIP (1-Click)</span>
+        </a>
       </div>
 
       {/* Bottom Badge matching Image 1 right */}

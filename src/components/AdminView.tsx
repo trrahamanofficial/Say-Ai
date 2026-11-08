@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import React, { useState } from 'react';
 import {
   ShieldAlert,
   Users,
@@ -14,9 +13,6 @@ import {
   Database
 } from 'lucide-react';
 import { ScreenType, SystemHealth, UserProfile } from '../types';
-import { AIBrainControl } from './AIBrainControl';
-import { VideoAIControl } from './VideoAIControl';
-import { ImageAIControl } from './ImageAIControl';
 
 interface AdminViewProps {
   onNavigate: (screen: ScreenType) => void;
@@ -29,46 +25,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   systemHealth,
   currentUser
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'logs' | 'brain' | 'video' | 'image'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'logs'>('overview');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [realUsers, setRealUsers] = useState<Array<{id:string;name:string;email:string;role:string;plan:string;joined:string}>>([]);
-  const [usersLoading, setUsersLoading] = useState(true);
-  const [usersError, setUsersError] = useState('');
-
-  useEffect(() => {
-    let mounted = true;
-    async function loadRealUsers() {
-      if (!supabase) { if (mounted) { setUsersError('Supabase is not configured'); setUsersLoading(false); } return; }
-      try {
-        let rows: any[] = [];
-        const primary = await supabase.from('users_profiles').select('*').order('created_at', { ascending: false });
-        if (!primary.error && Array.isArray(primary.data)) rows = primary.data;
-        else {
-          const legacy = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-          if (legacy.error) throw legacy.error;
-          rows = legacy.data || [];
-        }
-        const mapped = rows.map((u:any) => ({
-          id: String(u.id || u.user_id || u.email || Math.random()),
-          name: String(u.name || u.full_name || u.display_name || 'SAY AI User'),
-          email: String(u.email || 'Email unavailable'),
-          role: String(u.role || 'user'),
-          plan: String(u.plan || 'Free'),
-          joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : 'Unknown'
-        }));
-        if (mounted) { setRealUsers(mapped); setUsersError(''); }
-      } catch (e) {
-        if (mounted) setUsersError(e instanceof Error ? e.message : 'Could not load real user records');
-      } finally { if (mounted) setUsersLoading(false); }
-    }
-    loadRealUsers();
-    return () => { mounted = false; };
-  }, []);
-
-  const registeredLast30Days = realUsers.filter(u => {
-    const t = Date.parse(u.joined);
-    return Number.isFinite(t) && Date.now() - t <= 30 * 24 * 60 * 60 * 1000;
-  }).length;
 
   const mockUsers = [
     { id: 'usr-1', name: 'SAY AI User', email: 'trrahaman.official@gmail.com', role: 'admin', plan: 'Free', joined: 'Nov 2026' },
@@ -107,7 +65,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-purple-900/30 pb-2">
+      <div className="flex items-center gap-2 border-b border-purple-900/30 pb-2">
         <button
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -126,7 +84,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               : 'text-slate-400 hover:text-white'
           }`}
         >
-          User Accounts ({usersLoading ? '…' : realUsers.length})
+          User Accounts ({mockUsers.length})
         </button>
         <button
           onClick={() => setActiveTab('logs')}
@@ -138,21 +96,14 @@ export const AdminView: React.FC<AdminViewProps> = ({
         >
           Audit Logs
         </button>
-        <button onClick={() => setActiveTab('brain')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'brain' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>AI Brain Control</button>
-        <button onClick={() => setActiveTab('video')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'video' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>Video AI</button>
-        <button onClick={() => setActiveTab('image')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'image' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>Image AI</button>
       </div>
-
-      {activeTab === 'image' && <ImageAIControl />}
-      {activeTab === 'brain' && <AIBrainControl />}
-      {activeTab === 'video' && <VideoAIControl />}
 
       {/* Tab: Overview */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="rounded-2xl p-4 bg-[#0a0e2a]/80 border border-purple-900/30">
-              <span className="text-xs text-slate-400 font-medium">Registered Users</span>
+              <span className="text-xs text-slate-400 font-medium">Active Users</span>
               <div className="text-2xl font-black text-white mt-1">1,248</div>
               <span className="text-[10px] text-emerald-400 font-semibold">+18% this week</span>
             </div>
@@ -208,7 +159,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-purple-900/20 text-slate-200">
-                {(usersLoading ? [] : realUsers).map((u) => (
+                {mockUsers.map((u) => (
                   <tr key={u.id} className="hover:bg-purple-950/20">
                     <td className="p-3.5 font-semibold text-white">
                       <div>{u.name}</div>
@@ -235,8 +186,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     <td className="p-3.5 text-slate-400">{u.joined}</td>
                   </tr>
                 ))}
-                { !usersLoading && realUsers.length === 0 && <tr><td colSpan={4} className="p-5 text-center text-slate-400">{usersError || 'No registered users found.'}</td></tr> }
-                { usersLoading && <tr><td colSpan={4} className="p-5 text-center text-slate-400">Loading Supabase accounts…</td></tr> }
               </tbody>
             </table>
           </div>

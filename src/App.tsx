@@ -22,24 +22,16 @@ import { ImageGenView } from './components/ImageGenView';
 import { VoiceAssistantView } from './components/VoiceAssistantView';
 import { SettingsView } from './components/SettingsView';
 import { HistoryView } from './components/HistoryView';
-import { AIBrainControl } from './components/AIBrainControl';
+import { ApiManagementView } from './components/ApiManagementView';
 import { VideoGenView } from './components/VideoGenView';
 import { SubscriptionView } from './components/SubscriptionView';
 import { AdminView } from './components/AdminView';
 import { NotificationModal } from './components/NotificationModal';
-import { isSupabaseConfigured, testSupabaseConnection, supabase } from './lib/supabase';
+import { isSupabaseConfigured, testSupabaseConnection } from './lib/supabase';
 import { X, Smartphone, Monitor } from 'lucide-react';
 
-export function AppShell({ profile, onSignOut, adminMode = false }: { profile: UserProfile; onSignOut: () => void; adminMode?: boolean }) {
-  // Use the production Pages API for both web and the Capacitor Android app.
-  const apiBase = 'https://say-ai.pages.dev';
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>(() => {
-    try {
-      const saved = localStorage.getItem(`sayai-last-screen-${profile.id}`);
-      const allowed: ScreenType[] = ['dashboard', 'chat', 'image', 'voice', 'settings', 'history', 'video', 'api', 'profile', 'pro'];
-      return saved && allowed.includes(saved as ScreenType) ? saved as ScreenType : 'dashboard';
-    } catch { return 'dashboard'; }
-  });
+export default function App() {
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>('dashboard');
   const [isMobileFrame, setIsMobileFrame] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -47,43 +39,28 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [testingProviderId, setTestingProviderId] = useState<string | null>(null);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-
-  // Restore the last active screen after Android resumes or recreates the WebView.
-  useEffect(() => {
-    try { localStorage.setItem(`sayai-last-screen-${profile.id}`, currentScreen); } catch { /* storage may be unavailable */ }
-  }, [profile.id, currentScreen]);
 
   // Initial user profile matching the screenshots
-  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    try {
-      const saved = localStorage.getItem(`sayai-appearance-${profile.id}`);
-      const appearance = saved ? JSON.parse(saved) : null;
-      return appearance && typeof appearance === 'object'
-        ? { ...profile, appearance: { ...profile.appearance, ...appearance } }
-        : profile;
-    } catch {
-      return profile;
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    id: 'usr-default',
+    name: 'SAY AI User',
+    email: 'trrahaman.official@gmail.com',
+    role: 'admin',
+    plan: 'Free',
+    avatarUrl: '/assets/extracted/user-avatar.png',
+    stats: {
+      chatUsed: 46,
+      chatLimit: 50,
+      imagesUsed: 15,
+      imagesLimit: 20,
+      voiceUsed: 18,
+      voiceLimit: 30
+    },
+    appearance: {
+      theme: 'dark',
+      brightness: 80
     }
   });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(`sayai-appearance-${profile.id}`, JSON.stringify(userProfile.appearance));
-    } catch {
-      // Appearance still works for this session if browser storage is unavailable.
-    }
-  }, [profile.id, userProfile.appearance]);
-
-  const updateUserProfile = (updated: Partial<UserProfile>) => {
-    setUserProfile((prev) => ({
-      ...prev,
-      ...updated,
-      appearance: updated.appearance
-        ? { ...prev.appearance, ...updated.appearance }
-        : prev.appearance
-    }));
-  };
 
   // System diagnostic state
   const [systemHealth, setSystemHealth] = useState<SystemHealth>({
@@ -96,66 +73,63 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     environment: 'development'
   });
 
-  // Chat messages and sessions are loaded from Supabase for the signed-in user.
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  // Chat messages matching the reference screenshot in Image 4
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: 'msg-1',
+      sender: 'user',
+      text: 'Tell me about SAY AI',
+      time: '9:41 PM',
+      timestamp: Date.now() - 300000
+    },
+    {
+      id: 'msg-2',
+      sender: 'assistant',
+      text: `SAY AI is your all-in-one AI assistant! 🚀\n\n✅ AI Chat – Smart & helpful conversation\n✅ Image Generator – Create stunning images\n✅ Voice Assistant – Speak & get answers\n✅ Chat History – Access your past chats\n\n📦 Download SAY-AI-FULL-PROJECT.zip directly below with 1 click!\n\nBuilt with love for a smarter tomorrow! ❤️`,
+      time: '9:41 PM',
+      timestamp: Date.now() - 240000
+    }
+  ]);
 
-  useEffect(() => {
-    let active = true;
-    const loadChatHistory = async () => {
-      if (!supabase) return;
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData.session?.user.id;
-      if (!userId) return;
-      const { data: rows, error } = await supabase
-        .from('chat_sessions')
-        .select('id,title,updated_at')
-        .eq('user_id', userId)
-        .order('updated_at', { ascending: false });
-      if (error) { console.error('Could not load chat history:', error.message); return; }
-      if (!active) return;
-      const loaded: ChatSession[] = (rows || []).map((row: any) => ({
-        id: row.id,
-        title: row.title || 'New Chat',
-        lastMessage: '',
-        timestamp: new Date(row.updated_at).getTime(),
-        timeAgo: new Date(row.updated_at).toLocaleString(),
-        category: 'Chat',
-        messages: []
-      }));
-      setSessions(loaded);
-      // Restore the previously open conversation, not just the history list.
-      try {
-        const savedSessionId = localStorage.getItem(`sayai-last-session-${profile.id}`);
-        if (savedSessionId && loaded.some((item) => item.id === savedSessionId)) {
-          const { data: savedMessages, error: savedMessagesError } = await supabase
-            .from('chat_messages')
-            .select('id,role,content,created_at')
-            .eq('session_id', savedSessionId)
-            .order('created_at', { ascending: true });
-          if (!savedMessagesError && active) {
-            setMessages((savedMessages || []).map((row: any) => ({
-              id: row.id,
-              sender: row.role === 'user' ? 'user' : 'assistant',
-              text: row.content,
-              time: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              timestamp: new Date(row.created_at).getTime()
-            })));
-            setCurrentSessionId(savedSessionId);
-          }
-        }
-      } catch { /* retain an empty chat if local storage is unavailable */ }
-    };
-    void loadChatHistory();
-    return () => { active = false; };
-  }, [profile.id]);
-
-  useEffect(() => {
-    try {
-      if (currentSessionId) localStorage.setItem(`sayai-last-session-${profile.id}`, currentSessionId);
-      else localStorage.removeItem(`sayai-last-session-${profile.id}`);
-    } catch { /* storage may be unavailable */ }
-  }, [profile.id, currentSessionId]);
+  // Initial Chat Sessions
+  const [sessions, setSessions] = useState<ChatSession[]>([
+    {
+      id: 'ses-1',
+      title: 'AI Assistant Overview',
+      lastMessage: 'Built with love for a smarter tomorrow! ❤️',
+      timestamp: Date.now() - 120000,
+      timeAgo: '2m ago',
+      category: 'General',
+      messages: messages
+    },
+    {
+      id: 'ses-2',
+      title: 'Image Generator Ideas',
+      lastMessage: 'A beautiful sunset over mountain lakes...',
+      timestamp: Date.now() - 900000,
+      timeAgo: '15m ago',
+      category: 'Creative',
+      messages: []
+    },
+    {
+      id: 'ses-3',
+      title: 'Voice Assistant Commands',
+      lastMessage: 'Listening for Hey SAY AI trigger...',
+      timestamp: Date.now() - 3600000,
+      timeAgo: '1h ago',
+      category: 'Voice',
+      messages: []
+    },
+    {
+      id: 'ses-4',
+      title: 'SAY AI Exploration',
+      lastMessage: 'Always here for you!',
+      timestamp: Date.now() - 7200000,
+      timeAgo: '2h ago',
+      category: 'Support',
+      messages: []
+    }
+  ]);
 
   // Configured AI Providers
   const [providers, setProviders] = useState<AIProviderConfig[]>([
@@ -227,11 +201,10 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
 
   // User generated images
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
-  const [latestGeneratedVideo, setLatestGeneratedVideo] = useState<string | null>(null);
 
   // Periodically query system health
   useEffect(() => {
-    fetch(apiBase + '/api/system-status')
+    fetch('/api/system-status')
       .then((res) => res.json())
       .then((data) => {
         if (data.backend) {
@@ -249,70 +222,64 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
       });
   }, []);
 
-  // Save every chat message to the signed-in user's Supabase history.
+  // Handle Chat Send
   const handleSendMessage = async (text: string) => {
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const userMsg: ChatMessage = { id: `msg-${Date.now()}`, sender: 'user', text, time: timeStr, timestamp: Date.now() };
-    const priorMessages = messages;
-    setMessages((prev) => [...prev, userMsg]);
-    setIsChatLoading(true);
-    let sessionId = currentSessionId;
-    let userId = profile.id;
-    try {
-      if (supabase) {
-        const { data: authData } = await supabase.auth.getSession();
-        userId = authData.session?.user.id || profile.id;
-        if (!sessionId) {
-          const title = text.trim().slice(0, 70) || 'New Chat';
-          const { data: created, error } = await supabase.from('chat_sessions')
-            .insert({ user_id: userId, title }).select('id').single();
-          if (error) throw new Error('Could not create chat history: ' + error.message);
-          sessionId = created.id;
-          setCurrentSessionId(sessionId);
-        }
-        const { error: saveUserError } = await supabase.from('chat_messages').insert({
-          session_id: sessionId, user_id: userId, role: 'user', content: text
-        });
-        if (saveUserError) throw new Error('Could not save your message: ' + saveUserError.message);
-      }
 
-      const response = await fetch(`${apiBase}/api/chat`, {
+    const userMsg: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      sender: 'user',
+      text,
+      time: timeStr,
+      timestamp: Date.now()
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+
+
+    setIsChatLoading(true);
+
+    try {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: priorMessages.slice(-4) })
+        body: JSON.stringify({
+          message: text,
+          history: messages.slice(-4)
+        })
       });
-      const responseType = response.headers.get('content-type') || '';
-      if (!responseType.includes('application/json')) {
-        const bodyPreview = (await response.text()).slice(0, 160).replace(/\\s+/g, ' ');
-        throw new Error(`Chat API returned a non-JSON response (${response.status}). ${bodyPreview}`);
-      }
+
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `Chat request failed (${response.status}).`);
-      const replyText = data.reply || 'The AI provider returned an empty response. Please try again.';
+      const replyText = data.reply || "The AI provider returned an empty response. Please try again.";
+
       const aiMsg: ChatMessage = {
-        id: `ai-${Date.now()}`, sender: 'assistant', text: replyText,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), timestamp: Date.now()
+        id: `ai-${Date.now()}`,
+        sender: 'assistant',
+        text: replyText,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: Date.now()
       };
+
       setMessages((prev) => [...prev, aiMsg]);
-      if (supabase && sessionId) {
-        const { error: saveReplyError } = await supabase.from('chat_messages').insert({
-          session_id: sessionId, user_id: userId, role: 'assistant', content: replyText
-        });
-        if (saveReplyError) console.error('Could not save assistant reply:', saveReplyError.message);
-        await supabase.from('chat_sessions').update({ updated_at: new Date().toISOString() }).eq('id', sessionId).eq('user_id', userId);
-        const { data: savedSession } = await supabase.from('chat_sessions').select('id,title,updated_at').eq('id', sessionId).single();
-        setSessions((prev) => [{
-          id: sessionId!, title: savedSession?.title || text.slice(0, 70),
-          lastMessage: replyText.slice(0, 100), timestamp: Date.now(),
-          timeAgo: 'Just now', category: 'Chat', messages: [...priorMessages, userMsg, aiMsg]
-        }, ...prev.filter((item) => item.id !== sessionId)]);
-      }
+
+      // Update session title & preview
+      setSessions((prev) => {
+        const updated = [...prev];
+        if (updated.length > 0) {
+          updated[0].lastMessage = replyText.slice(0, 50) + '...';
+          updated[0].timeAgo = 'Just now';
+        }
+        return updated;
+      });
     } catch (error) {
-      const errorText = error instanceof Error ? error.message : 'Could not reach the AI service. Please try again.';
       const fallbackAiMsg: ChatMessage = {
-        id: `ai-${Date.now()}`, sender: 'assistant', text: errorText,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), timestamp: Date.now()
+        id: `ai-${Date.now()}`,
+        sender: 'assistant',
+        text: error instanceof Error ? error.message : 'Could not reach the AI service. Please try again.',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: Date.now()
       };
       setMessages((prev) => [...prev, fallbackAiMsg]);
     } finally {
@@ -324,7 +291,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
   const handleGenerateImage = async (prompt: string, category: string) => {
     setIsGeneratingImage(true);
     try {
-      const res = await fetch(apiBase + '/api/generate-image', {
+      const res = await fetch('/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, category })
@@ -344,26 +311,9 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
       setGeneratedImages((prev) => [newImg, ...prev]);
     } catch (error) {
       console.error('Image generation unavailable:', error);
-      throw error;
     } finally {
       setIsGeneratingImage(false);
     }
-  };
-
-  // Generate a video from the unified chat composer using the existing API route.
-  const handleGenerateVideo = async (prompt: string): Promise<string> => {
-    const res = await fetch(apiBase + '/api/generate-video', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ prompt, cameraMotion: 'Slow Pan', aspectRatio: '16:9' })
-    });
-    const raw = await res.text();
-    let data: { videoUrl?: string; error?: string };
-    try { data = JSON.parse(raw); }
-    catch { throw new Error('Video service returned an invalid response. Please try again later.'); }
-    if (!res.ok || !data.videoUrl) throw new Error(data.error || 'Video generation is not available right now.');
-    setLatestGeneratedVideo(data.videoUrl);
-    return data.videoUrl;
   };
 
   // Test AI Provider
@@ -373,7 +323,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     if (!target) return;
 
     try {
-      const res = await fetch(apiBase + '/api/test-provider', {
+      const res = await fetch('/api/test-provider', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: target.type, baseUrl: target.baseUrl })
@@ -422,6 +372,15 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     setProviders((prev) => [...prev, created]);
   };
 
+  const handleDownloadProjectZip = () => {
+    const a = document.createElement('a');
+    a.href = '/SAY-AI-FULL-PROJECT.zip';
+    a.download = 'SAY-AI-FULL-PROJECT.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const handleUpgradePlan = (plan: 'Free' | 'Pro' | 'Enterprise') => {
     setUserProfile((prev) => ({ ...prev, plan }));
   };
@@ -439,6 +398,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
             systemHealth={systemHealth}
             isMobileFrame={isMobileFrame}
             onToggleMobileFrame={() => setIsMobileFrame(!isMobileFrame)}
+            onDownloadProjectZip={handleDownloadProjectZip}
           />
         );
       case 'chat':
@@ -447,10 +407,6 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
             onNavigate={setCurrentScreen}
             messages={messages}
             onSendMessage={handleSendMessage}
-            onGenerateImage={handleGenerateImage}
-            onGenerateVideo={handleGenerateVideo}
-            generatedImages={generatedImages}
-            latestVideoUrl={latestGeneratedVideo}
             isLoading={isChatLoading}
           />
         );
@@ -479,9 +435,9 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
           <SettingsView
             onNavigate={setCurrentScreen}
             onOpenPro={() => setCurrentScreen('pro')}
-            onLogout={onSignOut}
+            onLogout={() => setCurrentScreen('dashboard')}
             userProfile={userProfile}
-            onUpdateProfile={updateUserProfile}
+            onUpdateProfile={(updated) => setUserProfile((prev) => ({ ...prev, ...updated }))}
           />
         );
       case 'history':
@@ -489,33 +445,27 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
           <HistoryView
             onNavigate={setCurrentScreen}
             sessions={sessions}
-            onSelectSession={async (ses) => {
-              if (!supabase) return;
-              const { data, error } = await supabase.from('chat_messages')
-                .select('id,role,content,created_at').eq('session_id', ses.id).order('created_at', { ascending: true });
-              if (error) { console.error('Could not open chat history:', error.message); return; }
-              const restored: ChatMessage[] = (data || []).map((row: any) => ({
-                id: row.id, sender: row.role === 'user' ? 'user' : 'assistant',
-                text: row.content, time: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                timestamp: new Date(row.created_at).getTime()
-              }));
-              setMessages(restored);
-              setCurrentSessionId(ses.id);
+            onSelectSession={(ses) => {
+              if (ses.messages.length > 0) setMessages(ses.messages);
             }}
-            onDeleteSession={async (id) => {
-              if (supabase) {
-                const { error } = await supabase.from('chat_sessions').delete().eq('id', id).eq('user_id', profile.id);
-                if (error) { console.error('Could not delete chat history:', error.message); return; }
-              }
-              setSessions((prev) => prev.filter((item) => item.id !== id));
-              if (currentSessionId === id) { setCurrentSessionId(null); setMessages([]); }
+            onDeleteSession={(id) => {
+              setSessions((prev) => prev.filter((s) => s.id !== id));
             }}
           />
         );
       case 'api':
-        return <AIBrainControl />;
+        return (
+          <ApiManagementView
+            onNavigate={setCurrentScreen}
+            providers={providers}
+            onToggleProvider={handleToggleProvider}
+            onTestProvider={handleTestProvider}
+            onAddProvider={handleAddProvider}
+            isTestingId={testingProviderId}
+          />
+        );
       case 'video':
-        return <VideoGenView onNavigate={setCurrentScreen} apiBase={apiBase} />;
+        return <VideoGenView onNavigate={setCurrentScreen} />;
       case 'pro':
         return (
           <SubscriptionView
@@ -542,28 +492,14 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
             systemHealth={systemHealth}
             isMobileFrame={isMobileFrame}
             onToggleMobileFrame={() => setIsMobileFrame(!isMobileFrame)}
-              />
+            onDownloadProjectZip={handleDownloadProjectZip}
+          />
         );
     }
   };
 
-  if (adminMode) {
-    return (
-      <div className="min-h-screen bg-[#050614] text-white p-3 sm:p-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex items-center justify-between border-b border-purple-900/30 pb-4 mb-6">
-            <div><div className="text-xl font-black">SAY AI <span className="text-purple-400">ADMIN</span></div><p className="text-xs text-slate-400 mt-1">Private administration area</p></div>
-            <button onClick={onSignOut} className="rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-300">Logout</button>
-          </div>
-          <AdminView onNavigate={setCurrentScreen} systemHealth={systemHealth} currentUser={userProfile} />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="sayai-app min-h-screen bg-[#050614] text-white flex flex-col font-sans selection:bg-purple-500/30 selection:text-purple-200" data-sayai-theme={userProfile.appearance.theme}>
-      <div className="sayai-app-content flex flex-1 min-h-0 flex-col" style={{ filter: `brightness(${Math.min(100, Math.max(20, userProfile.appearance.brightness))}%)${userProfile.appearance.theme === "light" ? " invert(1) hue-rotate(180deg)" : ""}` }}>
+    <div className="min-h-screen bg-[#050614] text-white flex flex-col font-sans selection:bg-purple-500/30 selection:text-purple-200">
       {/* Top Application Header */}
       <Header
         currentScreen={currentScreen}
@@ -573,6 +509,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
         onOpenNotifications={() => setIsNotificationOpen(true)}
         onOpenPro={() => setCurrentScreen('pro')}
         onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
+        onDownloadProjectZip={handleDownloadProjectZip}
         unreadCount={unreadNotifications}
       />
 
@@ -585,7 +522,8 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
               currentScreen={currentScreen}
               onNavigate={setCurrentScreen}
               onOpenPro={() => setCurrentScreen('pro')}
-              onLogout={onSignOut}
+              onLogout={() => setCurrentScreen('dashboard')}
+              onDownloadProjectZip={handleDownloadProjectZip}
             />
           </div>
         )}
@@ -623,8 +561,6 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
         </main>
       </div>
 
-      </div>
-
       {/* Mobile Bottom Navigation (Visible on small screens) */}
       {!isMobileFrame && (
         <div className="block lg:hidden">
@@ -653,7 +589,11 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
                 setIsMobileDrawerOpen(false);
                 setCurrentScreen('pro');
               }}
-              onLogout={() => { setIsMobileDrawerOpen(false); onSignOut(); }}
+              onLogout={() => {
+                setIsMobileDrawerOpen(false);
+                setCurrentScreen('dashboard');
+              }}
+              onDownloadProjectZip={handleDownloadProjectZip}
               onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
             />
           </div>

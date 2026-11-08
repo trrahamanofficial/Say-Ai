@@ -14,7 +14,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
   onUpgradePlan
 }) => {
   const [isAnnual, setIsAnnual] = useState(true);
-  const [showNotFound, setShowNotFound] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
 
   const plans = [
     {
@@ -76,8 +76,13 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
   ];
 
   const handleSelectPlan = (planId: string) => {
-    if (planId === userProfile.plan || planId === 'Free') return;
-    setShowNotFound(true);
+    if (planId === userProfile.plan) return;
+    setCheckoutPlan(planId);
+  };
+
+  const confirmUpgrade = (plan: 'Free' | 'Pro' | 'Enterprise') => {
+    onUpgradePlan(plan);
+    setCheckoutPlan(null);
   };
 
   return (
@@ -180,23 +185,55 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
         ))}
       </div>
 
-      {/* Paid upgrades are unavailable for now */}
-      {showNotFound && (
-        <div className="fixed inset-0 z-50 bg-[#050614] flex items-center justify-center p-6">
-          <div className="max-w-md w-full text-center space-y-4">
-            <div className="text-6xl font-black text-purple-300">404</div>
-            <h2 className="text-2xl font-bold text-white">Not Found</h2>
-            <p className="text-sm text-slate-400">Paid upgrades are not available right now.</p>
-            <button
-              onClick={() => setShowNotFound(false)}
-              className="mt-3 rounded-xl border border-purple-500/40 bg-purple-600/20 px-5 py-3 text-sm font-semibold text-white hover:bg-purple-600/30"
-            >
-              Back to Plans
-            </button>
+      {/* Checkout Simulator Modal */}
+      {checkoutPlan && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-md w-full rounded-3xl bg-[#0c0f30] border border-purple-500/40 p-6 space-y-4 shadow-[0_0_40px_rgba(147,51,234,0.4)]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <span>👑</span>
+                <span>Confirm Upgrade to {checkoutPlan}</span>
+              </h3>
+              <button
+                onClick={() => setCheckoutPlan(null)}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              You are upgrading to <strong>{checkoutPlan} Plan</strong> ({isAnnual ? 'Billed annually' : 'Billed monthly'}). Instant activation across your account and all connected devices.
+            </p>
+
+            <div className="p-3.5 rounded-xl bg-[#07091e] border border-purple-900/40 space-y-2 text-xs">
+              <div className="flex justify-between text-slate-300">
+                <span>Subtotal</span>
+                <span>{checkoutPlan === 'Pro' ? (isAnnual ? '$180/yr' : '$19/mo') : (isAnnual ? '$468/yr' : '$49/mo')}</span>
+              </div>
+              <div className="flex justify-between text-emerald-400 font-semibold">
+                <span>Instant Pro Access</span>
+                <span>Included</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setCheckoutPlan(null)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => confirmUpgrade(checkoutPlan as any)}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-md cursor-pointer"
+              >
+                Activate {checkoutPlan}
+              </button>
+            </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };
