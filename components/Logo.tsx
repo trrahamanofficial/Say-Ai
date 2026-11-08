@@ -34,55 +34,25 @@ export const SayAiLogo: React.FC<LogoProps> = ({
 
   return (
     <div className={`flex items-center gap-3 select-none ${className}`}>
-      {/* 3D Swirling Neon Spiral Emblem */}
-      <div className={`relative ${iconSizes[size]} flex-shrink-0 flex items-center justify-center`}>
-        {/* Ambient neon radial back-glow */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-fuchsia-600/60 via-purple-600/50 to-cyan-400/60 blur-md animate-pulse" />
-        
-        {/* Holographic swirling SVG emblem */}
-        <svg viewBox="0 0 100 100" className="w-full h-full relative z-10 drop-shadow-[0_0_12px_rgba(168,85,247,0.85)]">
+      {/* Official SAY AI app mark: blue interlocking symbol on a white grid tile */}
+      <div className={`relative ${iconSizes[size]} flex-shrink-0 overflow-hidden rounded-[28%] bg-white shadow-[0_3px_18px_rgba(0,140,255,.22)]`}>
+        <svg viewBox="0 0 512 512" className="h-full w-full" role="img" aria-label="SAY AI logo">
           <defs>
-            <linearGradient id="swirlGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#00f5ff" />
-              <stop offset="40%" stopColor="#7928ca" />
-              <stop offset="70%" stopColor="#d946ef" />
-              <stop offset="100%" stopColor="#ec4899" />
+            <clipPath id="sayaiLogoClip"><rect width="512" height="512" rx="112"/></clipPath>
+            <linearGradient id="sayaiBlue" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#20b9f2"/><stop offset="1" stopColor="#0878ef"/>
             </linearGradient>
-            <linearGradient id="swirlGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#38bdf8" />
-              <stop offset="50%" stopColor="#818cf8" />
-              <stop offset="100%" stopColor="#c084fc" />
-            </linearGradient>
-            <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
           </defs>
-
-          {/* Outer orbital rings */}
-          <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(147, 51, 234, 0.3)" strokeWidth="1.5" strokeDasharray="4 6" />
-          
-          {/* Main spiral arms simulating the dynamic SAY AI logo in the screenshots */}
-          <path
-            d="M50 10 C 72 10, 90 28, 90 50 C 90 68, 76 84, 58 88 C 42 92, 26 82, 20 68 C 14 54, 20 38, 32 30 C 44 22, 60 26, 66 38 C 72 50, 66 64, 54 68 C 44 72, 34 66, 32 56 C 30 48, 36 42, 44 42 C 50 42, 54 46, 54 50"
-            fill="none"
-            stroke="url(#swirlGrad1)"
-            strokeWidth="9"
-            strokeLinecap="round"
-          />
-
-          <path
-            d="M50 90 C 28 90, 10 72, 10 50 C 10 32, 24 16, 42 12 C 58 8, 74 18, 80 32 C 86 46, 80 62, 68 70 C 56 78, 40 74, 34 62"
-            fill="none"
-            stroke="url(#swirlGrad2)"
-            strokeWidth="6"
-            strokeLinecap="round"
-            opacity="0.85"
-          />
-
-          {/* Central core gem */}
-          <circle cx="50" cy="50" r="7" fill="#ffffff" filter="url(#neonGlow)" />
-          <circle cx="50" cy="50" r="4" fill="#a855f7" />
+          <g clipPath="url(#sayaiLogoClip)">
+            <rect width="512" height="512" fill="#fff"/>
+            <g stroke="#dce8fa" strokeWidth="3" opacity=".9">
+              <path d="M-90 90 422 602M-20 -40 552 532M90 -90 602 422M-150 250 262 662M250 -150 662 262"/>
+              <path d="M-90 422 422 -90M-20 552 552 -20M90 602 602 90M-150 262 262 -150M250 662 662 250"/>
+            </g>
+            <path d="M147 193 230 276 147 359 111 323 158 276 111 229Z" fill="url(#sayaiBlue)"/>
+            <path d="M229 111 312 194 395 111 432 148 349 231 432 314 395 351 312 268 229 351 192 314 275 231 192 148Z" fill="url(#sayaiBlue)"/>
+            <path d="M147 359 230 276 313 359 276 396 230 350 184 396Z" fill="url(#sayaiBlue)"/>
+          </g>
         </svg>
       </div>
 
