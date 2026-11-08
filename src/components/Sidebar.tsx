@@ -13,7 +13,8 @@ import {
   Video,
   ArrowRight,
   Sparkles,
-  Download
+  Download,
+  ShieldCheck
 } from 'lucide-react';
 import { SayAiLogo } from './Logo';
 import { ScreenType } from '../types';
@@ -26,6 +27,7 @@ interface SidebarProps {
   onDownloadProjectZip: () => void;
   className?: string;
   onCloseMobileDrawer?: () => void;
+  isAdmin?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -35,7 +37,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
   onDownloadProjectZip,
   className = '',
-  onCloseMobileDrawer
+  onCloseMobileDrawer,
+  isAdmin = false
 }) => {
   const navItems = [
     { id: 'dashboard' as ScreenType, label: 'Dashboard', icon: LayoutDashboard },
@@ -46,6 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'history' as ScreenType, label: 'Chat History', icon: History },
     { id: 'settings' as ScreenType, label: 'Settings', icon: Settings },
     { id: 'profile' as ScreenType, label: 'Profile', icon: User },
+    ...(isAdmin ? [{ id: 'admin' as ScreenType, label: 'Admin Dashboard', icon: ShieldCheck }] : []),
   ];
 
   const handleSelect = (id: ScreenType) => {
