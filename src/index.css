@@ -124,3 +124,18 @@ body{background:radial-gradient(ellipse at 12% 8%,rgba(14,116,144,.25),transpare
 @keyframes sayai-brain-float{0%,100%{transform:translate3d(0,0,0) rotate(-1deg) scale(1)}50%{transform:translate3d(0,-11px,0) rotate(1deg) scale(1.035)}}
 @keyframes sayai-brain-glow{from{filter:drop-shadow(0 0 12px rgba(34,211,238,.42))}to{filter:drop-shadow(0 0 28px rgba(59,130,246,.72))}}
 @media(prefers-reduced-motion:reduce){.sayai-brain-orbit{animation:none!important}}
+
+/* SAY AI refreshed compact mobile studio theme */
+:root{color-scheme:dark;--sayai-ink:#071522;--sayai-panel:#0d2033;--sayai-cyan:#27c5d9;--sayai-blue:#2878e8;--sayai-lilac:#9b8cff}
+body{background:radial-gradient(ellipse at 10% 0%,rgba(20,184,166,.18),transparent 36%),radial-gradient(ellipse at 95% 22%,rgba(37,99,235,.2),transparent 40%),linear-gradient(155deg,#071522 0%,#0a1b31 48%,#101c3b 100%)!important;overscroll-behavior-y:none}
+.sayai-app{min-height:100dvh;min-height:100svh}
+.sayai-app main{padding-bottom:calc(5.2rem + env(safe-area-inset-bottom))!important;scroll-padding-bottom:calc(5.2rem + env(safe-area-inset-bottom));overscroll-behavior:contain}
+.sayai-bottom-nav{bottom:0;padding-top:.45rem!important;padding-bottom:max(.45rem,env(safe-area-inset-bottom))!important;min-height:calc(4.15rem + env(safe-area-inset-bottom))!important;background:rgba(4,13,24,.97)!important;border-top:1px solid rgba(64,190,210,.2)!important;box-shadow:0 -10px 28px rgba(0,0,0,.28)!important;backdrop-filter:blur(22px)}
+.sayai-chat{height:calc(100dvh - 148px);max-height:calc(100dvh - 148px);padding-bottom:max(.65rem,env(safe-area-inset-bottom))}
+.sayai-chat input{min-width:0}
+.sayai-chat button,.sayai-bottom-nav button{-webkit-tap-highlight-color:transparent}
+.sayai-brain-orbit{animation:sayai-brain-float 5.5s ease-in-out infinite,sayai-brain-glow 3.2s ease-in-out infinite alternate;will-change:transform,filter}
+@keyframes sayai-brain-float{0%,100%{transform:translate3d(0,0,0) rotate(-1deg) scale(1)}50%{transform:translate3d(0,-11px,0) rotate(1deg) scale(1.035)}}
+@keyframes sayai-brain-glow{from{filter:drop-shadow(0 0 12px rgba(34,211,238,.42))}to{filter:drop-shadow(0 0 28px rgba(59,130,246,.72))}}
+@media(max-width:640px){.sayai-chat{padding-left:.7rem;padding-right:.7rem}.sayai-chat .sayai-message{max-width:78%}}
+@media(prefers-reduced-motion:reduce){.sayai-brain-orbit{animation:none!important}}
