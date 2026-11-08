@@ -81,10 +81,28 @@ async function generateZeroGpu(prompt: string, motion: string, ratio: string, to
       const videoFile = (payload[0] as { video?: { url?: string; path?: string } })?.video;
       const rawVideoUrl = videoFile?.url || videoFile?.path;
       if (!rawVideoUrl) throw new Error('ZeroGPU returned no video file.');
-      // Gradio Spaces commonly return a site-relative file URL. Resolve it against
-      // the Space origin; otherwise the app loads it from say-ai.pages.dev (0:00).
-      const videoUrl = new URL(rawVideoUrl, base).toString();
-      return { videoUrl, provider: 'Hugging Face ZeroGPU · LTX Video', model: 'LTX-Video Distilled', createdAt: Date.now() };
+      // Gradio returns a temporary file URL. Resolve it against the Space origin,
+      // then fetch the media server-side so Android WebView does not try to play a
+      // temporary cross-origin Gradio URL that may expire or fail to resolve.
+      const resolvedVideoUrl = new URL(rawVideoUrl, base).toString();
+      const videoResponse = await fetch(resolvedVideoUrl, { headers: token ? { Authorization: 'Bearer ' + token } : {} });
+      if (!videoResponse.ok) {
+        throw new Error('ZeroGPU finished, but its video file could not be downloaded (HTTP ' + videoResponse.status + ').');
+      }
+      const contentType = videoResponse.headers.get('content-type') || 'video/mp4';
+      if (!contentType.startsWith('video/')) {
+        throw new Error('ZeroGPU returned a file that is not a playable video (' + contentType + ').');
+      }
+      const videoBytes = await videoResponse.arrayBuffer();
+      if (!videoBytes.byteLength) throw new Error('ZeroGPU returned an empty video file.');
+      if (videoBytes.byteLength > 24 * 1024 * 1024) {
+        throw new Error('Generated video is too large for the in-app preview (over 24 MB).');
+      }
+      const bytes = new Uint8Array(videoBytes);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      const videoUrl = 'data:' + contentType + ';base64,' + btoa(binary);
+      return { videoUrl, provider: 'Hugging Face ZeroGPU · LTX Video', model: 'LTX-Video Distilled', sizeBytes: videoBytes.byteLength, createdAt: Date.now() };
     }
   }
   throw new Error('ZeroGPU job did not finish. Please try again.');
