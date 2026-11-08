@@ -76,14 +76,8 @@ export const VoiceAssistantView: React.FC<VoiceAssistantViewProps> = ({
 
   const toggleMic = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      const simulatedCommands = [
-        'What time is it right now?',
-        'Tell me a creative sci-fi story',
-        'Generate image of a cybernetic dragon',
-        'Tell me a joke about robots'
-      ];
-      const randomCmd = simulatedCommands[Math.floor(Math.random() * simulatedCommands.length)];
-      handleCommandExecution(randomCmd);
+      setIsListening(false);
+      setLastResponse('Speech recognition is not available on this device or browser. You can still use the quick commands below.');
       return;
     }
 
