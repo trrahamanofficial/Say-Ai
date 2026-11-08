@@ -122,5 +122,5 @@ body{background:radial-gradient(ellipse at 12% 8%,rgba(14,116,144,.25),transpare
 .sayai-bottom-nav{padding-bottom:max(.55rem,env(safe-area-inset-bottom));min-height:calc(4.4rem + env(safe-area-inset-bottom));background:rgba(4,13,22,.97)!important;border-color:rgba(34,211,238,.22)!important}
 .sayai-brain-orbit{animation:sayai-brain-float 5.5s ease-in-out infinite,sayai-brain-glow 3.2s ease-in-out infinite alternate;will-change:transform,filter}
 @keyframes sayai-brain-float{0%,100%{transform:translate3d(0,0,0) rotate(-1deg) scale(1)}50%{transform:translate3d(0,-11px,0) rotate(1deg) scale(1.035)}}
-@keyframes sayai-brain-glow{from{filter:drop-shadow(0 0 12px rgba(34,211,238,.42))}to{filter:drop-shadow(0 0 28px rgba(59,130,246,.72)}}
+@keyframes sayai-brain-glow{from{filter:drop-shadow(0 0 12px rgba(34,211,238,.42))}to{filter:drop-shadow(0 0 28px rgba(59,130,246,.72))}}
 @media(prefers-reduced-motion:reduce){.sayai-brain-orbit{animation:none!important}}
