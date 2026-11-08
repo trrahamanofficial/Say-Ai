@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, MessageSquare, Image as ImageIcon, Mic, Settings, History, Sliders, User, Crown } from 'lucide-react';
+import { Home, MessageSquare, Mic, Settings, History } from 'lucide-react';
 import { ScreenType } from '../types';
 
 interface BottomNavProps {
@@ -30,7 +30,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {primaryItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentScreen === item.id;
-          const isSpecialGlow = item.id === 'image' || item.id === 'voice';
+          const isSpecialGlow = item.id === 'voice';
 
           return (
             <button

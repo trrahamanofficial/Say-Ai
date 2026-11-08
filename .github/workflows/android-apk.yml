@@ -3,7 +3,7 @@ name: Build SAY AI Android APK
 
 on:
   push:
-    branches: [android-apk-fix]
+    branches: [main, android-apk-fix]
     paths:
       - '.github/workflows/android-apk.yml'
       - 'src/**'
@@ -11,7 +11,7 @@ on:
       - 'package.json'
       - 'capacitor.config.ts'
       - 'capacitor.config.json'
-      - 'scripts/**'
+      - 'scripts/**'\n      - 'resources/**'
   pull_request:
     branches: [main]
     paths:

@@ -1,10 +1,13 @@
-# Generate Android launcher icons from the exact approved SAY AI logo image.
+# Generate crisp transparent Android launcher icons from the approved SAY AI emblem.
 from pathlib import Path
 from PIL import Image
+import cairosvg
+from io import BytesIO
 
 root = Path("android/app/src/main/res")
-source = Path("resources/say-ai-logo.jpg")
-image = Image.open(source).convert("RGBA")
+source = Path("resources/say-ai-logo.svg")
+png_bytes = cairosvg.svg2png(url=str(source), output_width=1024, output_height=1024)
+image = Image.open(BytesIO(png_bytes)).convert("RGBA")
 
 sizes = {
     "mipmap-mdpi": 48,
@@ -26,4 +29,4 @@ for name in ("ic_launcher.xml", "ic_launcher_round.xml"):
     if path.exists():
         path.unlink()
 
-print("Installed the exact approved SAY AI launcher logo.")
+print("Installed the approved SAY AI emblem with a transparent background.")

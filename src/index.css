@@ -118,3 +118,48 @@
 .sayai-app[data-sayai-theme="light"] video {
   filter: invert(1) hue-rotate(180deg);
 }
+
+
+/* SAY AI premium visual refresh — preserves the existing application behavior. */
+.sayai-app {
+  --sayai-surface: rgba(14, 19, 48, .78);
+  --sayai-border: rgba(139, 120, 255, .22);
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(80, 64, 190, .19), transparent 34rem),
+    radial-gradient(ellipse at 92% 22%, rgba(0, 166, 214, .11), transparent 30rem),
+    linear-gradient(145deg, #07091b 0%, #090d25 48%, #070a1c 100%) !important;
+  min-height: 100dvh;
+}
+.sayai-app button, .sayai-app a { -webkit-tap-highlight-color: transparent; }
+.sayai-app :is(input, textarea, select) { accent-color: #9b7bff; }
+.sayai-app :is(.glass-panel, .glass-panel-subtle, .glass-panel-active) {
+  border-color: var(--sayai-border);
+  box-shadow: 0 14px 42px rgba(0, 0, 0, .16);
+}
+.sayai-app main { scrollbar-gutter: stable; }
+.sayai-app main > div { animation: sayai-page-enter .42s cubic-bezier(.2,.75,.25,1) both; }
+.sayai-app :is(button, [role="button"]) { transition-duration: .22s; }
+.sayai-app :is(button, [role="button"]):focus-visible {
+  outline: 2px solid rgba(116, 211, 255, .9);
+  outline-offset: 3px;
+}
+.sayai-app .rounded-2xl, .sayai-app .rounded-3xl {
+  box-shadow: 0 10px 32px rgba(0, 0, 0, .12);
+}
+.sayai-app .sayai-premium-card {
+  background: linear-gradient(145deg, rgba(26, 31, 75, .9), rgba(11, 16, 43, .88));
+  border: 1px solid rgba(157, 137, 255, .26);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .2), inset 0 1px rgba(255,255,255,.05);
+}
+@keyframes sayai-page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sayai-app *, .sayai-app *::before, .sayai-app *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
