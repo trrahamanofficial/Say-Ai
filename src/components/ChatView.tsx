@@ -4,6 +4,7 @@ import {
   Mic,
   Paperclip,
   Image as ImageIcon,
+  Video,
   Sliders,
   Settings as SettingsIcon,
   MessageSquare,
@@ -120,6 +121,14 @@ export const ChatView: React.FC<ChatViewProps> = ({
         >
           <ImageIcon className="w-4 h-4 text-slate-400" />
           <span className="text-[11px] sm:text-xs text-center">Image Gen</span>
+        </button>
+
+        <button
+          onClick={() => onNavigate('video')}
+          className="flex flex-col sm:flex-row items-center justify-center gap-1.5 p-2 rounded-2xl bg-[#0c102a]/80 hover:bg-[#12163b] border border-cyan-900/30 text-slate-300 hover:text-white text-xs font-medium transition-all cursor-pointer"
+        >
+          <Video className="w-4 h-4 text-cyan-300" />
+          <span className="text-[11px] sm:text-xs">Video</span>
         </button>
 
         <button
