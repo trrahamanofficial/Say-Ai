@@ -15,12 +15,16 @@ import {
   RotateCcw,
   Bot
 } from 'lucide-react';
-import { ChatMessage, ScreenType } from '../types';
+import { ChatMessage, GeneratedImage, ScreenType } from '../types';
 
 interface ChatViewProps {
   onNavigate: (screen: ScreenType) => void;
   messages: ChatMessage[];
   onSendMessage: (text: string) => Promise<void>;
+  onGenerateImage: (prompt: string, category: string) => Promise<void>;
+  onGenerateVideo: (prompt: string) => Promise<string>;
+  generatedImages: GeneratedImage[];
+  latestVideoUrl: string | null;
   isLoading: boolean;
 }
 
@@ -28,11 +32,19 @@ export const ChatView: React.FC<ChatViewProps> = ({
   onNavigate,
   messages,
   onSendMessage,
+  onGenerateImage,
+  onGenerateVideo,
+  generatedImages,
+  latestVideoUrl,
   isLoading
 }) => {
   const [inputText, setInputText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [composerMode, setComposerMode] = useState<'chat' | 'image' | 'video'>('chat');
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaStatus, setMediaStatus] = useState('');
+  const [chatVideoUrl, setChatVideoUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to latest message
@@ -43,9 +55,28 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!inputText.trim() || isLoading) return;
-    const msg = inputText;
+    const msg = inputText.trim();
     setInputText('');
-    await onSendMessage(msg);
+    if (composerMode === 'chat') {
+      await onSendMessage(msg);
+      return;
+    }
+    setMediaLoading(true);
+    setMediaStatus(composerMode === 'image' ? 'Creating your image…' : 'Creating your video…');
+    try {
+      if (composerMode === 'image') {
+        await onGenerateImage(msg, 'Photorealistic');
+        setMediaStatus('Your image is ready. It is also available in your Image Gallery.');
+      } else {
+        const url = await onGenerateVideo(msg);
+        setChatVideoUrl(url);
+        setMediaStatus('Your video is ready.');
+      }
+    } catch (error) {
+      setMediaStatus(error instanceof Error ? error.message : 'Media generation failed. Please try again.');
+    } finally {
+      setMediaLoading(false);
+    }
   };
 
   // Web Speech recognition toggle
@@ -276,6 +307,41 @@ export const ChatView: React.FC<ChatViewProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Unified AI composer for chat, image and video creation */}
+      <div className="mb-2 grid grid-cols-3 gap-2 rounded-2xl border border-purple-500/20 bg-[#090d29]/80 p-1.5">
+        {([
+          { id: 'chat', label: 'AI Chat', icon: MessageSquare },
+          { id: 'image', label: 'Create Image', icon: ImageIcon },
+          { id: 'video', label: 'Create Video', icon: Video }
+        ] as const).map((mode) => {
+          const Icon = mode.icon;
+          const active = composerMode === mode.id;
+          return (
+            <button key={mode.id} type="button" onClick={() => { setComposerMode(mode.id); setMediaStatus(''); }}
+              className={`flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-[11px] sm:text-xs font-bold transition-all ${active ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+              <Icon className="h-4 w-4" /><span>{mode.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      {mediaStatus && <div role="status" className="mb-2 rounded-xl border border-purple-400/20 bg-purple-950/30 px-3 py-2 text-xs text-purple-100">{mediaStatus}</div>}
+      {composerMode === 'image' && generatedImages[0] && (
+        <div className="mb-2 overflow-hidden rounded-2xl border border-purple-400/25 bg-[#0b1030]">
+          <img src={generatedImages[0].imageUrl} alt={generatedImages[0].prompt} className="max-h-72 w-full object-contain" />
+          <div className="flex justify-between gap-2 p-2">
+            <span className="line-clamp-1 text-xs text-slate-300">{generatedImages[0].prompt}</span>
+            <button type="button" onClick={() => onNavigate('image')} className="shrink-0 text-xs font-semibold text-cyan-300">Open gallery</button>
+          </div>
+        </div>
+      )}
+      {composerMode === 'video' && (chatVideoUrl || latestVideoUrl) && (
+        <div className="mb-2 overflow-hidden rounded-2xl border border-cyan-400/25 bg-[#0b1030] p-2">
+          <video src={chatVideoUrl || latestVideoUrl || undefined} controls playsInline className="max-h-72 w-full rounded-xl bg-black" />
+          <div className="flex justify-end gap-2 pt-2">
+            <a href={chatVideoUrl || latestVideoUrl || undefined} download="SAY-AI-Video.mp4" className="rounded-lg bg-cyan-500/15 px-3 py-2 text-xs font-semibold text-cyan-200">Download video</a>
+          </div>
+        </div>
+      )}
       {/* Composer Input Bar matching Image 4 & Image 1 left */}
       <form onSubmit={handleSend} className="pb-1 relative z-20">
         <div className="relative rounded-2xl bg-[#090d29]/90 border border-purple-600/40 p-1.5 flex items-center gap-2 shadow-[0_0_25px_rgba(147,51,234,0.25)] focus-within:border-purple-400 focus-within:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all">
@@ -298,7 +364,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder={isListening ? 'Listening to your voice...' : 'Ask SAY AI anything...'}
+            placeholder={isListening ? 'Listening to your voice...' : composerMode === 'image' ? 'Describe the image you want to create…' : composerMode === 'video' ? 'Describe the video you want to create…' : 'Ask SAY AI anything…'}
             disabled={isLoading}
             className="flex-1 bg-transparent text-sm text-white placeholder-slate-400 focus:outline-none px-2 py-1.5"
           />
@@ -316,7 +382,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
           {/* Send Button matching round violet gradient in Image 4 */}
           <button
             type="submit"
-            disabled={!inputText.trim() || isLoading}
+            disabled={!inputText.trim() || isLoading || mediaLoading}
             aria-label="Send message"
             className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-40 disabled:hover:scale-100 flex items-center justify-center text-white shadow-[0_0_16px_rgba(168,85,247,0.6)] active:scale-95 transition-all cursor-pointer flex-shrink-0"
           >
