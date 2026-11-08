@@ -111,3 +111,14 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(168, 85, 247, 0.6);
 }
+
+/* Applied to the real application root (including Android WebView). */
+.sayai-app { background:transparent !important; }
+.sayai-app main { padding-bottom:calc(6.2rem + env(safe-area-inset-bottom)) !important; scroll-padding-bottom:calc(6.2rem + env(safe-area-inset-bottom)); }
+.sayai-app .sayai-bottom-nav { padding-bottom:max(.55rem,env(safe-area-inset-bottom)); min-height:calc(4.4rem + env(safe-area-inset-bottom)); }
+.sayai-app [class*="bg-[#0c"], .sayai-app [class*="bg-[#0a"], .sayai-app [class*="bg-[#08"] { background-color:rgba(9,31,48,.88) !important; }
+.sayai-app [class*="border-purple-"], .sayai-app [class*="border-fuchsia-"] { border-color:rgba(34,211,238,.25) !important; }
+.sayai-app [class*="text-purple-"], .sayai-app [class*="text-fuchsia-"] { color:#67e8f9 !important; }
+.sayai-app [class*="bg-purple-"], .sayai-app [class*="bg-fuchsia-"] { background-color:rgba(8,145,178,.24) !important; }
+.sayai-app button { -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+.sayai-app .sayai-bottom-nav { background:rgba(4,13,22,.97) !important; border-color:rgba(34,211,238,.22) !important; }
