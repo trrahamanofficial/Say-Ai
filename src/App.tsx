@@ -92,7 +92,7 @@ export default function App() {
   ]; });
 
   // Initial Chat Sessions
-  const [sessions, setSessions] = useState<ChatSession[]>([
+  const [sessions, setSessions] = useState<ChatSession[]>(() => { try { const saved = localStorage.getItem('sayai:sessions'); if (saved) { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) return parsed as ChatSession[]; } } catch {} return [
     {
       id: 'ses-1',
       title: 'AI Assistant Overview',
@@ -129,9 +129,7 @@ export default function App() {
       category: 'Support',
       messages: []
     }
-  ]);
-
-  // Configured AI Providers
+  ]; });// Configured AI Providers
   const [providers, setProviders] = useState<AIProviderConfig[]>([
     {
       id: 'prov-1',
@@ -224,6 +222,8 @@ export default function App() {
 
   useEffect(()=>{try{localStorage.setItem('sayai:last-screen',currentScreen);}catch{}},[currentScreen]);
   useEffect(()=>{try{localStorage.setItem('sayai:messages',JSON.stringify(messages.slice(-150)));}catch{}},[messages]);
+  useEffect(()=>{try{localStorage.setItem('sayai:sessions',JSON.stringify(sessions.slice(0,60)));}catch{}},[sessions]);
+  useEffect(()=>{if(messages.length){setSessions(prev=>{const next=[...prev];const first=next[0];if(first){next[0]={...first,messages:messages.slice(-150),lastMessage:(messages[messages.length-1]?.text||first.lastMessage).slice(0,80),timestamp:Date.now(),timeAgo:'Just now'};}return next;});}},[messages]);
 
   // Handle Chat Send
   const handleSendMessage = async (text: string) => {
