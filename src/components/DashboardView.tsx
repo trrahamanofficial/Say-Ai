@@ -4,6 +4,7 @@ import {
   Bell,
   MessageSquare,
   Image as ImageIcon,
+  Video,
   Mic,
   ArrowRight,
   CheckCircle2,
@@ -231,6 +232,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
       </div>
+
+      <button onClick={() => onNavigate('video')} className="group flex w-full items-center justify-between rounded-2xl border border-cyan-500/25 bg-gradient-to-r from-[#071e36]/95 to-[#10123a]/95 p-4 text-left shadow-lg transition-all hover:-translate-y-0.5 hover:border-cyan-400/60">
+        <span className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-600/20 text-cyan-300"><Video className="h-5 w-5" /></span><span><strong className="block text-sm text-white">Create a Video</strong><span className="text-xs text-slate-400">Open video creation from your AI workspace</span></span></span><ArrowRight className="h-5 w-5 text-cyan-300" />
+      </button>
 
       {/* Middle Row: Recent Chats (Left) & Usage Stats + System Status (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

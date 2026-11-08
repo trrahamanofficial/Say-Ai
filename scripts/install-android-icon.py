@@ -8,6 +8,7 @@ root = Path("android/app/src/main/res")
 source = Path("resources/say-ai-logo.svg")
 png_bytes = cairosvg.svg2png(url=str(source), output_width=1024, output_height=1024)
 image = Image.open(BytesIO(png_bytes)).convert("RGBA")
+image.save(Path("resources/say-ai-logo.png"), format="PNG", optimize=True)
 
 sizes = {
     "mipmap-mdpi": 48,
