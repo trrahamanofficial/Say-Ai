@@ -115,6 +115,40 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
     a.click();
   };
 
+  const handleShareImage = async (image: GeneratedImage) => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'SAY AI Image', text: image.prompt, url: image.imageUrl });
+      } else {
+        await navigator.clipboard.writeText(image.imageUrl);
+        setCopiedPrompt(true);
+        window.setTimeout(() => setCopiedPrompt(false), 1800);
+      }
+    } catch {
+      try {
+        await navigator.clipboard.writeText(image.imageUrl);
+        setCopiedPrompt(true);
+        window.setTimeout(() => setCopiedPrompt(false), 1800);
+      } catch {
+        setGenerationError('Sharing is not supported on this device.');
+      }
+    }
+  };
+
+  const handleRegenerateImage = async (image: GeneratedImage) => {
+    setPrompt(image.prompt);
+    setSelectedCategory(image.category || 'Photorealistic');
+    setActiveModalImage(null);
+    setGenerationError('');
+    previewAfterGeneration.current = true;
+    try {
+      await onGenerateImage(image.prompt, image.category || 'Photorealistic');
+    } catch (error) {
+      previewAfterGeneration.current = false;
+      setGenerationError(error instanceof Error ? error.message : 'Image generation failed. Please try again.');
+    }
+  };
+
   return (
     <div className="sayai-screen sayai-screen-image flex-1 max-w-4xl mx-auto w-full p-3 sm:p-6 space-y-6">
       {/* Top Banner matching Image 2 */}
@@ -342,26 +376,20 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                onClick={() => handleDownload(activeModalImage.imageUrl, activeModalImage.prompt)}
-                className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md"
-              >
-                <Download className="w-4 h-4" />
-                <span>Download</span>
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              <button onClick={() => handleDownload(activeModalImage.imageUrl, activeModalImage.prompt)} className="py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:brightness-110 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg">
+                <Download className="w-4 h-4" /><span>Download</span>
               </button>
-
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(activeModalImage.prompt);
-                  setCopiedPrompt(true);
-                  setTimeout(() => setCopiedPrompt(false), 2000);
-                }}
-                className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs flex items-center justify-center transition-all cursor-pointer"
-              >
-                {copiedPrompt ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              <button onClick={() => void handleShareImage(activeModalImage)} className="py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/10 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                <Share2 className="w-4 h-4" /><span>{copiedPrompt ? 'Copied' : 'Share'}</span>
+              </button>
+              <button onClick={() => void handleRegenerateImage(activeModalImage)} disabled={isGenerating} className="py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:brightness-110 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                <RefreshCw className="w-4 h-4" /><span>Again</span>
               </button>
             </div>
+            <button onClick={() => { navigator.clipboard.writeText(activeModalImage.prompt); setCopiedPrompt(true); window.setTimeout(() => setCopiedPrompt(false), 1800); }} className="w-full text-center text-[11px] text-slate-400 hover:text-cyan-200 transition-colors">
+              {copiedPrompt ? 'Prompt copied' : 'Copy image prompt'}
+            </button>
           </div>
         </div>
       )}
