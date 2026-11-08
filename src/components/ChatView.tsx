@@ -55,7 +55,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!inputText.trim() || isLoading) return;
+    if (!inputText.trim() || isLoading || mediaLoading) return;
     const msg = inputText.trim();
     setInputText('');
     if (composerMode === 'chat') {
@@ -132,6 +132,24 @@ export const ChatView: React.FC<ChatViewProps> = ({
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleShareMedia = async (url: string, title: string) => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text: 'Created with SAY AI', url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setMediaStatus('Media link copied. You can share it anywhere.');
+      }
+    } catch {
+      try {
+        await navigator.clipboard.writeText(url);
+        setMediaStatus('Media link copied. You can share it anywhere.');
+      } catch {
+        setMediaStatus('Sharing is not supported on this device.');
+      }
+    }
   };
 
   return (
@@ -333,6 +351,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
             <span className="line-clamp-1 text-xs text-slate-300">{generatedImages[0].prompt}</span>
             <div className="flex shrink-0 items-center gap-3">
               <a href={generatedImages[0].imageUrl} download="SAY-AI-Image.png" className="text-xs font-semibold text-cyan-300">Download</a>
+              <button type="button" onClick={() => void handleShareMedia(generatedImages[0].imageUrl, 'SAY AI Image')} className="text-xs font-semibold text-cyan-300">Share</button>
               <button type="button" onClick={() => onNavigate('image')} className="text-xs font-semibold text-cyan-300">Gallery</button>
             </div>
           </div>
@@ -343,6 +362,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
           <video src={chatVideoUrl || latestVideoUrl || undefined} controls playsInline className="max-h-72 w-full rounded-xl bg-black" />
           <div className="flex justify-end gap-2 pt-2">
             <a href={chatVideoUrl || latestVideoUrl || undefined} download="SAY-AI-Video.mp4" className="rounded-lg bg-cyan-500/15 px-3 py-2 text-xs font-semibold text-cyan-200">Download video</a>
+            <button type="button" onClick={() => void handleShareMedia(chatVideoUrl || latestVideoUrl || '', 'SAY AI Video')} className="rounded-lg bg-purple-500/15 px-3 py-2 text-xs font-semibold text-purple-200">Share</button>
           </div>
         </div>
       )}
