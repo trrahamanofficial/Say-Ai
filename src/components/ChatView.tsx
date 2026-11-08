@@ -170,16 +170,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
               </button>
             </div>
 
-            {/* Robot character image */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 flex items-center justify-center">
-              <img
-                src="/assets/extracted/robot-character.png"
-                alt="SAY AI Robot Assistant"
-                className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(56,189,248,0.7)]"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+            {/* Official SAY AI brand mark */}
+            <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 flex items-center justify-center rounded-[28px] bg-white p-3 shadow-[0_12px_35px_rgba(20,110,220,.18)]">
+              <img src="/assets/say-ai-logo.svg" alt="SAY AI logo" className="w-full h-full object-contain" />
             </div>
           </div>
         </div>
