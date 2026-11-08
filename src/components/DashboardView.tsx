@@ -237,6 +237,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <span className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-600/20 text-cyan-300"><Video className="h-5 w-5" /></span><span><strong className="block text-sm text-white">Create a Video</strong><span className="text-xs text-slate-400">Open video creation from your AI workspace</span></span></span><ArrowRight className="h-5 w-5 text-cyan-300" />
       </button>
 
+      {/* Premium Creative Studio */}
+      <section className="relative overflow-hidden rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-[#101a3b] via-[#10132e] to-[#19103b] p-5 shadow-[0_18px_50px_rgba(20,80,180,.16)] sm:p-6">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-blue-500/15 blur-3xl"/>
+        <div className="relative mb-4 flex items-center justify-between gap-3"><div><div className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-cyan-300"><Sparkles className="h-4 w-4"/> Creative Studio</div><h2 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl">What would you like to create?</h2><p className="mt-1 text-sm text-slate-400">Your AI tools, together in one place.</p></div><span className="hidden rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200 sm:inline-flex">SAY AI</span></div>
+        <div className="relative grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[
+            {title:'AI Chat',detail:'Ask anything',icon:MessageSquare,target:'chat' as ScreenType,style:'from-blue-500/20 to-indigo-500/5 border-blue-400/25'},
+            {title:'AI Images',detail:'Create pictures',icon:ImageIcon,target:'image' as ScreenType,style:'from-violet-500/20 to-fuchsia-500/5 border-violet-400/25'},
+            {title:'AI Video',detail:'Make videos',icon:Video,target:'video' as ScreenType,style:'from-cyan-500/20 to-sky-500/5 border-cyan-400/25'},
+            {title:'Voice AI',detail:'Speak naturally',icon:Mic,target:'voice' as ScreenType,style:'from-emerald-500/20 to-teal-500/5 border-emerald-400/25'}
+          ].map(item=>{const Icon=item.icon;return <button key={item.title} onClick={()=>onNavigate(item.target)} className={`flex min-h-[132px] flex-col items-start justify-between rounded-2xl border bg-gradient-to-br ${item.style} p-4 text-left shadow-[inset_0_1px_rgba(255,255,255,.05)] transition duration-200 hover:-translate-y-1 hover:brightness-110 active:scale-[.97]`}><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-cyan-100"><Icon className="h-5 w-5"/></span><span><strong className="block text-sm font-bold text-white">{item.title}</strong><span className="mt-1 block text-xs text-slate-400">{item.detail}</span></span></button>;})}
+        </div>
+      </section>
+
       {/* Middle Row: Recent Chats (Left) & Usage Stats + System Status (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column (7 cols): Recent Chats */}
