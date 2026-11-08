@@ -116,7 +116,7 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({
   };
 
   return (
-    <div className="flex-1 max-w-4xl mx-auto w-full p-3 sm:p-6 space-y-6">
+    <div className="sayai-screen sayai-screen-image flex-1 max-w-4xl mx-auto w-full p-3 sm:p-6 space-y-6">
       {/* Top Banner matching Image 2 */}
       <div className="relative rounded-2xl sm:rounded-3xl p-5 bg-gradient-to-r from-purple-900/90 via-indigo-900/80 to-blue-950/90 border border-purple-500/30 overflow-hidden shadow-[0_0_25px_rgba(147,51,234,0.3)]">
         <div className="absolute top-0 right-0 w-64 h-32 bg-purple-500/20 rounded-full blur-2xl pointer-events-none" />

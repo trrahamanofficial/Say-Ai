@@ -153,7 +153,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-65px)] max-w-4xl mx-auto w-full px-2 sm:px-4 py-2">
+    <div className="sayai-screen sayai-screen-chat flex-1 flex flex-col h-[calc(100vh-65px)] max-w-4xl mx-auto w-full px-2 sm:px-4 py-2">
       {/* 4 Shortcut Pills matching Image 4 */}
       <div className="grid grid-cols-4 gap-1.5 sm:gap-3 py-2 select-none">
         <button

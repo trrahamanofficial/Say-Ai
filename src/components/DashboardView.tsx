@@ -87,7 +87,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   ];
 
   return (
-    <div className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="sayai-screen sayai-screen-dashboard flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+      {/* SAY AI Creative Studio */}
+      <section className="sayai-studio relative overflow-hidden rounded-[28px] border border-cyan-300/20 bg-gradient-to-br from-[#10254a] via-[#111b3d] to-[#21143f] p-5 sm:p-7 shadow-[0_20px_60px_rgba(0,116,220,.16)]">
+        <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-sky-400/15 blur-3xl"/>
+        <div className="pointer-events-none absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-violet-500/15 blur-3xl"/>
+        <div className="relative mb-5 flex items-end justify-between gap-3"><div><div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.22em] text-cyan-300"><Sparkles className="h-4 w-4"/> Your creative studio</div><h2 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl">What would you like to create?</h2><p className="mt-1.5 text-xs text-slate-300 sm:text-sm">Your AI tools, together in one place.</p></div><span className="hidden rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-1.5 text-[10px] font-bold tracking-wider text-cyan-100 sm:inline-flex">SAY AI STUDIO</span></div>
+        <div className="relative grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {[
+            {title:'AI Chat',detail:'Ask anything',icon:MessageSquare,target:'chat' as ScreenType,style:'from-blue-500/25 to-sky-500/5 border-sky-300/25'},
+            {title:'AI Images',detail:'Create pictures',icon:ImageIcon,target:'image' as ScreenType,style:'from-violet-500/25 to-fuchsia-500/5 border-violet-300/25'},
+            {title:'AI Video',detail:'Create video scenes',icon:Video,target:'video' as ScreenType,style:'from-cyan-500/25 to-blue-500/5 border-cyan-300/25'},
+            {title:'Voice AI',detail:'Talk naturally',icon:Mic,target:'voice' as ScreenType,style:'from-teal-500/25 to-emerald-500/5 border-teal-300/25'}
+          ].map(item=>{const Icon=item.icon;return <button key={item.title} onClick={()=>onNavigate(item.target)} className={`sayai-studio-tile group relative flex min-h-[132px] flex-col items-start justify-between rounded-2xl border bg-gradient-to-br ${item.style} p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:brightness-110 active:scale-[.97] sm:min-h-[148px] sm:p-5`}><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white ring-1 ring-white/10 transition-transform group-hover:scale-110"><Icon className="h-5 w-5"/></span><span><strong className="block text-sm font-bold text-white sm:text-base">{item.title}</strong><span className="mt-1 block text-[11px] text-slate-300 sm:text-xs">{item.detail}</span></span><ArrowRight className="absolute right-4 top-4 h-4 w-4 text-white/40 transition-all group-hover:translate-x-1 group-hover:text-white"/></button>;})}
+        </div>
+      </section>
+
       {/* Top Search Bar & Notification Header matching Image 5 (Desktop) */}
       <div className="hidden lg:flex items-center justify-between gap-4">
         {/* Search input with magnifying glass */}

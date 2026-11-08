@@ -163,3 +163,24 @@
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Unified premium blue-violet SAY AI design system */
+:root { --sayai-blue:#1598f5; --sayai-cyan:#35c8f4; --sayai-violet:#8b73ff; --sayai-panel:rgba(13,22,52,.84); --sayai-panel-border:rgba(103,173,255,.19); }
+.sayai-app {
+ background: radial-gradient(ellipse at 8% -5%,rgba(20,133,231,.19),transparent 36rem),radial-gradient(ellipse at 94% 18%,rgba(112,78,230,.16),transparent 32rem),linear-gradient(145deg,#060b1b 0%,#09132c 48%,#090b20 100%) !important;
+}
+.sayai-screen { position:relative; isolation:isolate; padding-bottom:max(1.25rem,env(safe-area-inset-bottom)); animation:sayai-screen-in .38s cubic-bezier(.2,.7,.25,1) both; }
+.sayai-screen h1,.sayai-screen h2,.sayai-screen h3 { letter-spacing:-.035em; }
+.sayai-screen > div[class*="bg-gradient-to-r"],.sayai-screen > div[class*="bg-gradient-to-br"] { border-color:rgba(93,180,255,.24) !important; box-shadow:0 18px 48px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.045); }
+.sayai-screen :is(input,textarea,select) { color:#f8fbff; caret-color:var(--sayai-cyan); }
+.sayai-screen :is(button,a) { -webkit-tap-highlight-color:transparent; }
+.sayai-screen button:focus-visible { outline:2px solid rgba(71,197,255,.9); outline-offset:3px; }
+.sayai-screen :is(.rounded-2xl,.rounded-3xl) { box-shadow:0 12px 34px rgba(0,0,0,.17),inset 0 1px rgba(255,255,255,.025); }
+.sayai-studio { isolation:isolate; transform:translateZ(0); }
+.sayai-studio::after { content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(115deg,rgba(255,255,255,.045),transparent 36%,rgba(83,173,255,.035)); }
+.sayai-studio-tile { isolation:isolate; }
+.sayai-screen-chat { min-height:calc(100dvh - 68px); }
+@keyframes sayai-screen-in { from {opacity:0;transform:translateY(7px)} to {opacity:1;transform:translateY(0)} }
+@media(max-width:420px) { .sayai-screen {padding-left:.75rem;padding-right:.75rem} .sayai-studio {border-radius:23px;padding:1rem} .sayai-studio-tile {min-height:126px;padding:.85rem;border-radius:18px} }
+@media(prefers-reduced-motion:reduce) { .sayai-screen,.sayai-studio-tile {animation:none!important;transition:none!important} }
