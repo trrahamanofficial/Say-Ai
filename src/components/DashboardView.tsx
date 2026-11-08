@@ -88,7 +88,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   ];
 
   return (
-    <div className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="sayai-dashboard flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+      <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[.24em] text-cyan-300/80">Your personal AI workspace</p>
+          <h2 className="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Good to see you, {userProfile.name.split(' ')[0]}</h2>
+          <p className="mt-1 text-xs sm:text-sm text-slate-400">Everything you need, in one intelligent space.</p>
+        </div>
+        <div className="flex items-center gap-2 self-start sm:self-auto rounded-2xl border border-cyan-300/15 bg-[#0b2032]/80 px-3 py-2">
+          <span className={`h-2 w-2 rounded-full ${systemHealth.backend ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.8)]' : 'bg-amber-400'}`} />
+          <span className="text-[11px] font-semibold text-slate-200">{systemHealth.backend ? 'Workspace ready' : 'Connection check'}</span>
+          <span className="mx-1 h-4 w-px bg-white/10" />
+          <span className="text-[11px] text-cyan-200">{systemHealth.activeApis} AI services</span>
+        </div>
+      </section>
       {/* Top Search Bar & Notification Header matching Image 5 (Desktop) */}
       <div className="hidden lg:flex items-center justify-between gap-4">
         {/* Search input with magnifying glass */}
