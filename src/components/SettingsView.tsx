@@ -81,15 +81,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       <div className="relative rounded-3xl p-4 sm:p-5 bg-gradient-to-r from-[#0e123b] to-[#1a1147] border border-purple-500/30 flex items-center justify-between shadow-[0_0_25px_rgba(147,51,234,0.2)]">
         <div className="flex items-center gap-3.5">
           {/* Avatar with cyan/purple ring */}
-          <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 to-purple-600 flex-shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-            <img
-              src="/assets/extracted/user-avatar.png"
-              alt="SAY AI User"
-              className="w-full h-full rounded-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80';
-              }}
-            />
+          <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 to-indigo-600 flex-shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.35)]">
+            <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-white text-xl font-extrabold" aria-label={userProfile.name}>
+              {(userProfile.name.trim()[0] || 'G').toUpperCase()}
+            </div>
           </div>
 
           <div className="text-left">
