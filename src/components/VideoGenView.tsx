@@ -40,7 +40,7 @@ export const VideoGenView: React.FC<VideoGenViewProps> = ({ onNavigate, apiBase 
   };
 
   return (
-    <div className="flex-1 max-w-4xl mx-auto w-full p-3 sm:p-6 space-y-6">
+    <div className="sayai-screen sayai-screen-video flex-1 max-w-4xl mx-auto w-full p-3 sm:p-6 space-y-6">
       <div className="relative rounded-3xl p-5 bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-blue-950/80 border border-purple-500/30 overflow-hidden shadow-[0_0_25px_rgba(147,51,234,0.3)]">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-2xl bg-fuchsia-600/30 border border-fuchsia-400/40 flex items-center justify-center text-fuchsia-300"><Film className="w-6 h-6" /></div>

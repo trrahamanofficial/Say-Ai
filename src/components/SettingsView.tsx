@@ -60,7 +60,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   return (
-    <div className="flex-1 max-w-xl mx-auto w-full p-3 sm:p-6 space-y-5">
+    <div className="sayai-screen sayai-screen-settings flex-1 max-w-xl mx-auto w-full p-3 sm:p-6 space-y-5">
       {/* Top Header matching Image 1 right */}
       <div className="flex items-center gap-3 pb-3 border-b border-purple-900/20">
         <button

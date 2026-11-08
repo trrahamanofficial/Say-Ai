@@ -184,3 +184,40 @@
 @keyframes sayai-screen-in { from {opacity:0;transform:translateY(7px)} to {opacity:1;transform:translateY(0)} }
 @media(max-width:420px) { .sayai-screen {padding-left:.75rem;padding-right:.75rem} .sayai-studio {border-radius:23px;padding:1rem} .sayai-studio-tile {min-height:126px;padding:.85rem;border-radius:18px} }
 @media(prefers-reduced-motion:reduce) { .sayai-screen,.sayai-studio-tile {animation:none!important;transition:none!important} }
+
+
+/* Premium surfaces for the remaining SAY AI screens */
+.sayai-screen-video > div[class*="bg-gradient-to-r"],
+.sayai-screen-voice > div[class*="bg-gradient-to-r"],
+.sayai-screen-api > div[class*="bg-gradient-to-r"],
+.sayai-screen-history > div[class*="bg-gradient-to-r"] {
+ background:linear-gradient(120deg,rgba(13,44,82,.96),rgba(26,24,69,.96),rgba(31,19,63,.96)) !important;
+ border-color:rgba(71,183,255,.26) !important;
+}
+.sayai-screen-video [class*="bg-[#090d29"],
+.sayai-screen-video [class*="bg-[#0a0e2a"],
+.sayai-screen-api [class*="bg-[#0a0e2a"],
+.sayai-screen-history [class*="bg-[#0a0e2a"],
+.sayai-screen-settings [class*="bg-[#0a0e2a"] {
+ background:linear-gradient(145deg,rgba(17,31,67,.95),rgba(10,17,43,.96)) !important;
+ border-color:var(--sayai-panel-border) !important;
+}
+.sayai-screen :is(input,textarea,select) {
+ border-color:rgba(103,173,255,.22);
+ background-color:rgba(7,14,34,.72);
+ border-radius:14px;
+}
+.sayai-screen :is(input,textarea,select):focus {
+ border-color:rgba(53,200,244,.72);
+ box-shadow:0 0 0 3px rgba(53,200,244,.09);
+}
+.sayai-screen-api [class*="border-purple-"],
+.sayai-screen-history [class*="border-purple-"],
+.sayai-screen-settings [class*="border-purple-"] { border-color:rgba(103,173,255,.19); }
+.sayai-screen-voice button[aria-label] { box-shadow:0 0 36px rgba(21,152,245,.24); }
+.sayai-screen-video video { background:#050b19; border-radius:18px; }
+.sayai-screen-settings { padding-bottom:calc(6rem + env(safe-area-inset-bottom)); }
+.sayai-screen-history { padding-bottom:calc(6rem + env(safe-area-inset-bottom)); }
+@media(max-width:420px) {
+ .sayai-screen-video,.sayai-screen-voice,.sayai-screen-api,.sayai-screen-history,.sayai-screen-settings {gap:1rem}
+}
