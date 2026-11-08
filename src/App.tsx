@@ -74,15 +74,7 @@ export default function App() {
   });
 
   // Chat messages matching the reference screenshot in Image 4
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    try {
-      const saved = localStorage.getItem('sayai:messages');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed as ChatMessage[];
-      }
-    } catch { /* use starter messages */ }
-    return [
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'msg-1',
       sender: 'user',
@@ -97,8 +89,7 @@ export default function App() {
       time: '9:41 PM',
       timestamp: Date.now() - 240000
     }
-    ];
-  });
+  ]);
 
   // Initial Chat Sessions
   const [sessions, setSessions] = useState<ChatSession[]>([
@@ -508,7 +499,7 @@ export default function App() {
   };
 
   return (
-    <div className="sayai-app min-h-screen bg-[#07121b] text-white flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-100">
+    <div className="min-h-screen bg-[#050614] text-white flex flex-col font-sans selection:bg-purple-500/30 selection:text-purple-200">
       {/* Top Application Header */}
       <Header
         currentScreen={currentScreen}
