@@ -163,7 +163,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <img
               src="/assets/extracted/brain-orb.png"
               alt="SAY AI Neon Brain Orb"
-              className="w-full h-full object-contain filter drop-shadow-[0_0_25px_rgba(168,85,247,0.8)] hover:scale-105 transition-transform duration-500"
+              className="sayai-brain-orbit w-full h-full object-contain filter drop-shadow-[0_0_25px_rgba(0,190,255,0.65)]"
               onError={(e) => {
                 // High-fidelity fallback SVG if asset file is missing
                 const target = e.currentTarget;
