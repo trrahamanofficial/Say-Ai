@@ -146,3 +146,22 @@ body{background:radial-gradient(ellipse at 10% 0%,rgba(20,184,166,.18),transpare
 .sayai-app [class*="to-indigo-"],.sayai-app [class*="to-blue-"]{--tw-gradient-to:#2458c8 var(--tw-gradient-to-position)!important}
 .sayai-app [class*="shadow-[0_0_"]{filter:saturate(.9)}
 .sayai-app input:focus,.sayai-app textarea:focus{outline:none}
+
+/* Complete mobile navigation and safe-area treatment */
+.sayai-bottom-nav{bottom:env(safe-area-inset-bottom,0px)!important;padding:7px 0 5px!important;min-height:calc(66px + env(safe-area-inset-bottom,0px))!important;background:rgba(5,15,27,.97)!important;border-top:1px solid rgba(45,212,191,.2)!important;box-shadow:0 -12px 32px rgba(0,0,0,.34)!important;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.sayai-bottom-nav-inner{min-height:54px}
+.sayai-nav-item{color:#91a7bd}
+.sayai-nav-item .sayai-nav-icon{color:#8fa9c0;background:transparent}
+.sayai-nav-item .sayai-nav-indicator{background:transparent}
+.sayai-nav-item.is-active{color:#8eeaf0}
+.sayai-nav-item.is-active .sayai-nav-icon{color:#c6fbff;background:linear-gradient(145deg,rgba(8,145,178,.32),rgba(37,99,235,.24));box-shadow:0 0 18px rgba(34,211,238,.18);outline:1px solid rgba(103,232,249,.24)}
+.sayai-nav-item.is-active .sayai-nav-indicator{background:linear-gradient(90deg,#2dd4bf,#38bdf8);box-shadow:0 0 12px rgba(45,212,191,.55)}
+.sayai-app main{padding-bottom:calc(5.7rem + env(safe-area-inset-bottom,0px))!important}
+.sayai-app [class*="bg-purple-"],.sayai-app [class*="bg-fuchsia-"]{background-color:rgba(9,111,139,.24)!important}
+.sayai-app [class*="text-purple-"],.sayai-app [class*="text-fuchsia-"]{color:#79dce8!important}
+.sayai-app [class*="border-purple-"],.sayai-app [class*="border-fuchsia-"]{border-color:rgba(63,190,205,.24)!important}
+.sayai-app [class*="ring-purple-"]{--tw-ring-color:rgba(45,212,191,.35)!important}
+.sayai-app [class*="shadow-[0_0_"]{filter:saturate(.88)}
+.sayai-app button{transition-duration:160ms}
+.sayai-app input,.sayai-app textarea{font-size:16px}
+@media(max-width:640px){.sayai-app main{padding-bottom:calc(5.7rem + env(safe-area-inset-bottom,0px))!important}.sayai-chat{height:calc(100dvh - 154px);max-height:calc(100dvh - 154px)}}
