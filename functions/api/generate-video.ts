@@ -46,7 +46,7 @@ async function generateZeroGpu(prompt: string, motion: string, ratio: string, to
     dimensions.height,
     dimensions.width,
     'text-to-video',
-    3,
+    5,
     9,
     42,
     true,
