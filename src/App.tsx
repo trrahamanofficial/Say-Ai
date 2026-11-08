@@ -558,6 +558,7 @@ export default function App() {
         onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
         onDownloadProjectZip={handleDownloadProjectZip}
         unreadCount={unreadNotifications}
+        userName={userProfile.name}
       />
 
       {/* Main Container Layout */}
