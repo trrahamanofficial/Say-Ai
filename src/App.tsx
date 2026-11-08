@@ -73,63 +73,30 @@ export default function App() {
     environment: 'development'
   });
 
-  // Chat messages matching the reference screenshot in Image 4
-  const [messages, setMessages] = useState<ChatMessage[]>(() => { try { const saved=localStorage.getItem('sayai:messages'); if(saved){const parsed=JSON.parse(saved);if(Array.isArray(parsed))return parsed as ChatMessage[];} } catch {} return [
-    {
-      id: 'msg-1',
-      sender: 'user',
-      text: 'Tell me about SAY AI',
-      time: '9:41 PM',
-      timestamp: Date.now() - 300000
-    },
-    {
-      id: 'msg-2',
-      sender: 'assistant',
-      text: `SAY AI is your all-in-one AI assistant! 🚀\n\n✅ AI Chat – Smart & helpful conversation\n✅ Image Generator – Create stunning images\n✅ Voice Assistant – Speak & get answers\n✅ Chat History – Access your past chats\n\n📦 Download SAY-AI-FULL-PROJECT.zip directly below with 1 click!\n\nBuilt with love for a smarter tomorrow! ❤️`,
-      time: '9:41 PM',
-      timestamp: Date.now() - 240000
-    }
-  ]; });
+  // Restore only real user conversations; never seed fake demo messages.
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem('sayai:messages');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed as ChatMessage[];
+      }
+    } catch {}
+    return [];
+  });
 
-  // Initial Chat Sessions
-  const [sessions, setSessions] = useState<ChatSession[]>(() => { try { const saved = localStorage.getItem('sayai:sessions'); if (saved) { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) return parsed as ChatSession[]; } } catch {} return [
-    {
-      id: 'ses-1',
-      title: 'AI Assistant Overview',
-      lastMessage: 'Built with love for a smarter tomorrow! ❤️',
-      timestamp: Date.now() - 120000,
-      timeAgo: '2m ago',
-      category: 'General',
-      messages: messages
-    },
-    {
-      id: 'ses-2',
-      title: 'Image Generator Ideas',
-      lastMessage: 'A beautiful sunset over mountain lakes...',
-      timestamp: Date.now() - 900000,
-      timeAgo: '15m ago',
-      category: 'Creative',
-      messages: []
-    },
-    {
-      id: 'ses-3',
-      title: 'Voice Assistant Commands',
-      lastMessage: 'Listening for Hey SAY AI trigger...',
-      timestamp: Date.now() - 3600000,
-      timeAgo: '1h ago',
-      category: 'Voice',
-      messages: []
-    },
-    {
-      id: 'ses-4',
-      title: 'SAY AI Exploration',
-      lastMessage: 'Always here for you!',
-      timestamp: Date.now() - 7200000,
-      timeAgo: '2h ago',
-      category: 'Support',
-      messages: []
-    }
-  ]; });// Configured AI Providers
+  // Restore the user's actual history without inserting placeholder conversations.
+  const [sessions, setSessions] = useState<ChatSession[]>(() => {
+    try {
+      const saved = localStorage.getItem('sayai:sessions');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed as ChatSession[];
+      }
+    } catch {}
+    return [];
+  });
+
   const [currentSessionId, setCurrentSessionId] = useState<string>(() => {
     try { return localStorage.getItem('sayai:active-session') || 'ses-1'; } catch { return 'ses-1'; }
   });
