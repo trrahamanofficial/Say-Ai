@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, MessageSquare, Image as ImageIcon, Mic, Settings, History, Sliders, User, Crown } from 'lucide-react';
+import { Home, MessageSquare, Mic, Settings, History } from 'lucide-react';
 import { ScreenType } from '../types';
 
 interface BottomNavProps {
@@ -19,13 +19,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const primaryItems = [
     { id: 'dashboard' as ScreenType, label: 'Home', icon: Home },
     { id: 'chat' as ScreenType, label: 'Chat', icon: MessageSquare },
-    { id: 'image' as ScreenType, label: 'Image', icon: ImageIcon },
     { id: 'voice' as ScreenType, label: 'Voice', icon: Mic },
+    { id: 'history' as ScreenType, label: 'History', icon: History },
     { id: 'settings' as ScreenType, label: 'Settings', icon: Settings },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#07091e]/95 backdrop-blur-2xl border-t border-purple-900/30 px-3 py-2 sm:hidden transition-all shadow-[0_-5px_25px_rgba(5,6,20,0.8)]">
+    <nav className="sayai-bottom-nav fixed bottom-0 left-0 right-0 z-40 bg-[#07131e]/95 backdrop-blur-2xl border-t border-cyan-400/20 px-2 pt-2 sm:hidden transition-all shadow-[0_-5px_25px_rgba(5,6,20,0.8)]">
       <div className="max-w-md mx-auto flex items-center justify-around">
         {primaryItems.map((item) => {
           const Icon = item.icon;
