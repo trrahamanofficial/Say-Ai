@@ -197,7 +197,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
               {!isUser && (
                 <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 via-fuchsia-600 to-cyan-400 p-[1.5px] flex-shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.5)]">
                   <div className="w-full h-full rounded-full bg-[#07091e] flex items-center justify-center text-xs font-bold text-white">
-                    <span className="text-[10px] bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">AI</span>
+                    <img src="/assets/say-ai-logo.svg" alt="SAY AI" className="w-6 h-6 object-contain" />
                   </div>
                 </div>
               )}
@@ -239,7 +239,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 <div className={`flex items-center gap-2 mt-2 pt-1 border-t ${
                   isUser ? 'border-cyan-400/20 justify-end text-cyan-100/80' : 'border-purple-800/30 justify-between text-slate-400'
                 } text-[11px]`}>
-                  <span>{msg.time} {isUser && '✓✓'}</span>
+                  <span>{msg.time}</span>
 
                   {!isUser && (
                     <div className="flex items-center gap-2">
@@ -280,8 +280,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
         {isLoading && (
           <div className="flex items-end gap-2.5 justify-start">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 via-fuchsia-600 to-cyan-400 p-[1.5px] flex-shrink-0">
-              <div className="w-full h-full rounded-full bg-[#07091e] flex items-center justify-center text-[10px] text-purple-300 font-bold">
-                AI
+              <div className="w-full h-full rounded-full bg-[#07091e] flex items-center justify-center">
+                <img src="/assets/say-ai-logo.svg" alt="SAY AI" className="w-6 h-6 object-contain" />
               </div>
             </div>
             <div className="rounded-2xl rounded-bl-none p-3.5 bg-[#0f143a]/90 border border-purple-500/25 flex items-center gap-1.5 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
