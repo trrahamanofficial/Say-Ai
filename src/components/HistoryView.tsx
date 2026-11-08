@@ -24,7 +24,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   );
 
   return (
-    <div className="flex-1 max-w-4xl mx-auto w-full p-3 sm:p-6 space-y-6">
+    <div className="sayai-history sayai-screen flex-1 max-w-4xl mx-auto w-full p-3 sm:p-6 space-y-6">
       {/* Header Banner */}
       <div className="relative rounded-3xl p-5 bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-blue-950/80 border border-purple-500/30 overflow-hidden shadow-[0_0_25px_rgba(147,51,234,0.3)]">
         <div className="flex items-center justify-between">
