@@ -135,7 +135,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             aria-label="Profile"
             className="relative w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-base shadow-[0_0_12px_rgba(59,130,246,0.5)] border border-blue-400/40 cursor-pointer hover:scale-105 active:scale-95 transition-all"
           >
-            <span>T</span>
+            <span>{(userProfile.name.trim()[0] || 'G').toUpperCase()}</span>
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0c102a]" />
           </button>
         </div>
