@@ -27,7 +27,7 @@ import { VideoGenView } from './components/VideoGenView';
 import { SubscriptionView } from './components/SubscriptionView';
 import { AdminView } from './components/AdminView';
 import { NotificationModal } from './components/NotificationModal';
-import { isSupabaseConfigured, testSupabaseConnection } from './lib/supabase';
+import { isSupabaseConfigured, testSupabaseConnection, supabase } from './lib/supabase';
 import { X, Smartphone, Monitor } from 'lucide-react';
 
 export default function App() {
@@ -40,12 +40,14 @@ export default function App() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [testingProviderId, setTestingProviderId] = useState<string | null>(null);
 
-  // Initial user profile matching the screenshots
+  // Start as a guest. Privileged access is granted only from the signed-in profile row.
+  const [authReady, setAuthReady] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    id: 'usr-default',
-    name: 'SAY AI User',
-    email: 'trrahaman.official@gmail.com',
-    role: 'admin',
+    id: 'guest',
+    name: 'Guest User',
+    email: '',
+    role: 'user',
     plan: 'Free',
     avatarUrl: '/assets/extracted/user-avatar.png',
     stats: {
@@ -61,6 +63,46 @@ export default function App() {
       brightness: 80
     }
   });
+
+  // Resolve the real Supabase session and role. Fail closed if the profile cannot be read.
+  useEffect(() => {
+    if (!supabase) { setAuthReady(true); return; }
+    let alive = true;
+    const applySession = async (session: any) => {
+      if (!alive) return;
+      if (!session?.user) {
+        setIsAuthenticated(false);
+        setUserProfile(prev => ({ ...prev, id: 'guest', name: 'Guest User', email: '', role: 'user' }));
+        setAuthReady(true);
+        return;
+      }
+      setIsAuthenticated(true);
+      const user = session.user;
+      let role: 'user' | 'admin' = 'user';
+      try {
+        const { data, error } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
+        if (!error && data?.role === 'admin') role = 'admin';
+      } catch { role = 'user'; }
+      if (!alive) return;
+      const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'SAY AI User';
+      setUserProfile(prev => ({ ...prev, id: user.id, name: displayName, email: user.email || '', role }));
+      setAuthReady(true);
+    };
+    supabase.auth.getSession().then(({ data }) => applySession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { void applySession(session); });
+    return () => { alive = false; listener.subscription.unsubscribe(); };
+  }, []);
+
+  useEffect(() => {
+    if (currentScreen === 'admin' && (!isAuthenticated || userProfile.role !== 'admin')) setCurrentScreen('dashboard');
+  }, [currentScreen, isAuthenticated, userProfile.role]);
+
+  const handleLogout = async () => {
+    if (supabase) await supabase.auth.signOut();
+    setIsAuthenticated(false);
+    setUserProfile(prev => ({ ...prev, id: 'guest', name: 'Guest User', email: '', role: 'user' }));
+    setCurrentScreen('dashboard');
+  };
 
   // System diagnostic state
   const [systemHealth, setSystemHealth] = useState<SystemHealth>({
@@ -424,7 +466,7 @@ export default function App() {
           <SettingsView
             onNavigate={setCurrentScreen}
             onOpenPro={() => setCurrentScreen('pro')}
-            onLogout={() => setCurrentScreen('dashboard')}
+            onLogout={handleLogout}
             userProfile={userProfile}
             onUpdateProfile={(updated) => setUserProfile((prev) => ({ ...prev, ...updated }))}
           />
@@ -476,6 +518,7 @@ export default function App() {
           />
         );
       case 'admin':
+        if (!isAuthenticated || userProfile.role !== 'admin') return null;
         return (
           <AdminView
             onNavigate={setCurrentScreen}
@@ -498,6 +541,8 @@ export default function App() {
         );
     }
   };
+
+  if (!authReady) return <div className="min-h-screen bg-[#07121b] text-white flex items-center justify-center">Checking secure account…</div>;
 
   return (
     <div className="sayai-app min-h-screen bg-[#07121b] text-white flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-100">
@@ -523,7 +568,7 @@ export default function App() {
               currentScreen={currentScreen}
               onNavigate={setCurrentScreen}
               onOpenPro={() => setCurrentScreen('pro')}
-              onLogout={() => setCurrentScreen('dashboard')}
+              onLogout={handleLogout}
               onDownloadProjectZip={handleDownloadProjectZip}
             />
           </div>
