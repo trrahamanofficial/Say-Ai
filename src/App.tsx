@@ -188,6 +188,7 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
 
   // User generated images
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [latestGeneratedVideo, setLatestGeneratedVideo] = useState<string | null>(null);
 
   // Periodically query system health
   useEffect(() => {
@@ -310,6 +311,22 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
     }
   };
 
+  // Generate a video from the unified chat composer using the existing API route.
+  const handleGenerateVideo = async (prompt: string): Promise<string> => {
+    const res = await fetch(apiBase + '/api/generate-video', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ prompt, cameraMotion: 'Slow Pan', aspectRatio: '16:9' })
+    });
+    const raw = await res.text();
+    let data: { videoUrl?: string; error?: string };
+    try { data = JSON.parse(raw); }
+    catch { throw new Error('Video service returned an invalid response. Please try again later.'); }
+    if (!res.ok || !data.videoUrl) throw new Error(data.error || 'Video generation is not available right now.');
+    setLatestGeneratedVideo(data.videoUrl);
+    return data.videoUrl;
+  };
+
   // Test AI Provider
   const handleTestProvider = async (id: string) => {
     setTestingProviderId(id);
@@ -391,6 +408,10 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
             onNavigate={setCurrentScreen}
             messages={messages}
             onSendMessage={handleSendMessage}
+            onGenerateImage={handleGenerateImage}
+            onGenerateVideo={handleGenerateVideo}
+            generatedImages={generatedImages}
+            latestVideoUrl={latestGeneratedVideo}
             isLoading={isChatLoading}
           />
         );
