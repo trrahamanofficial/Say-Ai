@@ -22,13 +22,15 @@ interface ChatViewProps {
   messages: ChatMessage[];
   onSendMessage: (text: string) => Promise<void>;
   isLoading: boolean;
+  userName?: string;
 }
 
 export const ChatView: React.FC<ChatViewProps> = ({
   onNavigate,
   messages,
   onSendMessage,
-  isLoading
+  isLoading,
+  userName = 'Guest User'
 }) => {
   const [inputText, setInputText] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -268,9 +270,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
               {/* User avatar on right */}
               {isUser && (
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)]">
-                  T
-                </div>
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)]" aria-label={userName}>{(userName.trim()[0] || 'G').toUpperCase()}</div>
               )}
             </div>
           );
