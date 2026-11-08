@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Crown, Check, ArrowRight, Zap, Shield, Sparkles, CheckCircle2 } from 'lucide-react';
+import React from 'react';
+import { ArrowLeft, Crown, CircleHelp } from 'lucide-react';
 import { ScreenType, UserProfile } from '../types';
 
 interface SubscriptionViewProps {
@@ -8,232 +8,24 @@ interface SubscriptionViewProps {
   onUpgradePlan: (plan: 'Free' | 'Pro' | 'Enterprise') => void;
 }
 
-export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
-  onNavigate,
-  userProfile,
-  onUpgradePlan
-}) => {
-  const [isAnnual, setIsAnnual] = useState(true);
-  const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
-
-  const plans = [
-    {
-      id: 'Free',
-      name: 'Starter',
-      price: '$0',
-      period: '/month',
-      badge: null,
-      description: 'Essential AI capabilities for casual exploration and everyday questions.',
-      features: [
-        '50 AI Chat messages / day',
-        '20 standard resolution images',
-        '30 voice assistant interactions',
-        'Standard response speed',
-        'Community support'
-      ],
-      cta: 'Current Plan',
-      isCurrent: userProfile.plan === 'Free',
-      highlight: false
-    },
-    {
-      id: 'Pro',
-      name: 'SAY AI Pro',
-      price: isAnnual ? '$15' : '$19',
-      period: '/month',
-      badge: 'Most Popular',
-      description: 'Unleash full creative power with state-of-the-art multimodal AI models.',
-      features: [
-        'Unlimited AI Chat messages',
-        '500 High-Def image generations / mo',
-        'Real-time voice streaming with sub-second latency',
-        'AI Video Generator access',
-        'Priority API throughput & zero queue times',
-        'Custom model fine-tuning support'
-      ],
-      cta: userProfile.plan === 'Pro' ? 'Current Plan' : 'Upgrade to Pro 👑',
-      isCurrent: userProfile.plan === 'Pro',
-      highlight: true
-    },
-    {
-      id: 'Enterprise',
-      name: 'Enterprise Universe',
-      price: isAnnual ? '$39' : '$49',
-      period: '/month',
-      badge: 'Ultimate Power',
-      description: 'Dedicated cloud computing infrastructure for teams, creators, and high-volume workloads.',
-      features: [
-        'Everything in Pro plan',
-        'Unlimited 4K image and video generation',
-        'Dedicated Supabase PostgreSQL instance',
-        'Custom domain & white-label embedding',
-        '24/7 dedicated engineering support & SLA',
-        'Multi-seat team workspace management'
-      ],
-      cta: userProfile.plan === 'Enterprise' ? 'Current Plan' : 'Get Enterprise',
-      isCurrent: userProfile.plan === 'Enterprise',
-      highlight: false
-    }
-  ];
-
-  const handleSelectPlan = (planId: string) => {
-    if (planId === userProfile.plan) return;
-    setCheckoutPlan(planId);
-  };
-
-  const confirmUpgrade = (plan: 'Free' | 'Pro' | 'Enterprise') => {
-    onUpgradePlan(plan);
-    setCheckoutPlan(null);
-  };
-
-  return (
-    <div className="flex-1 max-w-5xl mx-auto w-full p-3 sm:p-6 space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-3 pt-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/40 text-amber-300 font-bold text-xs tracking-wider uppercase">
-          <span>👑</span>
-          <span>SAY AI Premium Universe</span>
-        </div>
-
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
-          Upgrade Your Creative Superpowers
-        </h1>
-
-        <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
-          Choose the right plan to unlock unlimited chat, high-resolution generative media, and lightning-fast edge response.
-        </p>
-
-        {/* Annual Toggle */}
-        <div className="flex items-center justify-center gap-3 pt-2">
-          <span className={`text-xs font-semibold ${!isAnnual ? 'text-white' : 'text-slate-400'}`}>
-            Monthly Billing
-          </span>
-          <button
-            onClick={() => setIsAnnual(!isAnnual)}
-            className="w-12 h-6 rounded-full bg-purple-600 p-1 flex items-center transition-colors cursor-pointer"
-          >
-            <div className={`w-4 h-4 rounded-full bg-white shadow-md transition-transform ${isAnnual ? 'translate-x-6' : 'translate-x-0'}`} />
-          </button>
-          <span className={`text-xs font-semibold flex items-center gap-1.5 ${isAnnual ? 'text-white' : 'text-slate-400'}`}>
-            <span>Annual Billing</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              Save 20%
-            </span>
-          </span>
-        </div>
+export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ onNavigate, userProfile }) => (
+  <section className="flex-1 w-full max-w-xl mx-auto p-5 sm:p-8 flex items-center justify-center">
+    <div className="w-full rounded-[2rem] border border-cyan-300/20 bg-gradient-to-b from-[#102a40] to-[#091827] p-7 sm:p-10 text-center shadow-[0_24px_80px_rgba(0,0,0,.3)]">
+      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-200">
+        <Crown className="h-8 w-8" />
       </div>
-
-      {/* Plan Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((p) => (
-          <div
-            key={p.id}
-            className={`relative rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 ${
-              p.highlight
-                ? 'bg-gradient-to-b from-[#1b103e] via-[#140e34] to-[#0d0926] border-2 border-purple-500 shadow-[0_0_35px_rgba(168,85,247,0.35)] scale-105 z-10'
-                : 'bg-[#0a0e2a]/90 border border-purple-900/40 hover:border-purple-600/40'
-            }`}
-          >
-            {p.badge && (
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-black text-[11px] font-extrabold tracking-wide uppercase shadow-md">
-                {p.badge}
-              </div>
-            )}
-
-            <div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-white">{p.name}</h3>
-                {p.isCurrent && (
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                    Active
-                  </span>
-                )}
-              </div>
-
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl sm:text-4xl font-black text-white">{p.price}</span>
-                <span className="text-xs text-slate-400">{p.period}</span>
-              </div>
-
-              <p className="text-xs text-slate-300/80 mt-2 min-h-[36px]">{p.description}</p>
-
-              <div className="my-5 border-t border-purple-900/30" />
-
-              <div className="space-y-3">
-                {p.features.map((f, idx) => (
-                  <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-200">
-                    <CheckCircle2 className={`w-4 h-4 mt-0.5 flex-shrink-0 ${p.highlight ? 'text-purple-400' : 'text-emerald-400'}`} />
-                    <span>{f}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleSelectPlan(p.id)}
-              disabled={p.isCurrent}
-              className={`w-full mt-6 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition-all cursor-pointer ${
-                p.isCurrent
-                  ? 'bg-slate-800/80 text-slate-400 cursor-default'
-                  : p.highlight
-                  ? 'bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.6)] active:scale-95'
-                  : 'bg-purple-950/60 hover:bg-purple-900/80 text-purple-200 hover:text-white border border-purple-700/40'
-              }`}
-            >
-              {p.cta}
-            </button>
-          </div>
-        ))}
+      <p className="mb-2 text-[11px] font-bold uppercase tracking-[.24em] text-cyan-300">SAY AI •  Upgrade</p>
+      <h1 className="text-3xl font-black tracking-tight text-white">Not Found</h1>
+      <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-300">
+        Upgrade plans are currently unavailable. SAY AI remains free to use. No payment or checkout is available.
+      </p>
+      <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-300">
+        <CircleHelp className="h-4 w-4 text-cyan-300" />
+        <span>Current plan: {userProfile.plan}</span>
       </div>
-
-      {/* Checkout Simulator Modal */}
-      {checkoutPlan && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="max-w-md w-full rounded-3xl bg-[#0c0f30] border border-purple-500/40 p-6 space-y-4 shadow-[0_0_40px_rgba(147,51,234,0.4)]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <span>👑</span>
-                <span>Confirm Upgrade to {checkoutPlan}</span>
-              </h3>
-              <button
-                onClick={() => setCheckoutPlan(null)}
-                className="text-slate-400 hover:text-white cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-300 leading-relaxed">
-              You are upgrading to <strong>{checkoutPlan} Plan</strong> ({isAnnual ? 'Billed annually' : 'Billed monthly'}). Instant activation across your account and all connected devices.
-            </p>
-
-            <div className="p-3.5 rounded-xl bg-[#07091e] border border-purple-900/40 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-300">
-                <span>Subtotal</span>
-                <span>{checkoutPlan === 'Pro' ? (isAnnual ? '$180/yr' : '$19/mo') : (isAnnual ? '$468/yr' : '$49/mo')}</span>
-              </div>
-              <div className="flex justify-between text-emerald-400 font-semibold">
-                <span>Instant Pro Access</span>
-                <span>Included</span>
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => setCheckoutPlan(null)}
-                className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => confirmUpgrade(checkoutPlan as any)}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-md cursor-pointer"
-              >
-                Activate {checkoutPlan}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <button onClick={() => onNavigate('dashboard')} className="mx-auto mt-7 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-cyan-950/40">
+        <ArrowLeft className="h-4 w-4" /> Back to SAY AI
+      </button>
     </div>
-  );
-};
+  </section>
+);
