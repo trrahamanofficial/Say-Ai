@@ -469,7 +469,7 @@ export default function App() {
             sessions={sessions}
             onSelectSession={(ses) => {
               setCurrentSessionId(ses.id);
-              if (ses.messages.length > 0) setMessages(ses.messages);
+              setMessages(Array.isArray(ses.messages) ? ses.messages : []);
             }}
             onDeleteSession={(id) => {
               setSessions((prev) => prev.filter((s) => s.id !== id));
