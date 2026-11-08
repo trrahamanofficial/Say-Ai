@@ -19,8 +19,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const primaryItems = [
     { id: 'dashboard' as ScreenType, label: 'Home', icon: Home },
     { id: 'chat' as ScreenType, label: 'Chat', icon: MessageSquare },
+    { id: 'image' as ScreenType, label: 'Image', icon: ImageIcon },
     { id: 'voice' as ScreenType, label: 'Voice', icon: Mic },
-    { id: 'history' as ScreenType, label: 'History', icon: History },
     { id: 'settings' as ScreenType, label: 'Settings', icon: Settings },
   ];
 

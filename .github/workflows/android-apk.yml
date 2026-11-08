@@ -11,7 +11,8 @@ on:
       - 'package.json'
       - 'capacitor.config.ts'
       - 'capacitor.config.json'
-      - 'scripts/**'\n      - 'resources/**'
+      - 'scripts/**'
+      - 'resources/**'
   pull_request:
     branches: [main]
     paths:

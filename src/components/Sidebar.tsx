@@ -2,7 +2,6 @@ import React from 'react';
 import {
   LayoutDashboard,
   MessageSquare,
-  Image as ImageIcon,
   Mic,
   Sliders,
   History,
@@ -10,7 +9,6 @@ import {
   User,
   Crown,
   LogOut,
-  Video,
   ArrowRight,
   Sparkles,
 } from 'lucide-react';
@@ -37,8 +35,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems = [
     { id: 'dashboard' as ScreenType, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'chat' as ScreenType, label: 'AI Chat', icon: MessageSquare },
-    { id: 'image' as ScreenType, label: 'Image Generator', icon: ImageIcon },
-    { id: 'video' as ScreenType, label: 'Video Generator', icon: Video },
     { id: 'voice' as ScreenType, label: 'Voice Assistant', icon: Mic },
     { id: 'history' as ScreenType, label: 'Chat History', icon: History },
     { id: 'settings' as ScreenType, label: 'Settings', icon: Settings },
