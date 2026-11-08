@@ -111,3 +111,16 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(168, 85, 247, 0.6);
 }
+
+:root{--bg-dark:#07121b;--card-dark:rgba(10,29,43,.84);--border-glow:rgba(34,211,238,.25);--primary-glow:#06b6d4;--cyan-glow:#38bdf8}
+body{background:radial-gradient(ellipse at 12% 8%,rgba(14,116,144,.25),transparent 38%),radial-gradient(ellipse at 88% 35%,rgba(37,99,235,.18),transparent 42%),#07121b!important}
+.sayai-app{background:transparent!important}
+.sayai-app [class*="border-purple-"],.sayai-app [class*="border-fuchsia-"]{border-color:rgba(34,211,238,.25)!important}
+.sayai-app [class*="text-purple-"],.sayai-app [class*="text-fuchsia-"]{color:#67e8f9!important}
+.sayai-app [class*="bg-purple-"],.sayai-app [class*="bg-fuchsia-"]{background-color:rgba(8,145,178,.24)!important}
+.sayai-app main{padding-bottom:calc(6.2rem + env(safe-area-inset-bottom))!important;scroll-padding-bottom:calc(6.2rem + env(safe-area-inset-bottom))}
+.sayai-bottom-nav{padding-bottom:max(.55rem,env(safe-area-inset-bottom));min-height:calc(4.4rem + env(safe-area-inset-bottom));background:rgba(4,13,22,.97)!important;border-color:rgba(34,211,238,.22)!important}
+.sayai-brain-orbit{animation:sayai-brain-float 5.5s ease-in-out infinite,sayai-brain-glow 3.2s ease-in-out infinite alternate;will-change:transform,filter}
+@keyframes sayai-brain-float{0%,100%{transform:translate3d(0,0,0) rotate(-1deg) scale(1)}50%{transform:translate3d(0,-11px,0) rotate(1deg) scale(1.035)}}
+@keyframes sayai-brain-glow{from{filter:drop-shadow(0 0 12px rgba(34,211,238,.42))}to{filter:drop-shadow(0 0 28px rgba(59,130,246,.72)}}
+@media(prefers-reduced-motion:reduce){.sayai-brain-orbit{animation:none!important}}
