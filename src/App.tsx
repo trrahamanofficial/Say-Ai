@@ -130,6 +130,10 @@ export default function App() {
       messages: []
     }
   ]; });// Configured AI Providers
+  const [currentSessionId, setCurrentSessionId] = useState<string>(() => {
+    try { return localStorage.getItem('sayai:active-session') || 'ses-1'; } catch { return 'ses-1'; }
+  });
+
   const [providers, setProviders] = useState<AIProviderConfig[]>([
     {
       id: 'prov-1',
@@ -220,10 +224,25 @@ export default function App() {
       });
   }, []);
 
-  useEffect(()=>{try{localStorage.setItem('sayai:last-screen',currentScreen);}catch{}},[currentScreen]);
-  useEffect(()=>{try{localStorage.setItem('sayai:messages',JSON.stringify(messages.slice(-150)));}catch{}},[messages]);
-  useEffect(()=>{try{localStorage.setItem('sayai:sessions',JSON.stringify(sessions.slice(0,60)));}catch{}},[sessions]);
-  useEffect(()=>{if(messages.length){setSessions(prev=>{const next=[...prev];const first=next[0];if(first){next[0]={...first,messages:messages.slice(-150),lastMessage:(messages[messages.length-1]?.text||first.lastMessage).slice(0,80),timestamp:Date.now(),timeAgo:'Just now'};}return next;});}},[messages]);
+  useEffect(() => { try { localStorage.setItem('sayai:last-screen', currentScreen); } catch {} }, [currentScreen]);
+  useEffect(() => { try { localStorage.setItem('sayai:active-session', currentSessionId); } catch {} }, [currentSessionId]);
+  useEffect(() => { try { localStorage.setItem('sayai:messages', JSON.stringify(messages.slice(-150))); } catch {} }, [messages]);
+  useEffect(() => { try { localStorage.setItem('sayai:sessions', JSON.stringify(sessions.slice(0, 60))); } catch {} }, [sessions]);
+  useEffect(() => {
+    if (!messages.length) return;
+    setSessions(prev => {
+      const index = prev.findIndex(session => session.id === currentSessionId);
+      const latest = messages[messages.length - 1];
+      const titleText = messages.find(message => message.sender === 'user')?.text || latest.text;
+      const updatedSession: ChatSession = index >= 0
+        ? { ...prev[index], messages: messages.slice(-150), lastMessage: (latest.text || '').slice(0, 80), timestamp: Date.now(), timeAgo: 'Just now' }
+        : { id: currentSessionId, title: titleText.slice(0, 42) || 'New conversation', lastMessage: (latest.text || '').slice(0, 80), timestamp: Date.now(), timeAgo: 'Just now', category: 'General', messages: messages.slice(-150) };
+      const next = [...prev];
+      if (index >= 0) next[index] = updatedSession;
+      else next.unshift(updatedSession);
+      return next;
+    });
+  }, [messages, currentSessionId]);
 
   // Handle Chat Send
   const handleSendMessage = async (text: string) => {
@@ -449,10 +468,22 @@ export default function App() {
             onNavigate={setCurrentScreen}
             sessions={sessions}
             onSelectSession={(ses) => {
+              setCurrentSessionId(ses.id);
               if (ses.messages.length > 0) setMessages(ses.messages);
             }}
             onDeleteSession={(id) => {
               setSessions((prev) => prev.filter((s) => s.id !== id));
+              if (currentSessionId === id) {
+                const nextSession = sessions.find(session => session.id !== id);
+                if (nextSession) {
+                  setCurrentSessionId(nextSession.id);
+                  setMessages(nextSession.messages || []);
+                } else {
+                  const freshId = `ses-${Date.now()}`;
+                  setCurrentSessionId(freshId);
+                  setMessages([]);
+                }
+              }
             }}
           />
         );
