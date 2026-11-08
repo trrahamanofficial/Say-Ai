@@ -4,6 +4,7 @@ import {
   Mic,
   Paperclip,
   Image as ImageIcon,
+  Video,
   Sliders,
   Settings as SettingsIcon,
   MessageSquare,
@@ -330,7 +331,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
           <img src={generatedImages[0].imageUrl} alt={generatedImages[0].prompt} className="max-h-72 w-full object-contain" />
           <div className="flex justify-between gap-2 p-2">
             <span className="line-clamp-1 text-xs text-slate-300">{generatedImages[0].prompt}</span>
-            <button type="button" onClick={() => onNavigate('image')} className="shrink-0 text-xs font-semibold text-cyan-300">Open gallery</button>
+            <div className="flex shrink-0 items-center gap-3">
+              <a href={generatedImages[0].imageUrl} download="SAY-AI-Image.png" className="text-xs font-semibold text-cyan-300">Download</a>
+              <button type="button" onClick={() => onNavigate('image')} className="text-xs font-semibold text-cyan-300">Gallery</button>
+            </div>
           </div>
         </div>
       )}
