@@ -439,6 +439,7 @@ export default function App() {
             messages={messages}
             onSendMessage={handleSendMessage}
             isLoading={isChatLoading}
+            userName={userProfile.name}
           />
         );
       case 'image':
