@@ -1,0 +1,33 @@
+name: Extract SAY AI ZIP
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract source
+        run: |
+          unzip -o SAY-AI-GITHUB-SOURCE-ROOT.zip -d .
+          test -f package.json
+
+      - name: Commit extracted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Extract SAY AI source"
+            git push
+          fi

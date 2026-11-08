@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="logo-cutout">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <path d="M319 394 402 311 724 633 641 716Z" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="#1598ed" mask="url(#logo-cutout)">
+    <path d="M468 252 620 404 772 252 855 335 703 487 855 639 772 722 620 570 468 722 385 639 537 487 385 335Z"/>
+    <path d="M319 394 402 311 724 633 641 716Z"/>
+    <path d="M252 562 335 479 657 801 574 884Z"/>
+  </g>
+</svg>
