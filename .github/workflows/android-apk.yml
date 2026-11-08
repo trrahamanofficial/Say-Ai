@@ -58,6 +58,8 @@ jobs:
           java-version: 21
       - name: Install dependencies
         run: npm install
+      - name: Type-check SAY AI source
+        run: npm run lint
       - name: Build SAY AI web app
         run: npm run build
       - name: Generate Android project

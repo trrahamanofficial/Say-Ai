@@ -137,7 +137,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-65px)] max-w-4xl mx-auto w-full px-2 sm:px-4 py-2">
       {/* 4 Shortcut Pills matching Image 4 */}
-      <div className="grid grid-cols-5 gap-1.5 sm:gap-3 py-2 select-none">
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-3 py-2 select-none">
         <button
           onClick={() => onNavigate('chat')}
           className="flex flex-col sm:flex-row items-center justify-center gap-1.5 p-2 rounded-2xl bg-gradient-to-r from-purple-700/80 to-indigo-700/80 border border-purple-400/50 shadow-[0_0_15px_rgba(168,85,247,0.4)] text-white text-xs font-semibold cursor-pointer"
