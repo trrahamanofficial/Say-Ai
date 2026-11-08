@@ -69,6 +69,8 @@ jobs:
           python3 -m venv .venv
           .venv/bin/pip install --upgrade pip pillow cairosvg
           .venv/bin/python scripts/install-android-icon.py
+      - name: Copy transparent SAY AI logo into web assets
+        run: cp resources/say-ai-logo.png public/assets/say-ai-logo.png
       - name: Register Google sign-in callback
         run: node scripts/patch-android-manifest.mjs
       - name: Sync Capacitor plugins
