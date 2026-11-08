@@ -25,7 +25,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#07091e]/95 backdrop-blur-2xl border-t border-purple-900/30 px-3 py-2 sm:hidden transition-all shadow-[0_-5px_25px_rgba(5,6,20,0.8)]">
+    <nav className="sayai-bottom-nav fixed bottom-0 left-0 right-0 z-40 bg-[#07091e]/95 backdrop-blur-2xl border-t border-sky-400/20 px-3 pt-2 sm:hidden transition-all shadow-[0_-5px_25px_rgba(5,6,20,0.8)]">
       <div className="max-w-md mx-auto flex items-center justify-around">
         {primaryItems.map((item) => {
           const Icon = item.icon;

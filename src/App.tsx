@@ -33,7 +33,13 @@ import { X, Smartphone, Monitor } from 'lucide-react';
 export function AppShell({ profile, onSignOut, adminMode = false }: { profile: UserProfile; onSignOut: () => void; adminMode?: boolean }) {
   // Use the production Pages API for both web and the Capacitor Android app.
   const apiBase = 'https://say-ai.pages.dev';
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>('dashboard');
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>(() => {
+    try {
+      const saved = localStorage.getItem(`sayai-last-screen-${profile.id}`);
+      const allowed: ScreenType[] = ['dashboard', 'chat', 'image', 'voice', 'settings', 'history', 'video', 'api', 'profile', 'pro'];
+      return saved && allowed.includes(saved as ScreenType) ? saved as ScreenType : 'dashboard';
+    } catch { return 'dashboard'; }
+  });
   const [isMobileFrame, setIsMobileFrame] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -42,6 +48,11 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [testingProviderId, setTestingProviderId] = useState<string | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  // Restore the last active screen after Android resumes or recreates the WebView.
+  useEffect(() => {
+    try { localStorage.setItem(`sayai-last-screen-${profile.id}`, currentScreen); } catch { /* storage may be unavailable */ }
+  }, [profile.id, currentScreen]);
 
   // Initial user profile matching the screenshots
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -113,10 +124,38 @@ export function AppShell({ profile, onSignOut, adminMode = false }: { profile: U
         messages: []
       }));
       setSessions(loaded);
+      // Restore the previously open conversation, not just the history list.
+      try {
+        const savedSessionId = localStorage.getItem(`sayai-last-session-${profile.id}`);
+        if (savedSessionId && loaded.some((item) => item.id === savedSessionId)) {
+          const { data: savedMessages, error: savedMessagesError } = await supabase
+            .from('chat_messages')
+            .select('id,role,content,created_at')
+            .eq('session_id', savedSessionId)
+            .order('created_at', { ascending: true });
+          if (!savedMessagesError && active) {
+            setMessages((savedMessages || []).map((row: any) => ({
+              id: row.id,
+              sender: row.role === 'user' ? 'user' : 'assistant',
+              text: row.content,
+              time: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              timestamp: new Date(row.created_at).getTime()
+            })));
+            setCurrentSessionId(savedSessionId);
+          }
+        }
+      } catch { /* retain an empty chat if local storage is unavailable */ }
     };
     void loadChatHistory();
     return () => { active = false; };
   }, [profile.id]);
+
+  useEffect(() => {
+    try {
+      if (currentSessionId) localStorage.setItem(`sayai-last-session-${profile.id}`, currentSessionId);
+      else localStorage.removeItem(`sayai-last-session-${profile.id}`);
+    } catch { /* storage may be unavailable */ }
+  }, [profile.id, currentSessionId]);
 
   // Configured AI Providers
   const [providers, setProviders] = useState<AIProviderConfig[]>([

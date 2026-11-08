@@ -221,3 +221,21 @@
 @media(max-width:420px) {
  .sayai-screen-video,.sayai-screen-voice,.sayai-screen-api,.sayai-screen-history,.sayai-screen-settings {gap:1rem}
 }
+
+/* Android gesture/navigation-bar safe area: keep app controls above system buttons. */
+.sayai-bottom-nav {
+  padding-bottom: max(.55rem, env(safe-area-inset-bottom));
+  min-height: calc(4.6rem + env(safe-area-inset-bottom));
+}
+.sayai-app main {
+  padding-bottom: calc(6.1rem + env(safe-area-inset-bottom)) !important;
+  scroll-padding-bottom: calc(6.1rem + env(safe-area-inset-bottom));
+}
+.sayai-screen-chat {
+  height: auto !important;
+  min-height: calc(100dvh - 7.2rem - env(safe-area-inset-bottom));
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+}
+@media (display-mode: standalone) {
+  .sayai-bottom-nav { padding-bottom: max(.7rem, env(safe-area-inset-bottom)); }
+}
