@@ -321,17 +321,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="text-sm text-slate-300 space-y-2 leading-relaxed">
               {activeModal === 'login' && (
                 <div className="space-y-3">
-                  <p>Sign in with your Supabase account or continue as Guest:</p>
+                  <p>This panel does not sign you in. Use the secure account sign-in screen.</p>
                   <input
                     type="email"
                     placeholder="name@example.com"
-                    defaultValue="trrahaman.official@gmail.com"
+                    
                     className="w-full p-2.5 rounded-xl bg-[#07091e] border border-purple-800/40 text-white text-sm"
                   />
                   <input
                     type="password"
                     placeholder="••••••••"
-                    defaultValue="password123"
+                    
                     className="w-full p-2.5 rounded-xl bg-[#07091e] border border-purple-800/40 text-white text-sm"
                   />
                   <button
