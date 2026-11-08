@@ -308,3 +308,74 @@ button { touch-action: manipulation; }
   .sayai-brain-orbit { animation: none !important; }
   .sayai-app *, .sayai-app *::before, .sayai-app *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+
+/* Screen-level refinements: distinct hierarchy without touching provider logic */
+.sayai-screen { gap: 1.15rem; }
+.sayai-screen > div:first-child:not(.sayai-chat) {
+  border-radius: 1.55rem;
+  border-color: rgba(87, 202, 220, .22) !important;
+  background-image: linear-gradient(125deg, rgba(11,76,100,.86), rgba(13,39,69,.9) 58%, rgba(20,45,79,.9)) !important;
+  box-shadow: 0 18px 48px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.035);
+}
+.sayai-screen h2, .sayai-screen h3 { letter-spacing: -.025em; }
+.sayai-history > div:nth-child(2),
+.sayai-api > div:nth-child(2),
+.sayai-settings > div:nth-child(2) {
+  border-radius: 1.25rem;
+  border-color: rgba(94,205,226,.16) !important;
+}
+.sayai-history > div:last-child > div,
+.sayai-api > div:nth-child(3) > div {
+  border-radius: 1.25rem;
+  background: linear-gradient(145deg, rgba(13,35,55,.94), rgba(8,24,41,.96)) !important;
+  border-color: rgba(94,205,226,.17) !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.16);
+}
+.sayai-settings > div:not(:first-child) {
+  border-radius: 1.35rem;
+  background: linear-gradient(145deg, rgba(13,35,55,.92), rgba(8,24,41,.96)) !important;
+  border-color: rgba(94,205,226,.16) !important;
+}
+.sayai-voice > div:nth-child(2) { padding-block: 1.5rem; }
+.sayai-voice > div:nth-child(2) > div > div:first-child {
+  filter: drop-shadow(0 0 22px rgba(34,211,238,.14));
+}
+.sayai-chat .grid.grid-cols-4 > button {
+  min-height: 3.6rem;
+  border-radius: 1rem;
+  border-color: rgba(94,205,226,.16) !important;
+  background: linear-gradient(145deg, rgba(15,43,65,.92), rgba(8,26,45,.96)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+.sayai-chat .grid.grid-cols-4 > button:first-child {
+  background: linear-gradient(120deg, #087e9b, #245bb2) !important;
+  border-color: rgba(111,226,236,.42) !important;
+}
+.sayai-chat form {
+  border: 1px solid rgba(91,204,222,.22);
+  border-radius: 1.25rem;
+  background: rgba(6,20,35,.96);
+  box-shadow: 0 12px 32px rgba(0,0,0,.25);
+}
+.sayai-dashboard > section:first-child {
+  padding: .35rem .15rem .25rem;
+}
+.sayai-dashboard > div:nth-of-type(2) {
+  border-radius: 1.8rem;
+  border-color: rgba(89,202,222,.2) !important;
+  background: linear-gradient(120deg, rgba(8,69,88,.94), rgba(13,39,73,.96) 62%, rgba(18,36,71,.96)) !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,.24);
+}
+.sayai-dashboard > div:nth-of-type(3) > div {
+  border-radius: 1.35rem;
+  border-color: rgba(91,201,222,.2) !important;
+  background: linear-gradient(145deg, rgba(13,39,60,.94), rgba(8,24,43,.98)) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.18);
+}
+@media (max-width: 640px) {
+  .sayai-screen { padding-top: .75rem; gap: 1rem; }
+  .sayai-screen > div:first-child:not(.sayai-chat) { padding: 1rem; }
+  .sayai-dashboard > div:nth-of-type(2) { padding: 1.2rem; }
+  .sayai-dashboard > div:nth-of-type(2) h1 { font-size: clamp(1.8rem, 8vw, 2.6rem); }
+}
