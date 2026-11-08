@@ -139,3 +139,10 @@ body{background:radial-gradient(ellipse at 10% 0%,rgba(20,184,166,.18),transpare
 @keyframes sayai-brain-glow{from{filter:drop-shadow(0 0 12px rgba(34,211,238,.42))}to{filter:drop-shadow(0 0 28px rgba(59,130,246,.72))}}
 @media(max-width:640px){.sayai-chat{padding-left:.7rem;padding-right:.7rem}.sayai-chat .sayai-message{max-width:78%}}
 @media(prefers-reduced-motion:reduce){.sayai-brain-orbit{animation:none!important}}
+
+/* Re-map legacy purple/indigo gradients into the new ocean-blue identity */
+.sayai-app [class*="from-purple-"]{--tw-gradient-from:#087e9b var(--tw-gradient-from-position)!important;--tw-gradient-to:rgb(8 126 155/0) var(--tw-gradient-to-position)!important}
+.sayai-app [class*="via-indigo-"]{--tw-gradient-via:#1557a4 var(--tw-gradient-via-position)!important}
+.sayai-app [class*="to-indigo-"],.sayai-app [class*="to-blue-"]{--tw-gradient-to:#2458c8 var(--tw-gradient-to-position)!important}
+.sayai-app [class*="shadow-[0_0_"]{filter:saturate(.9)}
+.sayai-app input:focus,.sayai-app textarea:focus{outline:none}
