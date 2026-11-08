@@ -26,6 +26,7 @@ import { ApiManagementView } from './components/ApiManagementView';
 import { VideoGenView } from './components/VideoGenView';
 import { SubscriptionView } from './components/SubscriptionView';
 import { AdminView } from './components/AdminView';
+import { AuthView } from './components/AuthView';
 import { NotificationModal } from './components/NotificationModal';
 import { isSupabaseConfigured, testSupabaseConnection, supabase } from './lib/supabase';
 import { X, Smartphone, Monitor } from 'lucide-react';
@@ -43,6 +44,7 @@ export default function App() {
   // Start as a guest. Privileged access is granted only from the signed-in profile row.
   const [authReady, setAuthReady] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [guestMode, setGuestMode] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>({
     id: 'guest',
     name: 'Guest User',
@@ -72,11 +74,13 @@ export default function App() {
       if (!alive) return;
       if (!session?.user) {
         setIsAuthenticated(false);
+        setGuestMode(false);
         setUserProfile(prev => ({ ...prev, id: 'guest', name: 'Guest User', email: '', role: 'user' }));
         setAuthReady(true);
         return;
       }
       setIsAuthenticated(true);
+      setGuestMode(false);
       const user = session.user;
       let role: 'user' | 'admin' = 'user';
       try {
@@ -100,6 +104,7 @@ export default function App() {
   const handleLogout = async () => {
     if (supabase) await supabase.auth.signOut();
     setIsAuthenticated(false);
+    setGuestMode(false);
     setUserProfile(prev => ({ ...prev, id: 'guest', name: 'Guest User', email: '', role: 'user' }));
     setCurrentScreen('dashboard');
   };
@@ -544,6 +549,7 @@ export default function App() {
   };
 
   if (!authReady) return <div className="min-h-screen bg-[#07121b] text-white flex items-center justify-center">Checking secure account…</div>;
+  if (!isAuthenticated && !guestMode) return <AuthView onGuest={() => { setGuestMode(true); setCurrentScreen('dashboard'); }} />;
 
   return (
     <div className="sayai-app min-h-screen bg-[#07121b] text-white flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-100">
@@ -572,6 +578,7 @@ export default function App() {
               onOpenPro={() => setCurrentScreen('pro')}
               onLogout={handleLogout}
               onDownloadProjectZip={handleDownloadProjectZip}
+              isAdmin={isAuthenticated && userProfile.role === 'admin'}
             />
           </div>
         )}
@@ -639,9 +646,10 @@ export default function App() {
               }}
               onLogout={() => {
                 setIsMobileDrawerOpen(false);
-                setCurrentScreen('dashboard');
+                void handleLogout();
               }}
               onDownloadProjectZip={handleDownloadProjectZip}
+              isAdmin={isAuthenticated && userProfile.role === 'admin'}
               onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
             />
           </div>
