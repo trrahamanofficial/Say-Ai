@@ -13,6 +13,7 @@ interface HeaderProps {
   onOpenMobileMenu?: () => void;
   onDownloadProjectZip: () => void;
   unreadCount?: number;
+  userName?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,7 +24,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPro,
   onOpenMobileMenu,
   onDownloadProjectZip,
-  unreadCount = 2
+  unreadCount = 2,
+  userName = 'Guest User'
 }) => {
   return (
     <header className="w-full bg-[#050614]/90 backdrop-blur-xl border-b border-purple-900/30 px-3 sm:px-6 py-2.5 transition-all lg:hidden">
@@ -78,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="User Profile"
             className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-xs border border-blue-400/40 cursor-pointer"
           >
-            T
+            {(userName.trim()[0] || 'G').toUpperCase()}
           </button>
         </div>
       </div>
