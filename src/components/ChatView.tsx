@@ -103,7 +103,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-65px)] max-w-4xl mx-auto w-full px-2 sm:px-4 py-2">
+    <div className="sayai-chat flex-1 flex flex-col min-h-0 h-[calc(100dvh-142px)] max-w-4xl mx-auto w-full px-3 sm:px-4 pt-2 pb-3 sm:pb-4">
       {/* 4 Shortcut Pills matching Image 4 */}
       <div className="grid grid-cols-4 gap-2 sm:gap-3 py-2 select-none">
         <button
@@ -184,7 +184,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
       )}
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto space-y-4 px-1 py-3 pr-2">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-3 px-1 py-3 pr-2 overscroll-contain">
         {messages.map((msg) => {
           const isUser = msg.sender === 'user';
 
@@ -204,10 +204,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
               {/* Message Bubble */}
               <div
-                className={`max-w-[85%] sm:max-w-md md:max-w-lg rounded-2xl p-3.5 sm:p-4 text-sm leading-relaxed shadow-lg ${
+                className={`max-w-[78%] sm:max-w-md md:max-w-lg rounded-[1.15rem] px-3 py-2.5 sm:px-3.5 sm:py-3 text-[13px] leading-[1.55] shadow-md ${
                   isUser
-                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-br-none shadow-[0_0_18px_rgba(6,182,212,0.35)]'
-                    : 'bg-[#0f143a]/90 text-slate-100 border border-purple-500/25 rounded-bl-none shadow-[0_0_20px_rgba(139,92,246,0.15)] backdrop-blur-md'
+                    ? 'bg-gradient-to-br from-sky-600 to-blue-700 text-white rounded-br-[5px] shadow-[0_5px_16px_rgba(14,165,233,0.16)]'
+                    : 'bg-[#101f32]/95 text-slate-100 border border-cyan-300/15 rounded-bl-[5px] shadow-[0_5px_16px_rgba(2,12,25,0.2)] backdrop-blur-md'
                 }`}
               >
                 {/* Message body text */}
@@ -297,7 +297,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
       </div>
 
       {/* 1-Click ZIP Download Bar directly above chat box */}
-      <div className="pt-1 pb-1">
+      <div className="hidden">
         <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-950/90 via-[#151042] to-indigo-950/90 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
           <div className="flex items-center gap-2 text-xs">
             <span className="text-sm">📦</span>
@@ -315,8 +315,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
       </div>
 
       {/* Composer Input Bar matching Image 4 & Image 1 left */}
-      <form onSubmit={handleSend} className="pb-1 relative z-20">
-        <div className="relative rounded-2xl bg-[#090d29]/90 border border-purple-600/40 p-1.5 flex items-center gap-2 shadow-[0_0_25px_rgba(147,51,234,0.25)] focus-within:border-purple-400 focus-within:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all">
+      <form onSubmit={handleSend} className="pt-1 pb-[max(.5rem,env(safe-area-inset-bottom))] relative z-20">
+        <div className="relative rounded-[1.35rem] bg-[#0b1a2a]/95 border border-cyan-300/20 p-1.5 flex items-center gap-2 shadow-[0_8px_24px_rgba(0,0,0,.22)] focus-within:border-cyan-300/55 focus-within:shadow-[0_0_18px_rgba(34,211,238,.12)] transition-all">
           {/* Microphone button on left */}
           <button
             type="button"
@@ -338,15 +338,15 @@ export const ChatView: React.FC<ChatViewProps> = ({
             onChange={(e) => setInputText(e.target.value)}
             placeholder={isListening ? 'Listening to your voice...' : 'Ask SAY AI anything...'}
             disabled={isLoading}
-            className="flex-1 bg-transparent text-sm text-white placeholder-slate-400 focus:outline-none px-2 py-1.5"
+            className="flex-1 bg-transparent text-sm text-white placeholder-slate-400 focus:outline-none px-1.5 py-1.5 text-[13px]"
           />
 
           {/* 1-Click ZIP Download button directly in chat box */}
           <a
             href="/SAY-AI-FULL-PROJECT.zip"
             download="SAY-AI-FULL-PROJECT.zip"
-            title="1-Click Download SAY-AI-FULL-PROJECT.zip"
-            className="p-2 text-purple-300 hover:text-white hover:bg-purple-900/50 rounded-xl transition-colors cursor-pointer flex items-center justify-center"
+            title="Project download"
+            className="hidden"
           >
             <span className="text-base leading-none">📦</span>
           </a>
