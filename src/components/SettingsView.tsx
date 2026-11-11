@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowLeft,
   Moon,
@@ -36,6 +36,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 }) => {
   const [darkMode, setDarkMode] = useState(userProfile.appearance.theme === 'dark');
   const [brightness, setBrightness] = useState(userProfile.appearance.brightness);
+
+  useEffect(() => {
+    setDarkMode(userProfile.appearance.theme === 'dark');
+    setBrightness(userProfile.appearance.brightness);
+  }, [userProfile.appearance.theme, userProfile.appearance.brightness]);
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
   const handleToggleDark = () => {
@@ -127,7 +132,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <button
             onClick={handleToggleDark}
             aria-label="Toggle dark mode"
-            className={`w-12 h-6 rounded-full transition-colors p-1 cursor-pointer flex items-center ${
+            className={`w-10 h-5 rounded-full transition-colors p-[3px] cursor-pointer flex items-center ${
               darkMode ? 'bg-purple-600 justify-end shadow-[0_0_10px_rgba(168,85,247,0.7)]' : 'bg-slate-700 justify-start'
             }`}
           >
@@ -170,8 +175,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
           <input
             type="range"
-            min="20"
-            max="100"
+            min="50"
+            max="110"
             value={brightness}
             onChange={(e) => handleBrightnessChange(Number(e.target.value))}
             className="w-full accent-purple-500 cursor-pointer"
@@ -260,33 +265,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
           <ChevronRight className="w-4 h-4 text-slate-500" />
         </button>
-      </div>
-
-      {/* Dedicated 1-Click ZIP Download Card in Settings */}
-      <div className="rounded-2xl p-4 bg-gradient-to-r from-purple-950/80 to-indigo-950/80 border border-purple-500/40 shadow-[0_0_20px_rgba(147,51,234,0.3)] space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-xl shadow-md">
-              📦
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white tracking-wide">
-                Download Full Project ZIP
-              </h4>
-              <p className="text-xs text-purple-200/80">
-                Complete project source • One-tap download
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <a
-          href="/SAY-AI-FULL-PROJECT.zip"
-          download="SAY-AI-FULL-PROJECT.zip"
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-[0_0_15px_rgba(168,85,247,0.5)] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <span>📦 Tap to Download ZIP (1-Click)</span>
-        </a>
       </div>
 
       {/* Bottom Badge matching Image 1 right */}
