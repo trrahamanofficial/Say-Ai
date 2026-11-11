@@ -509,3 +509,42 @@ button { touch-action: manipulation; }
   .sayai-auth { padding: 1rem .85rem !important; }
   .sayai-auth-card { padding: 1.25rem !important; border-radius: 24px !important; }
 }
+
+/* SAY AI appearance controls: persistent theme and working brightness */
+.sayai-app { filter: brightness(var(--sayai-brightness, 1)); }
+html[data-sayai-theme="light"] body {
+  background: linear-gradient(145deg,#eef6fb,#e8f1fa 55%,#f5f8fc) !important;
+  color: #172b40 !important;
+}
+html[data-sayai-theme="light"] .sayai-app {
+  color: #172b40 !important;
+  background: transparent !important;
+}
+html[data-sayai-theme="light"] .sayai-settings > div:not(:first-child) {
+  background: rgba(255,255,255,.94) !important;
+  border-color: #c8d8e6 !important;
+  box-shadow: 0 8px 24px rgba(31,67,95,.08) !important;
+}
+html[data-sayai-theme="light"] .sayai-settings > div:first-child {
+  background: rgba(255,255,255,.8) !important;
+}
+html[data-sayai-theme="light"] .sayai-settings h2,
+html[data-sayai-theme="light"] .sayai-settings h3,
+html[data-sayai-theme="light"] .sayai-settings h4,
+html[data-sayai-theme="light"] .sayai-settings span,
+html[data-sayai-theme="light"] .sayai-settings p {
+  color: #243b50 !important;
+}
+html[data-sayai-theme="light"] .sayai-settings button:not([aria-label^="Toggle"]) {
+  color: #18364d;
+}
+html[data-sayai-theme="light"] .sayai-settings button[aria-label^="Toggle"] {
+  box-shadow: none !important;
+}
+html[data-sayai-theme="light"] .sayai-app .sayai-bottom-nav,
+html[data-sayai-theme="light"] .sayai-app .sayai-bottom-nav-inner {
+  background: rgba(248,252,255,.97) !important;
+  border-color: #c8d8e6 !important;
+}
+html[data-sayai-theme="light"] .sayai-app .sayai-nav-item { color: #526b80 !important; }
+html[data-sayai-theme="light"] .sayai-app input[type="range"] { accent-color: #168da8 !important; }
