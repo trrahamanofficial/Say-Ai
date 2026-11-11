@@ -511,7 +511,24 @@ button { touch-action: manipulation; }
 }
 
 /* SAY AI appearance controls: persistent theme and working brightness */
-.sayai-app { filter: brightness(var(--sayai-brightness, 1)); }
+.sayai-app > header,
+.sayai-app > .flex-1 { filter: brightness(var(--sayai-brightness, 1)); }
+/* Keep the mobile navigation fixed to the phone viewport, not the filtered app content. */
+@media (max-width: 639px) {
+  .sayai-app .sayai-bottom-nav {
+    display: block !important;
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 100 !important;
+    width: 100% !important;
+  }
+  .sayai-app > div.block.lg\\:hidden {
+    position: static !important;
+    z-index: auto !important;
+  }
+}
 html[data-sayai-theme="light"] body {
   background: linear-gradient(145deg,#eef6fb,#e8f1fa 55%,#f5f8fc) !important;
   color: #172b40 !important;
