@@ -106,41 +106,6 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   return (
     <div className="sayai-chat sayai-screen flex-1 flex flex-col min-h-0 h-[calc(100dvh-142px)] max-w-4xl mx-auto w-full px-3 sm:px-4 pt-2 pb-3 sm:pb-4">
-      {/* 4 Shortcut Pills matching Image 4 */}
-      <div className="grid grid-cols-4 gap-2 sm:gap-3 py-2 select-none">
-        <button
-          onClick={() => onNavigate('chat')}
-          className="flex flex-col sm:flex-row items-center justify-center gap-1.5 p-2 rounded-2xl bg-gradient-to-r from-purple-700/80 to-indigo-700/80 border border-purple-400/50 shadow-[0_0_15px_rgba(168,85,247,0.4)] text-white text-xs font-semibold cursor-pointer"
-        >
-          <MessageSquare className="w-4 h-4 text-purple-200" />
-          <span className="text-[11px] sm:text-xs">Chat</span>
-        </button>
-
-        <button
-          onClick={() => onNavigate('image')}
-          className="flex flex-col sm:flex-row items-center justify-center gap-1.5 p-2 rounded-2xl bg-[#0c102a]/80 hover:bg-[#12163b] border border-purple-900/30 text-slate-300 hover:text-white text-xs font-medium transition-all cursor-pointer"
-        >
-          <ImageIcon className="w-4 h-4 text-slate-400" />
-          <span className="text-[11px] sm:text-xs text-center">Image Gen</span>
-        </button>
-
-        <button
-          onClick={() => onNavigate('voice')}
-          className="flex flex-col sm:flex-row items-center justify-center gap-1.5 p-2 rounded-2xl bg-[#0c102a]/80 hover:bg-[#12163b] border border-purple-900/30 text-slate-300 hover:text-white text-xs font-medium transition-all cursor-pointer"
-        >
-          <Mic className="w-4 h-4 text-slate-400" />
-          <span className="text-[11px] sm:text-xs text-center">Voice</span>
-        </button>
-
-        <button
-          onClick={() => onNavigate('settings')}
-          className="flex flex-col sm:flex-row items-center justify-center gap-1.5 p-2 rounded-2xl bg-[#0c102a]/80 hover:bg-[#12163b] border border-purple-900/30 text-slate-300 hover:text-white text-xs font-medium transition-all cursor-pointer"
-        >
-          <SettingsIcon className="w-4 h-4 text-slate-400" />
-          <span className="text-[11px] sm:text-xs text-center">Settings</span>
-        </button>
-      </div>
-
       {/* Welcome Banner with Robot Artwork matching Image 4 & Image 1 */}
       {messages.length <= 2 && (
         <div className="relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 my-2 bg-gradient-to-r from-[#0d1238] via-[#171146] to-[#120f38] border border-purple-500/30 overflow-hidden shadow-[0_0_25px_rgba(147,51,234,0.2)]">
