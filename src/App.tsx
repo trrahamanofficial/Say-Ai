@@ -60,11 +60,21 @@ export default function App() {
       voiceUsed: 18,
       voiceLimit: 30
     },
-    appearance: {
-      theme: 'dark',
-      brightness: 80
-    }
+    appearance: (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('sayai:appearance') || 'null');
+        return { theme: saved?.theme === 'light' ? 'light' : 'dark', brightness: Math.min(110, Math.max(50, Number(saved?.brightness) || 80)) };
+      } catch { return { theme: 'dark' as const, brightness: 80 }; }
+    })()
   });
+
+  useEffect(() => {
+    const theme = userProfile.appearance.theme;
+    const brightness = Math.min(110, Math.max(50, userProfile.appearance.brightness));
+    document.documentElement.dataset.sayaiTheme = theme;
+    document.documentElement.style.setProperty('--sayai-brightness', String(brightness / 100));
+    try { localStorage.setItem('sayai:appearance', JSON.stringify({ theme, brightness })); } catch {}
+  }, [userProfile.appearance.theme, userProfile.appearance.brightness]);
 
   // Resolve the real Supabase session and role. Fail closed if the profile cannot be read.
   useEffect(() => {
