@@ -228,7 +228,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Middle Row: Recent Chats (Left) & Usage Stats + System Status (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="sayai-middle-grid grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column (7 cols): Recent Chats */}
         <div className="lg:col-span-7 rounded-2xl p-5 bg-[#0a0e2a]/80 border border-purple-900/30 flex flex-col justify-between">
           <div>
@@ -255,20 +255,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div
                     key={chat.id}
                     onClick={() => onNavigate(chat.target)}
-                    className="flex items-center justify-between p-3 rounded-xl bg-[#0e1338]/60 hover:bg-[#141b4d]/80 border border-purple-900/20 hover:border-purple-600/40 transition-all cursor-pointer group"
+                    className="sayai-recent-item flex items-center justify-between p-3 rounded-xl bg-[#0e1338]/60 hover:bg-[#141b4d]/80 border border-purple-900/20 hover:border-purple-600/40 transition-all cursor-pointer group"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="sayai-recent-main flex items-center gap-3 min-w-0">
                       <div className={`w-9 h-9 rounded-xl ${chat.iconBg} flex items-center justify-center text-white shadow-sm flex-shrink-0`}>
                         <Icon className="w-4 h-4" />
                       </div>
-                      <div className="text-left">
+                      <div className="sayai-recent-copy text-left min-w-0">
                         <h4 className="text-sm font-semibold text-white group-hover:text-purple-300 transition-colors">
                           {chat.title}
                         </h4>
                         <p className="text-xs text-slate-400 line-clamp-1">{chat.message}</p>
                       </div>
                     </div>
-                    <span className="text-[11px] text-slate-400 flex-shrink-0 font-medium">
+                    <span className="sayai-recent-time text-[11px] text-slate-400 flex-shrink-0 font-medium">
                       {chat.timeAgo}
                     </span>
                   </div>
@@ -363,7 +363,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* System Status Card matching Image 5 */}
-          <div className="rounded-2xl p-4 sm:p-5 bg-[#0a0e2a]/80 border border-purple-900/30 flex items-center justify-between gap-4">
+          <div className="sayai-system-card rounded-2xl p-4 sm:p-5 bg-[#0a0e2a]/80 border border-purple-900/30 flex items-center justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
