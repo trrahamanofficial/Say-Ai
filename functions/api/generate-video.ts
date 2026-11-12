@@ -14,7 +14,9 @@ export async function onRequestPost({request,env}:{request:Request;env:Env}):Pro
   if(provider.type!=='replicate')return json({error:'The current Video AI generation workflow supports Replicate predictions. Select the Replicate Video provider and add its API token.'},400);
   const input:Record<string,unknown>={prompt};
   if(body.aspectRatio)input.aspect_ratio=body.aspectRatio;
-  const response=await fetch(provider.baseUrl.replace(/\/$/,''),{method:'POST',headers:{Authorization:'Bearer '+provider.apiKey,'Content-Type':'application/json'},body:JSON.stringify({input})});
+  const root=provider.baseUrl.replace(/\/$/,'');
+  const endpoint=root.endsWith('/predictions')&&provider.model.includes('/')?root.replace(/\/predictions$/,'/models/'+provider.model+'/predictions'):root;
+  const response=await fetch(endpoint,{method:'POST',headers:{Authorization:'Bearer '+provider.apiKey,'Content-Type':'application/json'},body:JSON.stringify({input})});
   const data=await response.json() as any;
   if(!response.ok)return json({error:data?.detail||data?.error||'Replicate returned HTTP '+response.status},502);
   if(!data.id)return json({error:'Video provider did not return a prediction ID.'},502);
