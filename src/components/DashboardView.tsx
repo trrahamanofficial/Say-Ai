@@ -141,51 +141,42 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Hero Banner: "Welcome to SAY AI" matching Image 5 */}
-      <div className="relative rounded-3xl overflow-hidden p-6 sm:p-8 lg:p-10 bg-gradient-to-r from-[#0c0d2b] via-[#151240] to-[#120d33] border border-purple-500/30 shadow-[0_0_35px_rgba(139,92,246,0.15)]">
-        {/* Background glow sweeps */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-80 h-40 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="max-w-xl text-left space-y-4">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-              <span>Welcome to </span>
-              <br className="hidden sm:inline" />
-              <span className="text-white">SAY </span>
-              <span className="bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(192,132,252,0.6)]">
-                AI
-              </span>
+      {/* Refined SAY AI hero: compact title, animated artwork, clean mobile layout */}
+      <section className="sayai-hero relative isolate overflow-hidden rounded-[2rem] border border-cyan-200/15 bg-[linear-gradient(135deg,#092d3a_0%,#102b4b_52%,#17234d_100%)] p-5 sm:p-7 lg:p-9 shadow-[0_18px_55px_rgba(0,0,0,.24)]">
+        <div className="sayai-hero-glow sayai-hero-glow-one" aria-hidden="true" />
+        <div className="sayai-hero-glow sayai-hero-glow-two" aria-hidden="true" />
+        <div className="relative z-10 grid items-center gap-5 md:grid-cols-[1.05fr_.95fr] md:gap-3">
+          <div className="sayai-hero-copy min-w-0 text-left">
+            <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-100/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[.2em] text-cyan-200">
+              <Sparkles className="h-3.5 w-3.5" /> Your AI, all in one place
+            </span>
+            <h1 className="mt-4 text-[1.65rem] sm:text-3xl lg:text-[2.5rem] font-extrabold tracking-tight leading-[1.12]">
+              <span className="text-white">Welcome to </span>
+              <span className="bg-gradient-to-r from-cyan-200 via-sky-300 to-violet-300 bg-clip-text text-transparent">SAY AI</span>
             </h1>
-
-            <p className="text-slate-300 text-sm sm:text-base font-normal max-w-lg leading-relaxed">
-              Your Smart AI Assistant for Chat, Image &amp; Voice Experience
+            <p className="mt-3 max-w-md text-sm sm:text-base text-slate-200/85 leading-relaxed">
+              Chat, create images and use voice — all with one smart assistant.
             </p>
-
             <button
               onClick={() => onNavigate('chat')}
-              className="mt-2 inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm tracking-wide shadow-[0_0_20px_rgba(147,51,234,0.5)] active:scale-95 transition-all cursor-pointer"
+              className="sayai-hero-cta mt-5 inline-flex items-center gap-2.5 rounded-xl border border-white/15 bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-bold text-white shadow-[0_8px_24px_rgba(14,165,233,.24)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(14,165,233,.38)] active:scale-[.98] cursor-pointer"
             >
-              <span>Start Chat</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Start Chat</span><ArrowRight className="h-4 w-4" />
             </button>
           </div>
-
-          {/* Glowing neon brain in orbital ring graphic matching Image 5 */}
-          <div className="relative flex-shrink-0 w-64 h-52 sm:w-80 sm:h-64 flex items-center justify-center">
+          <div className="sayai-hero-art relative mx-auto flex w-full max-w-[18rem] sm:max-w-[22rem] items-center justify-center">
+            <div className="sayai-hero-orbit sayai-hero-orbit-a" aria-hidden="true" />
+            <div className="sayai-hero-orbit sayai-hero-orbit-b" aria-hidden="true" />
+            <div className="sayai-hero-art-glow" aria-hidden="true" />
             <img
               src="/assets/extracted/brain-orb.png"
-              alt="SAY AI Neon Brain Orb"
-              className="sayai-brain-orbit w-full h-full object-contain filter drop-shadow-[0_0_25px_rgba(0,190,255,0.65)]"
-              onError={(e) => {
-                // High-fidelity fallback SVG if asset file is missing
-                const target = e.currentTarget;
-                target.style.display = 'none';
-              }}
+              alt="SAY AI glowing brain orb"
+              className="sayai-brain-orbit relative z-10 h-auto w-full object-contain"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
           </div>
         </div>
-      </div>
+      </section>
 
       {/* 3 Action Cards Grid matching Image 5 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
