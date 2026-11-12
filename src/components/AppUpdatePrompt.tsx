@@ -32,13 +32,13 @@ export function AppUpdatePrompt() {
       try {
         const [installed, response] = await Promise.all([
           NativeApp.getInfo(),
-          fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json' } })
+          fetch(RELEASES_API, { cache: 'no-store', headers: { Accept: 'application/vnd.github+json' } })
         ]);
         if (!response.ok) return;
         const latest = await response.json();
         const version = String(latest.tag_name || '').replace(/^v/i, '');
         const apk = Array.isArray(latest.assets)
-          ? latest.assets.find((asset: any) => String(asset.name || '').toLowerCase().endsWith('.apk'))
+          ? latest.assets.find((asset: any) => String(asset.name || '') === 'SAY-AI-latest.apk') || latest.assets.find((asset: any) => String(asset.name || '').toLowerCase().endsWith('.apk'))
           : null;
         if (!active || !version || !apk?.browser_download_url) return;
         if (isNewer(version, installed.version || '1.0.0')) {
@@ -77,7 +77,7 @@ export function AppUpdatePrompt() {
         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400/15 text-3xl">↻</div>
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">SAY AI Update</p>
         <h2 className="mt-2 text-2xl font-extrabold">Update available</h2>
-        <p className="mt-2 text-sm text-slate-300">A newer version of SAY AI is ready.</p>
+        <p className="mt-2 text-sm text-slate-300">A newer version of SAY AI is ready to install.</p>
         <p className="mt-3 rounded-xl bg-white/5 px-3 py-2 text-sm text-cyan-200">Version {release.version}</p>
         {release.notes && <p className="mt-3 max-h-24 overflow-auto text-xs leading-5 text-slate-400">{release.notes}</p>}
         <button
@@ -88,7 +88,7 @@ export function AppUpdatePrompt() {
         >
           {opening ? 'Opening download…' : 'Update Now'}
         </button>
-        <p className="mt-3 text-center text-[11px] leading-4 text-slate-500">Android will ask you to confirm the installation.</p>
+        <p className="mt-3 text-center text-[11px] leading-4 text-slate-500">The APK will download. Android will then ask you to allow and confirm installation.</p>
       </div>
     </div>
   );
