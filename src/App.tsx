@@ -41,6 +41,7 @@ export default function App() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(2);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imageGenerationError, setImageGenerationError] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [testingProviderId, setTestingProviderId] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState('');
@@ -376,12 +377,15 @@ export default function App() {
   // Handle Image Generation
   const handleGenerateImage = async (prompt: string, category: string) => {
     setIsGeneratingImage(true);
+    setImageGenerationError('');
     try {
       const res = await fetch(apiUrl('/api/generate-image'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, category })
       });
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) throw new Error('Image server did not return JSON. Please check the connection and try again.');
       const data = await res.json();
       if (!res.ok || !data.imageUrl) throw new Error(data.error || 'Image generation provider is not configured.');
 
@@ -396,7 +400,9 @@ export default function App() {
 
       setGeneratedImages((prev) => [newImg, ...prev]);
     } catch (error) {
-      console.error('Image generation unavailable:', error);
+      const message = error instanceof Error ? error.message : 'Image generation failed. Please try again.';
+      console.error('Image generation unavailable:', message);
+      setImageGenerationError(message);
     } finally {
       setIsGeneratingImage(false);
     }
@@ -493,6 +499,7 @@ export default function App() {
             generatedImages={generatedImages}
             onGenerateImage={handleGenerateImage}
             isGenerating={isGeneratingImage}
+            error={imageGenerationError}
           />
         );
       case 'voice':
