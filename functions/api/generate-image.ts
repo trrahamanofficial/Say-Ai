@@ -1,6 +1,8 @@
 type Provider = { id:string; name:string; type:string; model:string; apiKey:string; enabled:boolean; baseUrl:string };
-type Env = { SAY_AI_CONFIG?: KVNamespace };
-const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
+type Env = { SAY_AI_CONFIG?: KVNamespace; AI?: { run: (model: string, input: { prompt: string; steps?: number }) => Promise<{ image?: string }> } };
+const corsHeaders:Record<string,string>={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Max-Age':'86400','Vary':'Origin'};
+const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...corsHeaders}});
+export async function onRequestOptions(){return new Response(null,{status:204,headers:corsHeaders});}
 const dataUrl=async(blob:Blob)=>{const bytes=new Uint8Array(await blob.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return 'data:'+(blob.type||'image/png')+';base64,'+btoa(binary);};
 export async function onRequestPost({request,env}:{request:Request;env:Env}):Promise<Response>{
  try{
@@ -8,10 +10,14 @@ export async function onRequestPost({request,env}:{request:Request;env:Env}):Pro
   const prompt=String(body.prompt||'').trim();
   if(!prompt)return json({error:'Please enter an image prompt.'},400);
   if(prompt.length>2000)return json({error:'Image prompt is too long (maximum 2,000 characters).'},400);
-  if(!env.SAY_AI_CONFIG)return json({error:'Image AI settings storage is not connected. Configure the SAY_AI_CONFIG KV binding.'},503);
-  const config=await env.SAY_AI_CONFIG.get<{imageProviders?:Provider[]}>('private-ai-brain-config','json');
+  const config=env.SAY_AI_CONFIG?await env.SAY_AI_CONFIG.get<{imageProviders?:Provider[]}>('private-ai-brain-config','json'):null;
   const provider=(config?.imageProviders||[]).find(p=>p.enabled&&p.apiKey&&p.model&&p.baseUrl);
-  if(!provider)return json({error:'No Image AI provider is enabled. Add an Image AI key in API Management and save settings.'},503);
+  if(!provider){
+   if(!env.AI)return json({error:'Image generation is unavailable: Cloudflare Workers AI binding is missing and no Image AI provider is enabled.'},503);
+   const result=await env.AI.run('@cf/black-forest-labs/flux-1-schnell',{prompt,steps:4});
+   if(!result?.image)return json({error:'Cloudflare Image AI returned no image. Please try again.'},502);
+   return json({success:true,imageUrl:'data:image/jpeg;base64,'+result.image,provider:'Cloudflare Workers AI · FLUX.1 schnell'});
+  }
   if(provider.type==='stability'){
    const form=new FormData();form.set('prompt',prompt);form.set('output_format','png');
    const response=await fetch(provider.baseUrl.replace(/\/$/,''),{method:'POST',headers:{Authorization:'Bearer '+provider.apiKey,Accept:'image/*'},body:form});
