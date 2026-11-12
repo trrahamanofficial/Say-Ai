@@ -16,17 +16,31 @@ export const AuthView: React.FC<{ onGuest: () => void }> = ({ onGuest }) => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform() || !supabase) return;
     let active = true;
+    const handledCallbacks = new Set<string>();
     const complete = async (url: string) => {
       try {
         const callback = new URL(url);
-        const error = callback.searchParams.get('error_description') || callback.searchParams.get('error');
+        const hash = new URLSearchParams(callback.hash.replace(/^#/, ''));
+        const error = callback.searchParams.get('error_description') || callback.searchParams.get('error') || hash.get('error_description') || hash.get('error');
         if (error) throw new Error(error);
         const code = callback.searchParams.get('code');
-        if (!code) return;
+        const accessToken = hash.get('access_token') || callback.searchParams.get('access_token');
+        const refreshToken = hash.get('refresh_token') || callback.searchParams.get('refresh_token');
+        const callbackId = code || (accessToken && refreshToken ? accessToken : '');
+        if (!callbackId || handledCallbacks.has(callbackId)) return;
+        handledCallbacks.add(callbackId);
         setBusy(true);
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) throw exchangeError;
+        } else if (accessToken && refreshToken) {
+          const { error: sessionError } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+          if (sessionError) throw sessionError;
+        }
         await Browser.close().catch(() => undefined);
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-        if (exchangeError) throw exchangeError;
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) throw new Error('Google returned to SAY AI, but the sign-in session was not saved. Please try again.');
+        if (active) setMessage('Google sign-in successful. Opening SAY AI…');
       } catch (err) {
         if (active) setMessage(err instanceof Error ? err.message : 'Google sign-in could not be completed.');
       } finally {
