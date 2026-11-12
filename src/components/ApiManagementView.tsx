@@ -54,7 +54,7 @@ export const ApiManagementView: React.FC<ApiManagementViewProps> = ({ providers,
     {tab==='image'&&<div className="space-y-3"><div><h3 className="font-bold text-white">Image AI Providers</h3><p className="text-xs text-slate-400">Add image-generation API keys and choose which provider is enabled.</p></div>{renderMedia(images,patchImage)}</div>}
     {tab==='video'&&<div className="space-y-3"><div><h3 className="font-bold text-white">Video AI Providers</h3><p className="text-xs text-slate-400">Add video-generation API keys and choose which provider is enabled.</p></div>{renderMedia(videos,patchVideo)}</div>}
     <div className="sticky bottom-20 z-10 rounded-2xl border border-cyan-900/50 bg-[#071727]/95 p-3 backdrop-blur">
-      {saveMessage&&<p role="status" className="mb-2 flex items-center gap-2 text-xs text-cyan-100">{saveMessage.startsWith('Saved')?<CheckCircle2 size={15}/>:<AlertCircle size={15}/ >}{saveMessage}</p>}
+      {saveMessage&&<p role="status" className="mb-2 flex items-center gap-2 text-xs text-cyan-100">{saveMessage.startsWith('Saved')?<CheckCircle2 size={15}/>:<AlertCircle size={15} />}{saveMessage}</p>}
       <button type="button" disabled={isSaving} onClick={()=>void onSaveConfig(chat,images,videos)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3 font-bold text-white shadow-lg disabled:opacity-50"><Save size={17}/>{isSaving?'Saving securely…':'Save all API settings'}</button>
     </div>
   </div>;
