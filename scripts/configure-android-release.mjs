@@ -15,8 +15,8 @@ fs.writeFileSync(keyPath, Buffer.from(process.env.ANDROID_KEYSTORE_BASE64.replac
 if (fs.statSync(keyPath).size < 1000) throw new Error('Release keystore file is invalid or empty.');
 
 let gradle = fs.readFileSync(gradleFile, 'utf8');
-gradle = gradle.replace(/versionCode\s+\d+/, 'versionCode 10');
-gradle = gradle.replace(/versionName\s+["'][^"']+["']/, 'versionName "1.0.1"');
+gradle = gradle.replace(/versionCode\s+\d+/, 'versionCode 11');
+gradle = gradle.replace(/versionName\s+["'][^"']+["']/, 'versionName "1.0.6"');
 
 const signing = '\n    signingConfigs {\n        release {\n            storeFile file("sayai-release.jks")\n            storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")\n            keyAlias System.getenv("ANDROID_KEY_ALIAS")\n            keyPassword System.getenv("ANDROID_KEY_PASSWORD")\n        }\n    }\n';
 
@@ -39,4 +39,4 @@ if (!/release\s*\{[\s\S]*?signingConfig\s+signingConfigs\.release/.test(gradle))
   }
 }
 fs.writeFileSync(gradleFile, gradle);
-console.log('Configured SAY AI release signing and version 1.0.1.');
+console.log('Configured SAY AI release signing and version 1.0.6.');
