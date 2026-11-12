@@ -1,19 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="SAY AI logo">
-  <defs>
-    <linearGradient id="sayai-blue" x1="72" y1="64" x2="432" y2="448" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#35C5F4"/>
-      <stop offset="1" stop-color="#075BE8"/>
-    </linearGradient>
-    <linearGradient id="sayai-shine" x1="130" y1="118" x2="382" y2="394" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/>
-      <stop offset="1" stop-color="#FFFFFF" stop-opacity=".18"/>
-    </linearGradient>
-    <clipPath id="sayai-rounded"><rect x="12" y="12" width="488" height="488" rx="116"/></clipPath>
-  </defs>
-  <g clip-path="url(#sayai-rounded)">
-    <rect x="12" y="12" width="488" height="488" fill="#FFFFFF"/>
-    <path d="M-30 150 362 542M72 -30 542 440M-30 350 250 630M180 -80 610 350" fill="none" stroke="#DCEBFF" stroke-width="7" opacity=".72"/>
-    <path d="M148 174 230 92 364 226 282 308 364 390 282 472" fill="none" stroke="url(#sayai-blue)" stroke-width="62" stroke-linecap="square" stroke-linejoin="miter"/>
-    <path d="M148 174 230 92 364 226" fill="none" stroke="url(#sayai-shine)" stroke-width="8" stroke-linecap="square" opacity=".72"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="SAY AI emblem">
+ <defs>
+  <linearGradient id="blue" x1="100" y1="160" x2="410" y2="370" gradientUnits="userSpaceOnUse"><stop stop-color="#16BCEB"/><stop offset="1" stop-color="#075BEF"/></linearGradient>
+  <clipPath id="tile"><rect x="0" y="0" width="512" height="512" rx="104"/></clipPath>
+ </defs>
+ <g clip-path="url(#tile)">
+  <rect width="512" height="512" fill="#fff"/>
+  <path d="M-28 116 396 540M92 -36 548 420M-30 310 204 544M250 -40 552 262" fill="none" stroke="#D8E7FF" stroke-width="6" opacity=".85"/>
+  <path d="M184 154 228 110 306 188 390 104 434 148 306 276Z" fill="url(#blue)"/>
+  <path d="M78 236 122 192 256 326 306 276 350 320 256 414Z" fill="url(#blue)"/>
+ </g>
 </svg>
