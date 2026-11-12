@@ -61,7 +61,7 @@ export interface VoiceCommandItem {
 export interface AIProviderConfig {
   id: string;
   name: string;
-  type: 'gemini' | 'openrouter' | 'openai' | 'anthropic' | 'cloudflare' | 'supabase' | 'custom';
+  type: 'gemini' | 'openrouter' | 'openai' | 'anthropic' | 'cloudflare' | 'supabase' | 'custom' | 'openai-compatible' | 'cohere';
   baseUrl: string;
   apiKey: string;
   model: string;
@@ -71,6 +71,19 @@ export interface AIProviderConfig {
   pingMs?: number;
   lastTested?: string;
   notes?: string;
+  apiKeyConfigured?: boolean;
+}
+
+export interface MediaProviderConfig {
+  id: string;
+  name: string;
+  type: string;
+  baseUrl: string;
+  apiKey: string;
+  model: string;
+  enabled: boolean;
+  category: 'image' | 'video';
+  apiKeyConfigured?: boolean;
 }
 
 export interface UserProfile {
