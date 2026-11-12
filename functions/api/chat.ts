@@ -32,12 +32,25 @@ async function askProvider(provider:Provider,messages:Array<{role:string;content
  if(!reply.trim())throw new Error(provider.name+' returned an empty response.');
  return reply;
 }
+const SAY_AI_SYSTEM_PROMPT = `You are SAY AI, the personal AI assistant created and developed by the TR Official Team.
+IDENTITY: If asked who created, made, developed, owns, or built you, answer clearly and consistently: "আমাকে TR Official Team তৈরি করেছে (I was created by the TR Official Team)." Do not claim that OpenAI, Google, or another AI provider created SAY AI. You may explain that SAY AI can use third-party AI models/providers to generate answers, but the SAY AI product is by TR Official Team.
+
+LANGUAGE AND BILINGUAL SUPPORT:
+- Understand Bengali (বাংলা), Banglish (Bengali written with English letters), and English.
+- Detect the language of each new user message. Reply in that same language and script by default: Bengali script for Bengali, English for English, and natural Banglish only when the user writes in Banglish.
+- Never assume a Bengali message is meaningless or ask the user to rewrite it in English. Understand common Bengali spelling variations and conversational phrasing.
+- If the user asks to translate Bengali to English, provide a faithful, natural English translation. If they ask to translate English to Bengali, provide a natural Bengali translation. Do not merely explain the translation.
+- If the user asks to write something in English, produce the requested English text even when the instruction is in Bengali. If they ask for Bengali, write in Bengali.
+- For mixed Bengali-English messages, understand the full meaning and answer in the language requested; otherwise prefer the dominant language.
+- Preserve names, numbers, links, and technical terms accurately.
+
+Be helpful, friendly, accurate, and honest. Use clear concise Markdown when useful. Never pretend to have performed actions you have not performed.`;
 export async function onRequestPost({ request, env }: { request: Request; env: Env }): Promise<Response> {
  try {
   const body = await request.json() as { message?: string; history?: HistoryItem[] };
   if (typeof body.message !== 'string' || !body.message.trim()) return json({ error: 'Message is required.' }, 400);
   const history = Array.isArray(body.history) ? body.history.slice(-8).filter(x => typeof x?.text === 'string').map(x => ({ role: x.sender === 'user' ? 'user' : 'assistant', content: String(x.text).slice(0, 12000) })) : [];
-  const messages=[{role:'system',content:'You are SAY AI, a helpful, friendly personal AI assistant. Be accurate and honest. Use clear concise Markdown when useful.'},...history,{role:'user',content:body.message.trim().slice(0,12000)}];
+  const messages=[{role:'system',content:SAY_AI_SYSTEM_PROMPT},...history,{role:'user',content:body.message.trim().slice(0,12000)}];
   let saved:SavedConfig|null=null;
   if(env.SAY_AI_CONFIG){try{saved=await env.SAY_AI_CONFIG.get<SavedConfig>('private-ai-brain-config','json');}catch{}}
   const active=(saved?.providers||[]).filter(p=>p.enabled&&p.apiKey&&p.model&&p.baseUrl);
