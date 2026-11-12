@@ -565,3 +565,29 @@ html[data-sayai-theme="light"] .sayai-app .sayai-bottom-nav-inner {
 }
 html[data-sayai-theme="light"] .sayai-app .sayai-nav-item { color: #526b80 !important; }
 html[data-sayai-theme="light"] .sayai-app input[type="range"] { accent-color: #168da8 !important; }
+
+/* Premium animated dashboard hero */
+.sayai-hero { isolation:isolate; }
+.sayai-hero-glow { position:absolute; border-radius:9999px; filter:blur(48px); pointer-events:none; opacity:.5; }
+.sayai-hero-glow-one { width:15rem;height:15rem;right:-4rem;top:-6rem;background:rgba(34,211,238,.22);animation:sayai-glow-drift 9s ease-in-out infinite alternate; }
+.sayai-hero-glow-two { width:13rem;height:13rem;left:20%;bottom:-8rem;background:rgba(99,102,241,.22);animation:sayai-glow-drift 11s ease-in-out infinite alternate-reverse; }
+.sayai-hero-art { min-height:12rem; aspect-ratio:1.15/1; }
+.sayai-brain-orbit { max-height:19rem; filter:drop-shadow(0 12px 32px rgba(34,211,238,.26)); animation:sayai-brain-float 6s ease-in-out infinite; }
+.sayai-hero-orbit { position:absolute; width:76%;height:34%;border:1px solid rgba(125,211,252,.38);border-radius:50%;transform:rotate(-24deg);pointer-events:none; }
+.sayai-hero-orbit-a { animation:sayai-orbit-spin 18s linear infinite; }
+.sayai-hero-orbit-b { width:65%;height:48%;border-color:rgba(196,181,253,.28);transform:rotate(48deg);animation:sayai-orbit-spin-reverse 22s linear infinite; }
+.sayai-hero-art-glow { position:absolute;width:58%;height:58%;border-radius:50%;background:rgba(56,189,248,.16);filter:blur(34px); }
+.sayai-hero-cta { -webkit-tap-highlight-color:transparent; }
+@keyframes sayai-brain-float { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-8px) scale(1.018)} }
+@keyframes sayai-orbit-spin { from{transform:rotate(-24deg)} to{transform:rotate(336deg)} }
+@keyframes sayai-orbit-spin-reverse { from{transform:rotate(48deg)} to{transform:rotate(-312deg)} }
+@keyframes sayai-glow-drift { from{transform:translate3d(-8px,0,0) scale(.94)} to{transform:translate3d(12px,8px,0) scale(1.08)} }
+@media(max-width:639px) {
+ .sayai-hero { padding:1.25rem!important;border-radius:1.5rem!important; }
+ .sayai-hero-art { max-width:15.5rem;min-height:10rem;margin-top:.1rem; }
+ .sayai-brain-orbit { max-height:14.5rem; }
+ .sayai-hero-copy h1 { font-size:1.55rem!important;line-height:1.15!important; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .sayai-brain-orbit,.sayai-hero-orbit-a,.sayai-hero-orbit-b,.sayai-hero-glow-one,.sayai-hero-glow-two { animation:none!important; }
+}
