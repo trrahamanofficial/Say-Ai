@@ -129,7 +129,7 @@ export default function App() {
   useEffect(() => {
     if (!authToken || !isAuthenticated || userProfile.role !== 'admin') return;
     let active = true;
-    fetch(apiUrl('/api/ai-config', { headers: { Authorization: 'Bearer ' + authToken } })
+    fetch(apiUrl('/api/ai-config'), { headers: { Authorization: 'Bearer ' + authToken } })
       .then(async response => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Could not load API settings.');
@@ -265,7 +265,7 @@ export default function App() {
 
   // Periodically query system health
   useEffect(() => {
-    fetch(apiUrl('$2')
+    fetch(apiUrl('/api/system-status'))
       .then((res) => res.json())
       .then((data) => {
         if (data.backend) {
@@ -322,7 +322,7 @@ export default function App() {
     setIsChatLoading(true);
 
     try {
-      const response = await fetch(apiUrl('/api/chat', {
+      const response = await fetch(apiUrl('/api/chat'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -377,7 +377,7 @@ export default function App() {
   const handleGenerateImage = async (prompt: string, category: string) => {
     setIsGeneratingImage(true);
     try {
-      const res = await fetch(apiUrl('/api/generate-image', {
+      const res = await fetch(apiUrl('/api/generate-image'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, category })
@@ -406,7 +406,7 @@ export default function App() {
   const handleTestProvider = async (target: AIProviderConfig) => {
     setTestingProviderId(target.id);
     try {
-      const res = await fetch(apiUrl('/api/ai-config', {
+      const res = await fetch(apiUrl('/api/ai-config'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
         body: JSON.stringify({ type: target.type, baseUrl: target.baseUrl, apiKey: target.apiKey, model: target.model })
@@ -425,7 +425,7 @@ export default function App() {
     setIsSavingApiConfig(true);
     setApiConfigMessage('');
     try {
-      const res = await fetch(apiUrl('/api/ai-config', {
+      const res = await fetch(apiUrl('/api/ai-config'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
         body: JSON.stringify({
