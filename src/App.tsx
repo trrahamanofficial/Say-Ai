@@ -29,6 +29,7 @@ import { SubscriptionView } from './components/SubscriptionView';
 import { AdminView } from './components/AdminView';
 import { AuthView } from './components/AuthView';
 import { NotificationModal } from './components/NotificationModal';
+import { AppUpdatePrompt } from './components/AppUpdatePrompt';
 import { isSupabaseConfigured, testSupabaseConnection, supabase } from './lib/supabase';
 import { X, Smartphone, Monitor } from 'lucide-react';
 
@@ -695,6 +696,7 @@ export default function App() {
         onClear={() => setUnreadNotifications(0)}
         unreadCount={unreadNotifications}
       />
+      <AppUpdatePrompt />
     </div>
   );
 }
