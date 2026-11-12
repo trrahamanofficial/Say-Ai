@@ -12,7 +12,9 @@ import {
   Layers,
   ChevronRight,
   TrendingUp,
-  Cpu
+  Cpu,
+  Video,
+  Sliders
 } from 'lucide-react';
 import { ScreenType, UserProfile, SystemHealth } from '../types';
 
@@ -225,6 +227,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <p className="text-xs text-teal-200/80 mt-1">Speak, listen &amp; get smart replies</p>
           </div>
         </div>
+        {/* Card 4: Video Generator */}
+        <div
+          onClick={() => onNavigate('video')}
+          className="group relative rounded-2xl p-5 bg-gradient-to-b from-[#111d3b]/90 to-[#080d28]/90 border border-sky-500/25 hover:border-sky-400/50 transition-all duration-300 shadow-lg cursor-pointer hover:-translate-y-1"
+        >
+          <div className="flex items-start justify-between">
+            <div className="w-12 h-12 rounded-xl bg-sky-600/90 flex items-center justify-center text-white shadow-[0_0_15px_rgba(56,189,248,0.5)]"><Video className="w-6 h-6" /></div>
+            <div className="w-9 h-9 rounded-full bg-sky-600 flex items-center justify-center text-white"><ArrowRight className="w-4 h-4" /></div>
+          </div>
+          <div className="mt-4"><h3 className="text-lg font-bold text-white tracking-wide">Video AI</h3><p className="text-xs text-sky-200/80 mt-1">Create videos with AI providers</p></div>
+        </div>
+        {userProfile.role === 'admin' && (
+          <div
+            onClick={() => onNavigate('api')}
+            className="group relative rounded-2xl p-5 bg-gradient-to-b from-[#0d2939]/90 to-[#080d28]/90 border border-cyan-500/25 hover:border-cyan-400/50 transition-all duration-300 shadow-lg cursor-pointer hover:-translate-y-1"
+          >
+            <div className="flex items-start justify-between">
+              <div className="w-12 h-12 rounded-xl bg-cyan-600/90 flex items-center justify-center text-white shadow-[0_0_15px_rgba(34,211,238,0.5)]"><Sliders className="w-6 h-6" /></div>
+              <div className="w-9 h-9 rounded-full bg-cyan-600 flex items-center justify-center text-white"><ArrowRight className="w-4 h-4" /></div>
+            </div>
+            <div className="mt-4"><h3 className="text-lg font-bold text-white tracking-wide">API Management</h3><p className="text-xs text-cyan-200/80 mt-1">Add Chat, Image and Video API keys</p></div>
+          </div>
+        )}
       </div>
 
       {/* Middle Row: Recent Chats (Left) & Usage Stats + System Status (Right) */}
