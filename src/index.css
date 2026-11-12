@@ -613,3 +613,35 @@ html[data-sayai-theme="light"] .sayai-app input[type="range"] { accent-color: #1
   .sayai-dashboard .sayai-middle-grid { grid-template-columns:minmax(0,1fr)!important; }
   .sayai-dashboard .sayai-middle-grid > * { grid-column:1/-1!important; }
 }
+
+
+/* Reliable native touch scrolling and horizontal gestures on mobile */
+html, body, #root { min-height:100%; }
+html { height:100%; -webkit-text-size-adjust:100%; }
+body { min-height:100%; overflow-x:hidden; }
+.sayai-app { min-height:100dvh; }
+.sayai-app main {
+  min-height:0 !important;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+  touch-action:pan-x pan-y pinch-zoom !important;
+  overscroll-behavior-y:auto !important;
+}
+.sayai-app .flex-1.overflow-y-auto,
+.sayai-app [class*="overflow-y-auto"] {
+  -webkit-overflow-scrolling:touch !important;
+  touch-action:pan-x pan-y pinch-zoom !important;
+  overscroll-behavior:contain;
+}
+.sayai-app [class*="overflow-x-auto"],
+.sayai-app [class*="overflow-x-scroll"] {
+  -webkit-overflow-scrolling:touch !important;
+  touch-action:pan-x pan-y pinch-zoom !important;
+  overscroll-behavior-x:contain;
+}
+.sayai-app button, .sayai-app a, .sayai-app [role="button"] {
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.sayai-bottom-nav { touch-action:pan-y; }
