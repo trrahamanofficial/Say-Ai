@@ -591,3 +591,25 @@ html[data-sayai-theme="light"] .sayai-app input[type="range"] { accent-color: #1
 @media(prefers-reduced-motion:reduce) {
  .sayai-brain-orbit,.sayai-hero-orbit-a,.sayai-hero-orbit-b,.sayai-hero-glow-one,.sayai-hero-glow-two { animation:none!important; }
 }
+
+/* Mobile dashboard layout repair: prevent cramped, overlapping cards */
+@media (max-width: 767px) {
+  .sayai-dashboard { width:100%; max-width:100%; min-width:0; overflow-x:hidden; }
+  .sayai-dashboard .sayai-middle-grid { display:grid!important; grid-template-columns:minmax(0,1fr)!important; gap:1rem!important; width:100%; min-width:0; }
+  .sayai-dashboard .sayai-middle-grid > * { grid-column:1/-1!important; width:100%; min-width:0; }
+  .sayai-dashboard .sayai-middle-grid .sayai-recent-item { display:flex!important; align-items:center!important; gap:.5rem!important; min-width:0; width:100%; padding:.75rem!important; }
+  .sayai-dashboard .sayai-recent-main { flex:1 1 auto; min-width:0; gap:.65rem!important; }
+  .sayai-dashboard .sayai-recent-copy { flex:1 1 auto; min-width:0; overflow:hidden; }
+  .sayai-dashboard .sayai-recent-copy h4,.sayai-dashboard .sayai-recent-copy p { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sayai-dashboard .sayai-recent-time { flex:0 0 auto; white-space:nowrap; font-size:10px!important; }
+  .sayai-dashboard .sayai-system-card { display:flex!important; flex-direction:column!important; align-items:stretch!important; gap:.75rem!important; min-width:0; width:100%; }
+  .sayai-dashboard .sayai-system-card > div:first-child { min-width:0; width:100%; }
+  .sayai-dashboard .sayai-system-card > div:first-child > div:first-child { flex-wrap:wrap; align-items:center; row-gap:.35rem; }
+  .sayai-dashboard .sayai-system-card > div:first-child > div:last-child > div { display:grid!important; grid-template-columns:1rem minmax(0,1fr) auto!important; align-items:center; column-gap:.5rem!important; min-width:0; }
+  .sayai-dashboard .sayai-system-card > div:last-child { display:none!important; }
+  .sayai-dashboard .sayai-middle-grid .rounded-2xl { min-width:0; }
+}
+@media (min-width:768px) and (max-width:1023px) {
+  .sayai-dashboard .sayai-middle-grid { grid-template-columns:minmax(0,1fr)!important; }
+  .sayai-dashboard .sayai-middle-grid > * { grid-column:1/-1!important; }
+}
