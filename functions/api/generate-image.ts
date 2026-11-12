@@ -26,7 +26,9 @@ export async function onRequestPost({request,env}:{request:Request;env:Env}):Pro
    return json({success:true,imageUrl:await dataUrl(blob),provider:provider.name});
   }
   if(provider.type==='replicate'){
-   const response=await fetch(provider.baseUrl.replace(/\/$/,''),{method:'POST',headers:{Authorization:'Bearer '+provider.apiKey,'Content-Type':'application/json','Prefer':'wait=20'},body:JSON.stringify({input:{prompt}})});
+   const root=provider.baseUrl.replace(/\/$/,'');
+   const endpoint=root.endsWith('/predictions')&&provider.model.includes('/')?root.replace(/\/predictions$/,'/models/'+provider.model+'/predictions'):root;
+   const response=await fetch(endpoint,{method:'POST',headers:{Authorization:'Bearer '+provider.apiKey,'Content-Type':'application/json','Prefer':'wait=60'},body:JSON.stringify({input:{prompt}})});
    const data=await response.json() as any;
    if(!response.ok)return json({error:data?.detail||data?.error||'Replicate returned HTTP '+response.status},502);
    const output=Array.isArray(data.output)?data.output[0]:data.output;
