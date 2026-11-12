@@ -11,7 +11,6 @@ import {
   Crown,
   LogOut,
   Video,
-  Sliders,
   ArrowRight,
   Sparkles,
   Download,
