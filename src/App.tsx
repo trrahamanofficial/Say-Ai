@@ -10,6 +10,7 @@ import {
   ChatSession,
   GeneratedImage,
   AIProviderConfig,
+  MediaProviderConfig,
   UserProfile,
   SystemHealth
 } from './types';
@@ -40,6 +41,11 @@ export default function App() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [testingProviderId, setTestingProviderId] = useState<string | null>(null);
+  const [authToken, setAuthToken] = useState('');
+  const [imageProviders, setImageProviders] = useState<MediaProviderConfig[]>([]);
+  const [videoProviders, setVideoProviders] = useState<MediaProviderConfig[]>([]);
+  const [isSavingApiConfig, setIsSavingApiConfig] = useState(false);
+  const [apiConfigMessage, setApiConfigMessage] = useState('');
 
   // Start as a guest. Privileged access is granted only from the signed-in profile row.
   const [authReady, setAuthReady] = useState(false);
@@ -84,12 +90,14 @@ export default function App() {
       if (!alive) return;
       if (!session?.user) {
         setIsAuthenticated(false);
+        setAuthToken('');
         setGuestMode(false);
         setUserProfile(prev => ({ ...prev, id: 'guest', name: 'Guest User', email: '', role: 'user' }));
         setAuthReady(true);
         return;
       }
       setIsAuthenticated(true);
+      setAuthToken(session.access_token || '');
       setGuestMode(false);
       const user = session.user;
       let role: 'user' | 'admin' = 'user';
@@ -110,6 +118,27 @@ export default function App() {
   useEffect(() => {
     if (currentScreen === 'admin' && (!isAuthenticated || userProfile.role !== 'admin')) setCurrentScreen('dashboard');
   }, [currentScreen, isAuthenticated, userProfile.role]);
+
+  // Load the administrator's provider settings from the private Cloudflare KV store.
+  useEffect(() => {
+    if (!authToken || !isAuthenticated || userProfile.role !== 'admin') return;
+    let active = true;
+    fetch('/api/ai-config', { headers: { Authorization: 'Bearer ' + authToken } })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Could not load API settings.');
+        return data;
+      })
+      .then(data => {
+        if (!active) return;
+        setProviders((data.providers || []).map((p: any) => ({ ...p, isEnabled: Boolean(p.enabled), apiKey: '', status: p.apiKeyConfigured ? 'disconnected' : 'disconnected' })));
+        setImageProviders((data.imageProviders || []).map((p: any) => ({ ...p, enabled: Boolean(p.enabled), apiKey: '' })));
+        setVideoProviders((data.videoProviders || []).map((p: any) => ({ ...p, enabled: Boolean(p.enabled), apiKey: '' })));
+      })
+      .catch(error => { if (active) setApiConfigMessage(error instanceof Error ? error.message : 'Could not load API settings.'); });
+    return () => { active = false; };
+  }, [authToken, isAuthenticated, userProfile.role]);
+
 
   const handleLogout = async () => {
     if (supabase) await supabase.auth.signOut();
@@ -362,60 +391,49 @@ export default function App() {
     }
   };
 
-  // Test AI Provider
-  const handleTestProvider = async (id: string) => {
-    setTestingProviderId(id);
-    const target = providers.find((p) => p.id === id);
-    if (!target) return;
-
+  // Test a provider using its key without returning the key to the browser from storage.
+  const handleTestProvider = async (target: AIProviderConfig) => {
+    setTestingProviderId(target.id);
     try {
-      const res = await fetch('/api/test-provider', {
+      const res = await fetch('/api/ai-config', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: target.type, baseUrl: target.baseUrl })
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
+        body: JSON.stringify({ type: target.type, baseUrl: target.baseUrl, apiKey: target.apiKey, model: target.model })
       });
       const data = await res.json();
-
-      setProviders((prev) =>
-        prev.map((p) =>
-          p.id === id
-            ? {
-                ...p,
-                status: data.status === 'connected' ? 'connected' : 'error',
-                pingMs: data.pingMs || 35,
-                lastTested: 'Just now'
-              }
-            : p
-        )
-      );
-    } catch {
-      setProviders((prev) =>
-        prev.map((p) =>
-          p.id === id
-            ? { ...p, status: 'error', pingMs: 0, lastTested: 'Just now' }
-            : p
-        )
-      );
-    } finally {
-      setTestingProviderId(null);
-    }
+      if (!res.ok) throw new Error(data.error || 'Provider test failed.');
+      setProviders(prev => prev.map(p => p.id === target.id ? { ...p, status: 'connected', pingMs: Number(data.message?.match(/(\\d+) ms/)?.[1] || 0), apiKeyConfigured: true } : p));
+      setApiConfigMessage('Saved and tested ' + target.name + '.');
+    } catch (error) {
+      setProviders(prev => prev.map(p => p.id === target.id ? { ...p, status: 'error' } : p));
+      setApiConfigMessage(error instanceof Error ? error.message : 'Provider test failed.');
+    } finally { setTestingProviderId(null); }
   };
 
-  const handleToggleProvider = (id: string) => {
-    setProviders((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, isEnabled: !p.isEnabled } : p))
-    );
-  };
-
-  const handleAddProvider = (newProv: Omit<AIProviderConfig, 'id' | 'status'>) => {
-    const created: AIProviderConfig = {
-      ...newProv,
-      id: `prov-${Date.now()}`,
-      status: 'disconnected',
-      pingMs: 0,
-      lastTested: 'Just now'
-    };
-    setProviders((prev) => [...prev, created]);
+  const handleSaveApiConfig = async (chat: AIProviderConfig[], images: MediaProviderConfig[], videos: MediaProviderConfig[]) => {
+    setIsSavingApiConfig(true);
+    setApiConfigMessage('');
+    try {
+      const res = await fetch('/api/ai-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
+        body: JSON.stringify({
+          mode: 'brain',
+          selectedProviderId: chat.find(p => p.isDefault)?.id || chat[0]?.id || '',
+          providers: chat.map(p => ({ id: p.id, name: p.name, type: p.type, model: p.model, apiKey: p.apiKey || '', enabled: p.isEnabled, baseUrl: p.baseUrl })),
+          imageProviders: images.map(p => ({ id: p.id, name: p.name, type: p.type, model: p.model, apiKey: p.apiKey || '', enabled: p.enabled, baseUrl: p.baseUrl })),
+          videoProviders: videos.map(p => ({ id: p.id, name: p.name, type: p.type, model: p.model, apiKey: p.apiKey || '', enabled: p.enabled, baseUrl: p.baseUrl }))
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not save API settings.');
+      setProviders(chat.map(p => ({ ...p, apiKey: '', apiKeyConfigured: Boolean(p.apiKey || p.apiKeyConfigured), status: p.status })));
+      setImageProviders(images.map(p => ({ ...p, apiKey: '', apiKeyConfigured: Boolean(p.apiKey || p.apiKeyConfigured) })));
+      setVideoProviders(videos.map(p => ({ ...p, apiKey: '', apiKeyConfigured: Boolean(p.apiKey || p.apiKeyConfigured) })));
+      setApiConfigMessage('Saved all API settings successfully.');
+    } catch (error) {
+      setApiConfigMessage(error instanceof Error ? error.message : 'Could not save API settings.');
+    } finally { setIsSavingApiConfig(false); }
   };
 
   const handleDownloadProjectZip = () => {
@@ -517,10 +535,13 @@ export default function App() {
           <ApiManagementView
             onNavigate={setCurrentScreen}
             providers={providers}
-            onToggleProvider={handleToggleProvider}
+            imageProviders={imageProviders}
+            videoProviders={videoProviders}
+            onSaveConfig={handleSaveApiConfig}
             onTestProvider={handleTestProvider}
-            onAddProvider={handleAddProvider}
             isTestingId={testingProviderId}
+            isSaving={isSavingApiConfig}
+            saveMessage={apiConfigMessage}
           />
         );
       case 'video':
