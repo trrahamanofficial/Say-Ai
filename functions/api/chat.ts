@@ -1,8 +1,10 @@
 type Env = { OPENROUTER_API_KEY?: string; OPENROUTER_MODEL?: string; SAY_AI_CONFIG?: KVNamespace };
+const corsHeaders:Record<string,string>={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Max-Age':'86400','Vary':'Origin'};
 type HistoryItem = { sender?: string; text?: string };
 type Provider = { id:string; name:string; type:string; model:string; apiKey:string; enabled:boolean; baseUrl:string };
 type SavedConfig = { providers?:Provider[]; selectedProviderId?:string };
-const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
+const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...corsHeaders } });
+export async function onRequestOptions(){return new Response(null,{status:204,headers:corsHeaders});}
 const getText=(data:any):string=>{
  const content=data?.choices?.[0]?.message?.content;
  if(typeof content==='string')return content;
