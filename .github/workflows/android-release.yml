@@ -8,6 +8,8 @@ on:
       - 'src/App.tsx'
       - 'src/components/AppUpdatePrompt.tsx'
       - 'src/components/VideoGenView.tsx'
+      - 'src/components/ChatView.tsx'
+      - 'src/types.ts'
       - 'functions/**'
       - 'scripts/configure-android-release.mjs'
       - 'scripts/install-android-icon.py'
@@ -66,19 +68,19 @@ jobs:
         working-directory: android
         run: chmod +x gradlew && ./gradlew assembleRelease
       - name: Rename release APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk SAY-AI-v1.0.5.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk SAY-AI-v1.0.0-test1.apk
       - name: Upload signed APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: SAY-AI-Android-signed-release-APK
-          path: SAY-AI-v1.0.5.apk
+          path: SAY-AI-v1.0.0-test1.apk
           retention-days: 14
       - name: Publish signed APK as GitHub Release
         uses: softprops/action-gh-release@v2
         continue-on-error: true
         with:
-          tag_name: v1.0.5
-          name: SAY AI 1.0.5
+          tag_name: v1.0.0-test1
+          name: SAY AI 1.0.0
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
-          files: SAY-AI-v1.0.5.apk
+          files: SAY-AI-v1.0.0-test1.apk
