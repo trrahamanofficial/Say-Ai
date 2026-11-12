@@ -164,17 +164,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span>Start Chat</span><ArrowRight className="h-4 w-4" />
             </button>
           </div>
-          <div className="sayai-hero-art relative mx-auto flex w-full max-w-[18rem] sm:max-w-[22rem] items-center justify-center">
-            <div className="sayai-hero-orbit sayai-hero-orbit-a" aria-hidden="true" />
-            <div className="sayai-hero-orbit sayai-hero-orbit-b" aria-hidden="true" />
-            <div className="sayai-hero-art-glow" aria-hidden="true" />
-            <img
-              src="/assets/extracted/brain-orb.png"
-              alt="SAY AI glowing brain orb"
-              className="sayai-brain-orbit relative z-10 h-auto w-full object-contain"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
-          </div>
         </div>
       </section>
 
