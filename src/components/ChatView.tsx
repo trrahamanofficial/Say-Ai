@@ -9,7 +9,6 @@ import {
   MessageSquare,
   Sparkles,
   ArrowRight,
-  Volume2,
   Copy,
   Check,
   RotateCcw,
@@ -109,17 +108,15 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   return (
     <div className="sayai-chat sayai-screen flex-1 flex flex-col min-h-0 h-[calc(100dvh-142px)] max-w-4xl mx-auto w-full px-3 sm:px-4 pt-2 pb-3 sm:pb-4">
-      <div className="sticky top-0 z-30 -mx-1 flex items-center justify-between gap-3 border-b border-cyan-300/10 bg-[#071525]/95 px-1 py-2.5 backdrop-blur-xl">
-        <div className="text-sm font-semibold text-slate-200">Chat</div>
+      <div className="relative z-30 flex h-10 shrink-0 items-center justify-end px-1">
         <button
           type="button"
           onClick={() => { setInputText(''); onNewChat(); }}
-          className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-cyan-300/30 bg-[#10263a] px-4 py-2 text-sm font-semibold text-cyan-100 shadow-sm hover:bg-[#16364e] active:scale-95 transition-all"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-cyan-300/30 bg-[#102b40]/90 text-cyan-100 shadow-[0_3px_12px_rgba(34,211,238,.12)] hover:bg-[#16435a] active:scale-95 transition-all"
           aria-label="Start a new chat"
           title="New chat"
         >
-          <Plus className="w-4 h-4" />
-          <span>New Chat</span>
+          <Plus className="h-5 w-5" />
         </button>
       </div>
 
@@ -181,10 +178,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
               {/* Message Bubble */}
               <div
-                className={`max-w-[78%] sm:max-w-md md:max-w-lg rounded-[1.15rem] px-3 py-2.5 sm:px-3.5 sm:py-3 text-[13px] leading-[1.55] shadow-md ${
+                className={`min-w-[5.5rem] max-w-[82%] sm:max-w-md md:max-w-lg rounded-[1.5rem] px-4 py-3 sm:px-4 sm:py-3.5 text-[14px] leading-[1.6] shadow-md break-words ${
                   isUser
-                    ? 'bg-gradient-to-br from-sky-600 to-blue-700 text-white rounded-br-[5px] shadow-[0_5px_16px_rgba(14,165,233,0.16)]'
-                    : 'bg-[#101f32]/95 text-slate-100 border border-cyan-300/15 rounded-bl-[5px] shadow-sm'
+                    ? 'bg-gradient-to-br from-sky-600 to-blue-700 text-white shadow-[0_5px_16px_rgba(14,165,233,0.16)]'
+                    : 'bg-[#101f32]/95 text-slate-100 border border-cyan-300/15 shadow-sm'
                 }`}
               >
                 {/* Message body text */}
@@ -212,34 +209,20 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   </div>
                 )}
 
-                {/* Footer timestamp & action icons */}
-                <div className={`flex items-center gap-2 mt-2 pt-1 border-t ${
-                  isUser ? 'border-cyan-400/20 justify-end text-cyan-100/80' : 'border-purple-800/30 justify-between text-slate-400'
-                } text-[11px]`}>
-                  <span>{msg.time}</span>
-
-                  {!isUser && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleSpeak(msg.text)}
-                        title="Listen to response"
-                        className="p-1 hover:text-white transition-colors cursor-pointer"
-                      >
-                        <Volume2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleCopy(msg.id, msg.text)}
-                        title="Copy message"
-                        className="p-1 hover:text-white transition-colors cursor-pointer"
-                      >
-                        {copiedId === msg.id ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )}
-                      </button>
-                    </div>
-                  )}
+                {/* Compact copy-only message action; no timestamps or extra controls */}
+                <div className="mt-1 flex justify-end">
+                  <button
+                    onClick={() => handleCopy(msg.id, msg.text)}
+                    title="Copy message"
+                    aria-label="Copy message"
+                    className="rounded-full p-1.5 text-slate-300/75 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                  >
+                    {copiedId === msg.id ? (
+                      <Check className="h-4 w-4 text-emerald-400" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
               </div>
 
