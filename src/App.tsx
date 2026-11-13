@@ -329,7 +329,7 @@ export default function App() {
   };
 
   // Handle Chat Send
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string, attachments: { name: string; mimeType: string; data: string }[] = []) => {
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -338,7 +338,8 @@ export default function App() {
       sender: 'user',
       text,
       time: timeStr,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      attachments: attachments.map(file => file.name.replace(/ — frame \\d+$/, ''))
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -352,7 +353,8 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          history: messages.slice(-4)
+          history: messages.slice(-4),
+          attachments
         })
       });
 
