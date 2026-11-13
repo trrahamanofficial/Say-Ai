@@ -82,7 +82,7 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
   }
   if (!env.OPENROUTER_API_KEY) return json({ error: 'No Chat AI provider is enabled. Add an API key and enable a provider in API Management, or configure OPENROUTER_API_KEY.' }, 503);
   const model = env.OPENROUTER_MODEL || 'openrouter/free';
-  const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://say-ai.pages.dev', 'X-Title': 'SAY AI' }, body: JSON.stringify({ model, messages, temperature: 0.7 }) });
+  const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://say-ai.pages.dev', 'X-Title': 'SAY AI' }, body: JSON.stringify({ model, messages: messages.map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : [{ type: 'text', text: m.content.text || '' }, ...(m.content.attachments || []).map((a:any) => ({ type: 'image_url', image_url: { url: 'data:' + a.mimeType + ';base64,' + a.data } }))] })), temperature: 0.7 }) });
   const data = await upstream.json() as any;
   if (!upstream.ok) return json({ error: data.error?.message || `OpenRouter request failed (${upstream.status}).` }, 502);
   const reply=getText(data);
