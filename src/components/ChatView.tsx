@@ -186,12 +186,12 @@ export const ChatView: React.FC<ChatViewProps> = ({
   };
 
   return (
-    <div className="sayai-chat sayai-screen flex-1 flex flex-col min-h-0 h-[calc(100dvh-142px)] max-w-4xl mx-auto w-full px-3 sm:px-4 pt-2 pb-3 sm:pb-4">
-      <div className="sticky top-0 z-30 -mx-1 flex h-12 shrink-0 items-center justify-end px-2 bg-[#071827]/95 backdrop-blur-sm">
+    <div className="sayai-chat sayai-screen relative flex-1 flex flex-col min-h-0 h-[calc(100dvh-142px)] max-w-4xl mx-auto w-full px-3 sm:px-4 pt-2 pb-3 sm:pb-4">
+      <div className="absolute top-0 right-0 z-30 flex h-12 w-full shrink-0 items-center justify-end px-2 pointer-events-none bg-transparent">
         <button
           type="button"
           onClick={() => { setInputText(''); onNewChat(); }}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/30 bg-[#102b40]/95 text-cyan-100 shadow-[0_3px_12px_rgba(34,211,238,.12)] hover:bg-[#16435a] active:scale-95 transition-all"
+          className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/30 bg-[#102b40]/95 text-cyan-100 shadow-[0_3px_12px_rgba(34,211,238,.12)] hover:bg-[#16435a] active:scale-95 transition-all"
           aria-label="Start a new chat"
           title="New chat"
         >
@@ -200,7 +200,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-3 px-1 py-3 pr-2 overscroll-contain">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-3 px-1 pt-14 pb-3 pr-2 overscroll-contain">
         {messages.map((msg) => {
           const isUser = msg.sender === 'user';
 
