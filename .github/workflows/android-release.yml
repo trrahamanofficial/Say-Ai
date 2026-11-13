@@ -9,6 +9,7 @@ on:
       - 'src/index.css'
       - 'index.html'
       - 'src/components/AppUpdatePrompt.tsx'
+      - 'src/components/Sidebar.tsx'
       - 'src/components/VideoGenView.tsx'
       - 'src/components/ChatView.tsx'
       - 'src/components/AuthView.tsx'
