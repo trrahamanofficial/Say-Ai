@@ -13,7 +13,8 @@ import {
   Copy,
   Check,
   RotateCcw,
-  Bot
+  Bot,
+  Plus
 } from 'lucide-react';
 import { ChatMessage, ScreenType } from '../types';
 
@@ -21,6 +22,7 @@ interface ChatViewProps {
   onNavigate: (screen: ScreenType) => void;
   messages: ChatMessage[];
   onSendMessage: (text: string) => Promise<void>;
+  onNewChat: () => void;
   isLoading: boolean;
   userName?: string;
 }
@@ -29,6 +31,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   onNavigate,
   messages,
   onSendMessage,
+  onNewChat,
   isLoading,
   userName = 'Guest User'
 }) => {
@@ -39,7 +42,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   // Auto-scroll to latest message
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   }, [messages, isLoading]);
 
   const handleSend = async (e?: React.FormEvent) => {
@@ -106,6 +109,20 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   return (
     <div className="sayai-chat sayai-screen flex-1 flex flex-col min-h-0 h-[calc(100dvh-142px)] max-w-4xl mx-auto w-full px-3 sm:px-4 pt-2 pb-3 sm:pb-4">
+      <div className="flex items-center justify-between gap-3 py-2">
+        <div className="text-sm font-semibold text-slate-200">Chat</div>
+        <button
+          type="button"
+          onClick={() => { setInputText(''); onNewChat(); }}
+          className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/25 bg-[#10263a] px-3.5 py-2 text-xs sm:text-sm font-semibold text-cyan-100 hover:bg-[#16364e] active:scale-95 transition-all"
+          aria-label="Start a new chat"
+          title="New chat"
+        >
+          <Plus className="w-4 h-4" />
+          <span>New Chat</span>
+        </button>
+      </div>
+
       {/* Welcome Banner with Robot Artwork matching Image 4 & Image 1 */}
       {messages.length <= 2 && (
         <div className="relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 my-2 bg-gradient-to-r from-[#0d1238] via-[#171146] to-[#120f38] border border-purple-500/30 overflow-hidden shadow-[0_0_25px_rgba(147,51,234,0.2)]">
@@ -167,7 +184,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 className={`max-w-[78%] sm:max-w-md md:max-w-lg rounded-[1.15rem] px-3 py-2.5 sm:px-3.5 sm:py-3 text-[13px] leading-[1.55] shadow-md ${
                   isUser
                     ? 'bg-gradient-to-br from-sky-600 to-blue-700 text-white rounded-br-[5px] shadow-[0_5px_16px_rgba(14,165,233,0.16)]'
-                    : 'bg-[#101f32]/95 text-slate-100 border border-cyan-300/15 rounded-bl-[5px] shadow-[0_5px_16px_rgba(2,12,25,0.2)] backdrop-blur-md'
+                    : 'bg-[#101f32]/95 text-slate-100 border border-cyan-300/15 rounded-bl-[5px] shadow-sm'
                 }`}
               >
                 {/* Message body text */}
