@@ -40,6 +40,24 @@ async function askProvider(provider:Provider,messages:Array<{role:string;content
  if(!reply.trim())throw new Error(provider.name+' returned an empty response.');
  return reply;
 }
+function detectReplyLanguage(input: string): 'Bengali' | 'English' {
+ const value = input.trim().toLowerCase();
+ if (/[\\u0980-\\u09ff]/.test(value)) return 'Bengali';
+ const words = value.replace(/[^a-z0-9\\s]/g, ' ').split(/\\s+/).filter(Boolean);
+ const banglishWords = new Set([
+  'ami','am','amar','amr','amake','amk','amra','amader','apni','apnar','apnake','tumi','tomar','tomake','tor','to',
+  'kemon','kmn','achen','acho','aso','achi','acchi','achhi','ache','ase','asey','valo','bhalo','khub',
+  'ki','kikore','keno','kothay','kothai','kokhon','kar','kake','ke','theke','sathe','jonno','janno',
+  'korbo','korben','koren','korcho','korchen','korche','korchi','korte','koro','kore','hobe','hobey','hoy',
+  'hocche','hochhe','hoise','hoye','dite','dao','den','din','bolun','bolo','bolben','bolbe','bolchi',
+  'chai','lagbe','lagbe','parbo','parben','parbe','parchi','bujhi','bujhlam','bujhte','bujhcho',
+  'eta','ota','eita','oita','ekhane','okhane','ekhono','ekhon','abar','ar','r','na','naki','mane',
+  'dhonnobad','assalamu','alaikum','inshaallah','kirokom','kemon','kotha','bari','taka','kaj','hoyeche'
+ ]);
+ const matches = words.filter(word => banglishWords.has(word)).length;
+ return matches > 0 ? 'Bengali' : 'English';
+}
+
 const SAY_AI_SYSTEM_PROMPT = `You are SAY AI, the personal AI assistant created and developed by the TR Official Team.
 IDENTITY: If asked who created, made, developed, owns, or built you, answer clearly and consistently: "আমাকে TR Official Team তৈরি করেছে (I was created by the TR Official Team)." Do not claim that OpenAI, Google, or another AI provider created SAY AI. You may explain that SAY AI can use third-party AI models/providers to generate answers, but the SAY AI product is by TR Official Team.
 
@@ -74,7 +92,11 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
    typeof a?.data==='string' && a.data.length>0 && a.data.length<14_000_000
   ).map(a=>({name:String(a.name||'image').slice(0,120),mimeType:a.mimeType,data:a.data})): [];
   const userContent=attachments.length?{text:body.message.trim().slice(0,12000),attachments}:body.message.trim().slice(0,12000);
-  const messages=[{role:'system',content:SAY_AI_SYSTEM_PROMPT},...history,{role:'user',content:userContent}];
+  const replyLanguage = detectReplyLanguage(body.message);
+  const turnLanguageInstruction = replyLanguage === 'Bengali'
+   ? '\\n\\nCURRENT TURN LANGUAGE OVERRIDE: The user's latest message is Bengali or Romanized Bengali (Banglish). You MUST reply in natural Bengali script, not English and not Banglish. This rule applies even if earlier messages in the conversation were English. Follow the latest user message language for every turn.'
+   : '\\n\\nCURRENT TURN LANGUAGE OVERRIDE: The user's latest message is English. You MUST reply in English, even if earlier messages in the conversation were Bengali. Follow the latest user message language for every turn.';
+  const messages=[{role:'system',content:SAY_AI_SYSTEM_PROMPT+turnLanguageInstruction},...history,{role:'user',content:userContent}];
   let saved:SavedConfig|null=null;
   if(env.SAY_AI_CONFIG){try{saved=await env.SAY_AI_CONFIG.get<SavedConfig>('private-ai-brain-config','json');}catch{}}
   const active=(saved?.providers||[]).filter(p=>p.enabled&&p.apiKey&&p.model&&p.baseUrl);
