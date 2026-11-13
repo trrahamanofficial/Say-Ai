@@ -321,6 +321,13 @@ export default function App() {
     });
   }, [messages, currentSessionId]);
 
+  // Start a clean conversation while preserving the previous session in history.
+  const handleNewChat = () => {
+    setMessages([]);
+    setCurrentSessionId(`ses-${Date.now()}`);
+    try { localStorage.removeItem('sayai:messages'); } catch {}
+  };
+
   // Handle Chat Send
   const handleSendMessage = async (text: string) => {
     const now = new Date();
@@ -505,6 +512,7 @@ export default function App() {
             onNavigate={setCurrentScreen}
             messages={messages}
             onSendMessage={handleSendMessage}
+            onNewChat={handleNewChat}
             isLoading={isChatLoading}
             userName={userProfile.name}
           />
