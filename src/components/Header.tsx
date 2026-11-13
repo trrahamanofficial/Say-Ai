@@ -28,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
   userName = 'Guest User'
 }) => {
   return (
-    <header className="w-full bg-[#050614]/90 backdrop-blur-xl border-b border-purple-900/30 px-3 sm:px-6 py-2.5 transition-all lg:hidden">
+    <header className="sticky top-0 z-[100] w-full shrink-0 bg-[#050614]/95 backdrop-blur-xl border-b border-purple-900/30 px-3 sm:px-6 pt-3 pb-2.5 transition-all lg:hidden">
       <div className="flex items-center justify-between gap-2">
         {/* Mobile Left: Menu + Logo */}
         <div className="flex items-center gap-2">
