@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/android-release.yml'
       - 'src/App.tsx'
+      - 'src/index.css'
+      - 'index.html'
       - 'src/components/AppUpdatePrompt.tsx'
       - 'src/components/VideoGenView.tsx'
       - 'src/components/ChatView.tsx'
@@ -72,13 +74,13 @@ jobs:
         working-directory: android
         run: chmod +x gradlew && ./gradlew assembleRelease
       - name: Rename release APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk SAY-AI-v1.0.7.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk SAY-AI-v1.0.8.apk
       - name: Create stable latest APK download name
         run: cp SAY-AI-v1.0.7.apk SAY-AI-latest.apk
       - name: Upload signed APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SAY-AI-Android-signed-release-APK-v1.0.7
+          name: SAY-AI-Android-signed-release-APK-v1.0.8
           path: |
             SAY-AI-v1.0.7.apk
             SAY-AI-latest.apk
@@ -87,8 +89,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         continue-on-error: true
         with:
-          tag_name: v1.0.7
-          name: SAY AI 1.0.7
+          tag_name: v1.0.8
+          name: SAY AI 1.0.8
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           files: |
