@@ -68,31 +68,33 @@ jobs:
         run: node scripts/patch-android-manifest.mjs
       - name: Sync Capacitor plugins
         run: npx cap sync android
+      - name: Set Android app version to 1.0.8
+        run: sed -i 's/versionCode 13/versionCode 14/; s/versionName "1.0.7"/versionName "1.0.8"/' scripts/configure-android-release.mjs
       - name: Configure persistent release signing
         run: node scripts/configure-android-release.mjs
       - name: Build signed release APK
         working-directory: android
         run: chmod +x gradlew && ./gradlew assembleRelease
       - name: Rename release APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk SAY-AI-v1.0.7.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk SAY-AI-v1.0.8.apk
       - name: Create stable latest APK download name
-        run: cp SAY-AI-v1.0.7.apk SAY-AI-latest.apk
+        run: cp SAY-AI-v1.0.8.apk SAY-AI-latest.apk
       - name: Upload signed APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SAY-AI-Android-signed-release-APK-v1.0.7
+          name: SAY-AI-Android-signed-release-APK-v1.0.8
           path: |
-            SAY-AI-v1.0.7.apk
+            SAY-AI-v1.0.8.apk
             SAY-AI-latest.apk
           retention-days: 14
       - name: Publish signed APK as GitHub Release
         uses: softprops/action-gh-release@v2
         continue-on-error: true
         with:
-          tag_name: v1.0.7
-          name: SAY AI 1.0.7
+          tag_name: v1.0.8
+          name: SAY AI 1.0.8
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           files: |
-            SAY-AI-v1.0.7.apk
+            SAY-AI-v1.0.8.apk
             SAY-AI-latest.apk
