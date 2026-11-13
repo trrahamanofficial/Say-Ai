@@ -12,19 +12,27 @@ const getText=(data:any):string=>{
  if(Array.isArray(data?.message?.content))return data.message.content.map((p:any)=>p.text||'').join('\n');
  return typeof data?.text==='string'?data.text:'';
 };
-async function askProvider(provider:Provider,messages:Array<{role:string;content:string}>):Promise<string>{
+async function askProvider(provider:Provider,messages:Array<{role:string;content:any}>):Promise<string>{
  let upstream:Response;
  if(provider.type==='gemini'){
-  const contents=messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
+  const contents=messages.filter(m=>m.role!=='system').map(m=>{
+   const value=m.content;
+   const parts=typeof value==='string'?[{text:value}]:[
+    {text:value.text||''},
+    ...(Array.isArray(value.attachments)?value.attachments.map((a:any)=>({inlineData:{mimeType:a.mimeType,data:a.data}})):[])
+   ];
+   return {role:m.role==='assistant'?'model':'user',parts};
+  });
   const system=messages.find(m=>m.role==='system')?.content;
   upstream=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(provider.model)+':generateContent?key='+encodeURIComponent(provider.apiKey),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:system?{parts:[{text:system}]}:undefined,contents})});
  }else if(provider.type==='cohere'){
-  upstream=await fetch('https://api.cohere.com/v2/chat',{method:'POST',headers:{Authorization:'Bearer '+provider.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:provider.model,messages:messages.map(m=>({role:m.role==='assistant'?'assistant':m.role==='system'?'system':'user',content:m.content}))})});
+  upstream=await fetch('https://api.cohere.com/v2/chat',{method:'POST',headers:{Authorization:'Bearer '+provider.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:provider.model,messages:messages.map(m=>({role:m.role==='assistant'?'assistant':m.role==='system'?'system':'user',content:typeof m.content==='string'?m.content:[{type:'text',text:m.content.text||''},...(m.content.attachments||[]).map((a:any)=>({type:'image_url',image_url:{url:'data:'+a.mimeType+';base64,'+a.data}}))]}))})});
  }else if(provider.type==='anthropic'){
   const system=messages.find(m=>m.role==='system')?.content;
-  upstream=await fetch(provider.baseUrl.replace(/\/$/,'')+'/messages',{method:'POST',headers:{'x-api-key':provider.apiKey,'anthropic-version':'2023-06-01','Content-Type':'application/json'},body:JSON.stringify({model:provider.model,max_tokens:2048,system,messages:messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'assistant':'user',content:m.content}))})});
+  upstream=await fetch(provider.baseUrl.replace(/\/$/,'')+'/messages',{method:'POST',headers:{'x-api-key':provider.apiKey,'anthropic-version':'2023-06-01','Content-Type':'application/json'},body:JSON.stringify({model:provider.model,max_tokens:2048,system,messages:messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'assistant':'user',content:typeof m.content==='string'?m.content:[{type:'text',text:m.content.text||''},...(m.content.attachments||[]).map((a:any)=>({type:'image',source:{type:'base64',media_type:a.mimeType,data:a.data}}))]}))})});
  }else{
-  upstream=await fetch(provider.baseUrl.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+provider.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:provider.model,messages,temperature:0.7})});
+  const openAIMessages=messages.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:[{type:'text',text:m.content.text||''},...(m.content.attachments||[]).map((a:any)=>({type:'image_url',image_url:{url:'data:'+a.mimeType+';base64,'+a.data}}))]}));
+  upstream=await fetch(provider.baseUrl.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+provider.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:provider.model,messages:openAIMessages,temperature:0.7})});
  }
  const data=await upstream.json() as any;
  if(!upstream.ok)throw new Error(data?.error?.message||data?.message||provider.name+' returned HTTP '+upstream.status);
@@ -50,10 +58,15 @@ LANGUAGE AND BILINGUAL SUPPORT:
 Be helpful, friendly, accurate, and honest. Use clear concise Markdown when useful. Never pretend to have performed actions you have not performed.`;
 export async function onRequestPost({ request, env }: { request: Request; env: Env }): Promise<Response> {
  try {
-  const body = await request.json() as { message?: string; history?: HistoryItem[] };
+  const body = await request.json() as { message?: string; history?: HistoryItem[]; attachments?: Array<{name?:string;mimeType?:string;data?:string}> };
   if (typeof body.message !== 'string' || !body.message.trim()) return json({ error: 'Message is required.' }, 400);
   const history = Array.isArray(body.history) ? body.history.slice(-8).filter(x => typeof x?.text === 'string').map(x => ({ role: x.sender === 'user' ? 'user' : 'assistant', content: String(x.text).slice(0, 12000) })) : [];
-  const messages=[{role:'system',content:SAY_AI_SYSTEM_PROMPT},...history,{role:'user',content:body.message.trim().slice(0,12000)}];
+  const attachments=Array.isArray(body.attachments)?body.attachments.slice(0,8).filter(a=>
+   typeof a?.mimeType==='string' && a.mimeType.startsWith('image/') &&
+   typeof a?.data==='string' && a.data.length>0 && a.data.length<14_000_000
+  ).map(a=>({name:String(a.name||'image').slice(0,120),mimeType:a.mimeType,data:a.data})): [];
+  const userContent=attachments.length?{text:body.message.trim().slice(0,12000),attachments}:body.message.trim().slice(0,12000);
+  const messages=[{role:'system',content:SAY_AI_SYSTEM_PROMPT},...history,{role:'user',content:userContent}];
   let saved:SavedConfig|null=null;
   if(env.SAY_AI_CONFIG){try{saved=await env.SAY_AI_CONFIG.get<SavedConfig>('private-ai-brain-config','json');}catch{}}
   const active=(saved?.providers||[]).filter(p=>p.enabled&&p.apiKey&&p.model&&p.baseUrl);
