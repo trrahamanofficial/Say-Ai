@@ -17,10 +17,12 @@ import {
 } from 'lucide-react';
 import { ChatMessage, ScreenType } from '../types';
 
+type ChatAttachment = { name: string; mimeType: string; data: string };
+
 interface ChatViewProps {
   onNavigate: (screen: ScreenType) => void;
   messages: ChatMessage[];
-  onSendMessage: (text: string) => Promise<void>;
+  onSendMessage: (text: string, attachments?: ChatAttachment[]) => Promise<void>;
   onNewChat: () => void;
   isLoading: boolean;
   userName?: string;
@@ -37,6 +39,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const [inputText, setInputText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [selectedCopyId, setSelectedCopyId] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
+  const [attachmentError, setAttachmentError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to latest message
@@ -46,10 +52,83 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!inputText.trim() || isLoading) return;
-    const msg = inputText;
+    if ((!inputText.trim() && attachments.length === 0) || isLoading) return;
+    const msg = inputText.trim() || 'Please analyze the attached media.';
+    const selectedFiles = attachments;
     setInputText('');
-    await onSendMessage(msg);
+    setAttachments([]);
+    setAttachmentError('');
+    await onSendMessage(msg, selectedFiles);
+  };
+
+  const readFileAsBase64 = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+    reader.onerror = () => reject(new Error('Could not read ' + file.name));
+    reader.readAsDataURL(file);
+  });
+
+  const extractVideoFrames = async (file: File): Promise<ChatAttachment[]> => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.src = url;
+    try {
+      await new Promise<void>((resolve, reject) => {
+        video.onloadedmetadata = () => resolve();
+        video.onerror = () => reject(new Error('Could not open video ' + file.name));
+      });
+      const duration = Number.isFinite(video.duration) ? video.duration : 0;
+      if (!duration) throw new Error('This video could not be processed.');
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, 960 / Math.max(video.videoWidth, video.videoHeight));
+      canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+      canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+      const times = [...new Set([Math.min(0.2, duration / 2), duration / 2, Math.max(0, duration - 0.2)])];
+      const frames: ChatAttachment[] = [];
+      for (let i = 0; i < times.length; i++) {
+        video.currentTime = times[i];
+        await new Promise<void>((resolve, reject) => {
+          video.onseeked = () => resolve();
+          video.onerror = () => reject(new Error('Could not read video frame.'));
+        });
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('Video preview is not supported on this device.');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        frames.push({ name: file.name + ' — frame ' + (i + 1), mimeType: 'image/jpeg', data: canvas.toDataURL('image/jpeg', 0.78).split(',')[1] });
+      }
+      return frames;
+    } finally {
+      URL.revokeObjectURL(url);
+      video.removeAttribute('src');
+      video.load();
+    }
+  };
+
+  const handleFilesSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!files.length) return;
+    setAttachmentError('');
+    try {
+      const added: ChatAttachment[] = [];
+      for (const file of files) {
+        if (file.type.startsWith('image/')) {
+          if (file.size > 10 * 1024 * 1024) throw new Error(file.name + ' is larger than 10 MB.');
+          added.push({ name: file.name, mimeType: file.type || 'image/jpeg', data: await readFileAsBase64(file) });
+        } else if (file.type.startsWith('video/')) {
+          if (file.size > 30 * 1024 * 1024) throw new Error(file.name + ' is larger than 30 MB.');
+          added.push(...await extractVideoFrames(file));
+        } else {
+          throw new Error('Please select image or video files only.');
+        }
+      }
+      setAttachments(prev => [...prev, ...added]);
+    } catch (error) {
+      setAttachmentError(error instanceof Error ? error.message : 'Could not attach this file.');
+    }
   };
 
   // Web Speech recognition toggle
@@ -178,7 +257,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
               {/* Message Bubble */}
               <div
-                className={`min-w-[5.5rem] max-w-[82%] sm:max-w-md md:max-w-lg rounded-[1.5rem] px-4 py-3 sm:px-4 sm:py-3.5 text-[14px] leading-[1.6] shadow-md break-words ${
+                onClick={() => setSelectedCopyId(prev => prev === msg.id ? null : msg.id)}
+                className={`min-w-[5.5rem] max-w-[82%] sm:max-w-md md:max-w-lg rounded-[1.5rem] px-4 py-3 sm:px-4 sm:py-3.5 text-[14px] leading-[1.6] shadow-md break-words cursor-pointer transition-shadow ${
                   isUser
                     ? 'bg-gradient-to-br from-sky-600 to-blue-700 text-white shadow-[0_5px_16px_rgba(14,165,233,0.16)]'
                     : 'bg-[#101f32]/95 text-slate-100 border border-cyan-300/15 shadow-sm'
@@ -188,6 +268,11 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 <div className="whitespace-pre-wrap space-y-1">
                   {msg.text}
                 </div>
+                {isUser && Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {msg.attachments.map((name, index) => <span key={index} className="rounded-lg bg-black/20 px-2 py-1 text-[11px] text-white/85">📎 {name}</span>)}
+                  </div>
+                )}
 
                 {/* 1-Click Download Card inside chat bubble if message mentions ZIP or source */}
                 {!isUser && (msg.text.includes('SAY-AI-FULL-PROJECT.zip') || msg.text.includes('Download') || msg.id === 'msg-2') && (
@@ -209,21 +294,19 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   </div>
                 )}
 
-                {/* Compact copy-only message action; no timestamps or extra controls */}
-                <div className="mt-1 flex justify-end">
-                  <button
-                    onClick={() => handleCopy(msg.id, msg.text)}
-                    title="Copy message"
-                    aria-label="Copy message"
-                    className="rounded-full p-1.5 text-slate-300/75 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
-                  >
-                    {copiedId === msg.id ? (
-                      <Check className="h-4 w-4 text-emerald-400" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
+                {/* Copy appears only after the message bubble is tapped */}
+                {selectedCopyId === msg.id && (
+                  <div className="mt-1 flex justify-end">
+                    <button
+                      onClick={(event) => { event.stopPropagation(); handleCopy(msg.id, msg.text); setSelectedCopyId(null); }}
+                      title="Copy message"
+                      aria-label="Copy message"
+                      className="rounded-full p-1.5 text-slate-300/85 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                    >
+                      {copiedId === msg.id ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* User avatar on right */}
@@ -274,6 +357,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
       {/* Composer Input Bar matching Image 4 & Image 1 left */}
       <form onSubmit={handleSend} className="pt-1 pb-[max(.5rem,env(safe-area-inset-bottom))] relative z-20">
+        <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFilesSelected} />
         <div className="relative rounded-[1.35rem] bg-[#0b1a2a]/95 border border-cyan-300/20 p-1.5 flex items-center gap-2 shadow-[0_8px_24px_rgba(0,0,0,.22)] focus-within:border-cyan-300/55 focus-within:shadow-[0_0_18px_rgba(34,211,238,.12)] transition-all">
           {/* Microphone button on left */}
           <button
@@ -309,12 +393,13 @@ export const ChatView: React.FC<ChatViewProps> = ({
             <span className="text-base leading-none">📦</span>
           </a>
 
-          {/* Attachment Paperclip */}
+          {/* Choose photos or videos directly from the phone gallery */}
           <button
             type="button"
-            onClick={() => onNavigate('image')}
-            title="Attach or generate images"
-            className="p-2 text-slate-400 hover:text-purple-300 transition-colors cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+            title="Attach photos or videos"
+            aria-label="Attach photos or videos"
+            className="p-2 text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
           >
             <Paperclip className="w-4 h-4" />
           </button>
@@ -329,6 +414,17 @@ export const ChatView: React.FC<ChatViewProps> = ({
             <Send className="w-4 h-4 ml-0.5" />
           </button>
         </div>
+        {(attachments.length > 0 || attachmentError) && (
+          <div className="mt-2 flex flex-wrap items-center gap-2 px-2">
+            {attachments.map((file, index) => (
+              <span key={index} className="inline-flex max-w-full items-center gap-1 rounded-lg border border-cyan-300/20 bg-[#10263a] px-2 py-1 text-[11px] text-cyan-100">
+                <span className="max-w-[180px] truncate">{file.name}</span>
+                <button type="button" onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))} className="ml-1 text-slate-300" aria-label="Remove attachment">×</button>
+              </span>
+            ))}
+            {attachmentError && <span className="text-xs text-rose-300">{attachmentError}</span>}
+          </div>
+        )}
       </form>
     </div>
   );
