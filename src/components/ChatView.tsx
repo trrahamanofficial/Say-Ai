@@ -187,7 +187,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   return (
     <div className="sayai-chat sayai-screen relative flex-1 flex flex-col min-h-0 h-[calc(100dvh-142px)] max-w-4xl mx-auto w-full px-3 sm:px-4 pt-2 pb-3 sm:pb-4">
-      <div className="absolute top-3 right-0 z-30 flex h-12 w-full shrink-0 items-center justify-end px-2 pointer-events-none bg-transparent">
+      <div className="absolute top-3 left-0 z-30 flex h-12 w-full shrink-0 items-center justify-start px-2 pointer-events-none bg-transparent">
         <button
           type="button"
           onClick={() => { setInputText(''); onNewChat(); }}
