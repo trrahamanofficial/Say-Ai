@@ -707,7 +707,7 @@ export default function App() {
 
       {/* Mobile Slide-over Drawer Menu */}
       {isMobileDrawerOpen && (
-        <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-md flex">
+        <div className="fixed inset-0 z-[250] bg-black/80 backdrop-blur-md flex">
           <div className="w-72 bg-[#07091e] h-full flex flex-col justify-between p-4 shadow-2xl relative">
             <button
               onClick={() => setIsMobileDrawerOpen(false)}
