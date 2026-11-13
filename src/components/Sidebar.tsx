@@ -128,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Footer info matching photo */}
         <div className="text-center text-[11px] text-slate-500 leading-tight pt-2">
-          <p>Version 1.0.0</p>
+          <p>Version 1.0.8</p>
           <p>© 2026 SAY AI. All rights reserved.</p>
         </div>
       </div>
