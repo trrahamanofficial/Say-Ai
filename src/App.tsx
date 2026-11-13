@@ -122,6 +122,23 @@ export default function App() {
     return () => { alive = false; listener.subscription.unsubscribe(); };
   }, []);
 
+  // Keep real signed-in users' last-seen timestamps fresh for the live admin dashboard.
+  useEffect(() => {
+    if (!supabase || !isAuthenticated || !authToken || userProfile.id === 'guest') return;
+    let alive = true;
+    const recordActivity = async () => {
+      if (!alive) return;
+      try {
+        await supabase.rpc('say_ai_record_activity');
+      } catch (error) {
+        console.warn('Could not update SAY AI activity status:', error);
+      }
+    };
+    void recordActivity();
+    const timer = window.setInterval(() => { void recordActivity(); }, 60000);
+    return () => { alive = false; window.clearInterval(timer); };
+  }, [isAuthenticated, authToken, userProfile.id]);
+
   useEffect(() => {
     if (currentScreen === 'admin' && (!isAuthenticated || userProfile.role !== 'admin')) setCurrentScreen('dashboard');
   }, [currentScreen, isAuthenticated, userProfile.role]);
