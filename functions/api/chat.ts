@@ -42,8 +42,8 @@ async function askProvider(provider:Provider,messages:Array<{role:string;content
 }
 function detectReplyLanguage(input: string): 'Bengali' | 'English' {
  const value = input.trim().toLowerCase();
- if (/[\\u0980-\\u09ff]/.test(value)) return 'Bengali';
- const words = value.replace(/[^a-z0-9\\s]/g, ' ').split(/\\s+/).filter(Boolean);
+ if (/[\u0980-\u09ff]/.test(value)) return 'Bengali';
+ const words = value.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
  const banglishWords = new Set([
   'ami','am','amar','amr','amake','amk','amra','amader','apni','apnar','apnake','tumi','tomar','tomake','tor','to',
   'kemon','kmn','achen','acho','aso','achi','acchi','achhi','ache','ase','asey','valo','bhalo','khub',
