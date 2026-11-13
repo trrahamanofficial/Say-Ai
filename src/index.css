@@ -693,3 +693,9 @@ body { min-height:100%; overflow-x:hidden; }
   transform: translateY(13px) !important;
   margin-top: .45rem !important;
 }
+
+
+/* Final small spacing adjustment requested for the chat composer. */
+.sayai-chat form {
+  transform: translateY(16px) !important;
+}
