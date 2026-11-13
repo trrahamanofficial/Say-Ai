@@ -45,13 +45,13 @@ function detectReplyLanguage(input: string): 'Bengali' | 'English' {
  if (/[\u0980-\u09ff]/.test(value)) return 'Bengali';
  const words = value.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
  const banglishWords = new Set([
-  'ami','am','amar','amr','amake','amk','amra','amader','apni','apnar','apnake','tumi','tomar','tomake','tor','to',
+  'ami','amar','amr','amake','amk','amra','amader','apni','apnar','apnake','apna','tumi','tomar','tomake','tor',
   'kemon','kmn','achen','acho','aso','achi','acchi','achhi','ache','ase','asey','valo','bhalo','khub',
   'ki','kikore','keno','kothay','kothai','kokhon','kar','kake','ke','theke','sathe','jonno','janno',
-  'korbo','korben','koren','korcho','korchen','korche','korchi','korte','koro','kore','hobe','hobey','hoy',
+  'baniye','banie','che','korbo','korben','koren','korcho','korchen','korche','korchi','korte','koro','kore','hobe','hobey','hoy',
   'hocche','hochhe','hoise','hoye','dite','dao','den','din','bolun','bolo','bolben','bolbe','bolchi',
   'chai','lagbe','lagbe','parbo','parben','parbe','parchi','bujhi','bujhlam','bujhte','bujhcho',
-  'eta','ota','eita','oita','ekhane','okhane','ekhono','ekhon','abar','ar','r','na','naki','mane',
+  'eta','ota','eita','oita','ekhane','okhane','ekhono','ekhon','abar','ar','na','naki','mane',
   'dhonnobad','assalamu','alaikum','inshaallah','kirokom','kemon','kotha','bari','taka','kaj','hoyeche'
  ]);
  const matches = words.filter(word => banglishWords.has(word)).length;
