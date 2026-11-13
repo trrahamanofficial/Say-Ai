@@ -187,54 +187,17 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   return (
     <div className="sayai-chat sayai-screen flex-1 flex flex-col min-h-0 h-[calc(100dvh-142px)] max-w-4xl mx-auto w-full px-3 sm:px-4 pt-2 pb-3 sm:pb-4">
-      <div className="relative z-30 flex h-10 shrink-0 items-center justify-end px-1">
+      <div className="sticky top-0 z-30 -mx-1 flex h-12 shrink-0 items-center justify-end px-2 bg-[#071827]/95 backdrop-blur-sm">
         <button
           type="button"
           onClick={() => { setInputText(''); onNewChat(); }}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-cyan-300/30 bg-[#102b40]/90 text-cyan-100 shadow-[0_3px_12px_rgba(34,211,238,.12)] hover:bg-[#16435a] active:scale-95 transition-all"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/30 bg-[#102b40]/95 text-cyan-100 shadow-[0_3px_12px_rgba(34,211,238,.12)] hover:bg-[#16435a] active:scale-95 transition-all"
           aria-label="Start a new chat"
           title="New chat"
         >
           <Plus className="h-5 w-5" />
         </button>
       </div>
-
-      {/* Welcome Banner with Robot Artwork matching Image 4 & Image 1 */}
-      {messages.length <= 2 && (
-        <div className="relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 my-2 bg-gradient-to-r from-[#0d1238] via-[#171146] to-[#120f38] border border-purple-500/30 overflow-hidden shadow-[0_0_25px_rgba(147,51,234,0.2)]">
-          <div className="absolute top-0 right-0 w-60 h-40 bg-purple-600/20 rounded-full blur-2xl pointer-events-none" />
-
-          <div className="flex items-center justify-between gap-3 relative z-10">
-            <div className="space-y-1.5 max-w-[280px] sm:max-w-md text-left">
-              <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-1.5">
-                <span>Hello!</span>
-                <span className="text-xl">👋</span>
-              </h2>
-              <h3 className="text-lg sm:text-xl font-extrabold tracking-tight">
-                <span>I'm </span>
-                <span className="text-white">SAY </span>
-                <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">AI</span>
-              </h3>
-              <p className="text-xs text-purple-200/80 leading-relaxed">
-                Ask me anything... I'm here to help!
-              </p>
-
-              <button
-                onClick={() => onSendMessage('Tell me all features and capabilities of SAY AI')}
-                className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md active:scale-95 transition-all cursor-pointer"
-              >
-                <span>Explore More</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Official SAY AI brand mark */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 flex items-center justify-center rounded-[28px] bg-white p-3 shadow-[0_12px_35px_rgba(20,110,220,.18)]">
-              <img src="/assets/say-ai-logo.svg" alt="SAY AI logo" className="w-full h-full object-contain" />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Messages Scroll Area */}
       <div className="flex-1 min-h-0 overflow-y-auto space-y-3 px-1 py-3 pr-2 overscroll-contain">
