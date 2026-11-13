@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import {
   ScreenType,
   ChatMessage,
@@ -183,8 +184,10 @@ export default function App() {
     environment: 'development'
   });
 
-  // Restore only real user conversations; never seed fake demo messages.
+  // A fresh native-app launch starts a new chat; previous chats remain in History.
+  // The web app continues restoring the last open conversation after a browser refresh.
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (Capacitor.isNativePlatform()) return [];
     try {
       const saved = localStorage.getItem('sayai:messages');
       if (saved) {
@@ -208,7 +211,8 @@ export default function App() {
   });
 
   const [currentSessionId, setCurrentSessionId] = useState<string>(() => {
-    try { return localStorage.getItem('sayai:active-session') || 'ses-1'; } catch { return 'ses-1'; }
+    if (Capacitor.isNativePlatform()) return `ses-${Date.now()}`;
+    try { return localStorage.getItem('sayai:active-session') || `ses-${Date.now()}`; } catch { return `ses-${Date.now()}`; }
   });
 
   const [providers, setProviders] = useState<AIProviderConfig[]>([
