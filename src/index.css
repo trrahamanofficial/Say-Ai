@@ -645,3 +645,23 @@ body { min-height:100%; overflow-x:hidden; }
   -webkit-tap-highlight-color:transparent;
 }
 .sayai-bottom-nav { touch-action:pan-y; }
+
+
+/* Final chat-only polish: remove the decorative header strip and the duplicate composer frame. */
+.sayai-chat > div:first-child {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+.sayai-chat form {
+  width: 96% !important;
+  margin: .3rem auto 0 !important;
+  transform: translateY(4px);
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: .2rem 0 !important;
+}
