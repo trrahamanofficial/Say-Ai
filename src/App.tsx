@@ -339,7 +339,7 @@ export default function App() {
       text,
       time: timeStr,
       timestamp: Date.now(),
-      attachments: attachments.map(file => file.name.replace(/ — frame \\d+$/, ''))
+      attachments: [...new Set(attachments.map(file => file.name.replace(/ — frame \d+$/, '')))]
     };
 
     setMessages((prev) => [...prev, userMsg]);
