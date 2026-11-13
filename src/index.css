@@ -699,3 +699,29 @@ body { min-height:100%; overflow-x:hidden; }
 .sayai-chat form {
   transform: translateY(16px) !important;
 }
+
+
+/* v1.0.8 mobile safe-area, chat spacing and no-pinch-zoom polish */
+@media (max-width: 640px) {
+  .sayai-app > header {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 1.45rem) !important;
+  }
+  .sayai-chat {
+    padding-top: 1rem !important;
+  }
+  .sayai-chat > div:first-child {
+    top: 1.25rem !important;
+  }
+  .sayai-chat .flex-1.min-h-0.overflow-y-auto {
+    padding-top: 5.5rem !important;
+  }
+}
+/* Disable pinch zoom while preserving normal vertical scrolling. */
+html, body, #root, .sayai-app, .sayai-app main,
+.sayai-chat .flex-1.min-h-0.overflow-y-auto {
+  touch-action: pan-y !important;
+}
+.sayai-app [class*="overflow-x-auto"],
+.sayai-app [class*="overflow-x-scroll"] {
+  touch-action: pan-x pan-y !important;
+}
