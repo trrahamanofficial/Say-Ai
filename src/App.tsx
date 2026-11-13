@@ -629,19 +629,21 @@ export default function App() {
 
   return (
     <div className="sayai-app min-h-screen bg-[#07121b] text-white flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-100">
-      {/* Top Application Header */}
-      <Header
-        currentScreen={currentScreen}
-        onNavigate={setCurrentScreen}
-        isMobileFrame={isMobileFrame}
-        onToggleMobileFrame={() => setIsMobileFrame(!isMobileFrame)}
-        onOpenNotifications={() => setIsNotificationOpen(true)}
-        onOpenPro={() => setCurrentScreen('pro')}
-        onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
-        onDownloadProjectZip={handleDownloadProjectZip}
-        unreadCount={unreadNotifications}
-        userName={userProfile.name}
-      />
+      {/* Keep the full header on every screen except Chat. Chat has its own compact + control. */}
+      {currentScreen !== 'chat' && (
+        <Header
+          currentScreen={currentScreen}
+          onNavigate={setCurrentScreen}
+          isMobileFrame={isMobileFrame}
+          onToggleMobileFrame={() => setIsMobileFrame(!isMobileFrame)}
+          onOpenNotifications={() => setIsNotificationOpen(true)}
+          onOpenPro={() => setCurrentScreen('pro')}
+          onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
+          onDownloadProjectZip={handleDownloadProjectZip}
+          unreadCount={unreadNotifications}
+          userName={userProfile.name}
+        />
+      )}
 
       {/* Main Container Layout */}
       <div className="flex-1 flex overflow-hidden">
