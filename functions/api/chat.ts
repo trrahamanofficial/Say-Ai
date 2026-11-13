@@ -94,8 +94,8 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
   const userContent=attachments.length?{text:body.message.trim().slice(0,12000),attachments}:body.message.trim().slice(0,12000);
   const replyLanguage = detectReplyLanguage(body.message);
   const turnLanguageInstruction = replyLanguage === 'Bengali'
-   ? '\\n\\nCURRENT TURN LANGUAGE OVERRIDE: The user's latest message is Bengali or Romanized Bengali (Banglish). You MUST reply in natural Bengali script, not English and not Banglish. This rule applies even if earlier messages in the conversation were English. Follow the latest user message language for every turn.'
-   : '\\n\\nCURRENT TURN LANGUAGE OVERRIDE: The user's latest message is English. You MUST reply in English, even if earlier messages in the conversation were Bengali. Follow the latest user message language for every turn.';
+   ? '\n\nCURRENT TURN LANGUAGE OVERRIDE: The user's latest message is Bengali or Romanized Bengali (Banglish). You MUST reply in natural Bengali script, not English and not Banglish. This rule applies even if earlier messages in the conversation were English. Follow the latest user message language for every turn.'
+   : '\n\nCURRENT TURN LANGUAGE OVERRIDE: The user's latest message is English. You MUST reply in English, even if earlier messages in the conversation were Bengali. Follow the latest user message language for every turn.';
   const messages=[{role:'system',content:SAY_AI_SYSTEM_PROMPT+turnLanguageInstruction},...history,{role:'user',content:userContent}];
   let saved:SavedConfig|null=null;
   if(env.SAY_AI_CONFIG){try{saved=await env.SAY_AI_CONFIG.get<SavedConfig>('private-ai-brain-config','json');}catch{}}
