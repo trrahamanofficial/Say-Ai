@@ -407,7 +407,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
           {/* Send Button matching round violet gradient in Image 4 */}
           <button
             type="submit"
-            disabled={!inputText.trim() || isLoading}
+            disabled={(!inputText.trim() && attachments.length === 0) || isLoading}
             aria-label="Send message"
             className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-40 disabled:hover:scale-100 flex items-center justify-center text-white shadow-[0_0_16px_rgba(168,85,247,0.6)] active:scale-95 transition-all cursor-pointer flex-shrink-0"
           >
