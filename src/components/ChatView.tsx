@@ -109,12 +109,12 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
   return (
     <div className="sayai-chat sayai-screen flex-1 flex flex-col min-h-0 h-[calc(100dvh-142px)] max-w-4xl mx-auto w-full px-3 sm:px-4 pt-2 pb-3 sm:pb-4">
-      <div className="flex items-center justify-between gap-3 py-2">
+      <div className="sticky top-0 z-30 -mx-1 flex items-center justify-between gap-3 border-b border-cyan-300/10 bg-[#071525]/95 px-1 py-2.5 backdrop-blur-xl">
         <div className="text-sm font-semibold text-slate-200">Chat</div>
         <button
           type="button"
           onClick={() => { setInputText(''); onNewChat(); }}
-          className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/25 bg-[#10263a] px-3.5 py-2 text-xs sm:text-sm font-semibold text-cyan-100 hover:bg-[#16364e] active:scale-95 transition-all"
+          className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-cyan-300/30 bg-[#10263a] px-4 py-2 text-sm font-semibold text-cyan-100 shadow-sm hover:bg-[#16364e] active:scale-95 transition-all"
           aria-label="Start a new chat"
           title="New chat"
         >
