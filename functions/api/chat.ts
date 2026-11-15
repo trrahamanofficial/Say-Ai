@@ -40,38 +40,31 @@ async function askProvider(provider:Provider,messages:Array<{role:string;content
  if(!reply.trim())throw new Error(provider.name+' returned an empty response.');
  return reply;
 }
-function detectReplyLanguage(input: string): 'Bengali' | 'English' | 'Banglish' {
- const value = input.trim();
- if (/[\\u0980-\\u09ff]/.test(value)) return 'Bengali';
- const words = value.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').split(/\\s+/).filter(Boolean);
- const banglishWords = new Set([
-  'ami','amar','amr','amake','amk','amra','amader','apni','apnar','apnake','tumi','tomar','tomake','tor',
-  'kemon','kmn','achen','acho','aso','achi','acchi','achhi','ache','ase','valo','bhalo','khub',
-  'ki','kikore','keno','kothay','kothai','kokhon','kar','kake','ke','theke','sathe','jonno','janno',
-  'baniye','banie','korbo','korben','koren','korcho','korchen','korche','korchi','korte','koro','kore','hobe','hobey','hoy',
-  'hocche','hochhe','hoise','hoye','dite','dao','den','din','bolun','bolo','bolben','bolbe','bolchi',
-  'chai','lagbe','parbo','parben','parbe','parchi','bujhi','bujhlam','bujhte','bujhcho',
-  'eta','ota','eita','oita','ekhane','okhane','ekhono','ekhon','abar','ar','na','naki','mane',
-  'dhonnobad','assalamu','alaikum','inshaallah','kirokom','kotha','bari','taka','kaj','hoyeche'
- ]);
- const matches = words.filter(word => banglishWords.has(word)).length;
- return matches > 0 ? 'Banglish' : 'English';
+function detectReplyLanguage(input: string): 'Bengali' | 'English' | 'Other' {
+ const value=input.trim();
+ if (/[\u0980-\u09ff]/.test(value)) return 'Bengali';
+ const words=value.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(Boolean);
+ const bengaliRomanWords=new Set(['ami','amar','amr','amake','amk','amra','amader','apni','apnar','apnake','tumi','tomar','tomake','tomra','tor','kemon','kmn','achen','acho','aso','achi','acchi','achhi','ache','ase','valo','bhalo','khub','onek','ki','kikore','kivabe','keno','kothay','kothai','kokhon','kar','kake','ke','theke','sathe','songe','jonno','janno','baniye','banie','korbo','korben','koren','korcho','korchen','korche','korchi','korte','koro','kore','hobe','hobey','hoy','hocche','hochhe','hoise','hoye','dite','dao','den','din','bolun','bolo','bolben','bolbe','bolchi','bolche','chai','lagbe','parbo','parben','parbe','parchi','bujhi','bujhlam','bujhte','bujhcho','eta','ota','eita','oita','ekhane','okhane','ekhono','ekhon','abar','ar','na','naki','mane','dhonnobad','assalamu','alaikum','inshaallah','kirokom','kotha','bari','taka','kaj','hoyeche','hoyechhe','shudhu','sudhu','ekta','duto','hya','haa','thik','achha','accha','tahole','tobe','kintu','jodi','jemon','temon','sob','shob']);
+ if(words.some(w=>bengaliRomanWords.has(w))) return 'Bengali';
+ const englishIndicators=new Set(['the','is','are','was','were','what','who','when','where','why','how','please','hello','thanks','thank','you','your','can','could','would','should','does','do','did','have','has','with','from','this','that','and','but','for','not']);
+ if(words.some(w=>englishIndicators.has(w))) return 'English';
+ return 'Other';
 }
 
 const SAY_AI_SYSTEM_PROMPT = `You are SAY AI, the personal AI assistant created and developed by the TR Official Team.
 IDENTITY: If asked who created, made, developed, owns, or built you, answer that the TR Official Team created SAY AI. State this naturally in the same language and writing style as the user's latest message. Never give a Bengali-and-English bilingual answer unless the user explicitly asks for both languages. Do not claim that OpenAI, Google, or another AI provider created SAY AI. You may explain that SAY AI can use third-party AI models/providers to generate answers, but the SAY AI product is by TR Official Team.
 
 LANGUAGE MATCHING — IMPORTANT:
-- Detect the language and writing style of the user's LATEST message on every turn.
+- Understand and support languages worldwide, not only Bengali and English. Reply in the same language the user used most recently, whenever possible.
+- If the user writes Bengali in Bengali script, reply in natural Bengali script.
+- If the user writes Bengali using English/Latin letters (Banglish/Romanized Bengali), understand it as Bengali and reply in proper Bengali script. Example: "ami valo achi, tumi kemon acho?" → "আমি ভালো আছি, তুমি কেমন আছো?" Never answer in Banglish unless explicitly requested.
 - If the user writes in English, reply in natural English.
-- If the user writes in Bengali script, reply in natural Bengali script.
-- If the user writes Banglish (Bengali words written with English/Latin letters), reply in Banglish using English/Latin letters. Do NOT convert Banglish into Bengali script unless the user asks.
-- If the user writes a genuine mixture of Bengali and English, reply in the dominant language/style. Keep technical names, product names, code, and URLs unchanged where needed.
-- Do not mix Bengali and English sentences unnecessarily. Do not append translations in another language.
-- Do not mistake Banglish for broken English. Understand common Romanized Bengali spelling variants and typos from context.
-- Examples: "kemon achen" → "Ami valo achi, apni kemon achen?"; "তুমি কেমন আছো?" → "আমি ভালো আছি, তুমি কেমন আছো?"; "How are you?" → "I'm doing well! How can I help?"
-- Follow the latest message, even if earlier messages used another language.
-- If the user explicitly requests a translation or a particular output language, follow that request instead of mirroring the input.
+- If the user writes in Hindi, Urdu, Arabic, Spanish, French, or any other language, reply in that same language and its usual writing system/script.
+- For mixed-language messages, reply in the dominant language. Preserve technical names, product names, code, and URLs.
+- Never mistake Romanized Bengali for English merely because it uses Latin letters. Recognize common Bengali words, spelling variations, and typos from context.
+- Follow the latest user message language, even if earlier messages used another language.
+- If the user explicitly requests a translation or a particular output language, follow that request.
+- Do not mix languages unnecessarily or append unsolicited translations.
 - Preserve names, numbers, links, and technical terms accurately.
 
 RESPONSE LENGTH AND GREETINGS:
@@ -93,8 +86,10 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
   const userContent=attachments.length?{text:body.message.trim().slice(0,12000),attachments}:body.message.trim().slice(0,12000);
   const replyLanguage = detectReplyLanguage(body.message);
   const turnLanguageInstruction = replyLanguage === 'Bengali'
-   ? '\n\nCURRENT TURN LANGUAGE OVERRIDE: The user's latest message is Bengali or Romanized Bengali (Banglish). You MUST reply in natural Bengali script, not English and not Banglish. This rule applies even if earlier messages in the conversation were English. Follow the latest user message language for every turn.'
-   : '\n\nCURRENT TURN LANGUAGE OVERRIDE: The user's latest message is English. You MUST reply in English, even if earlier messages in the conversation were Bengali. Follow the latest user message language for every turn.';
+   ? '\n\nCURRENT TURN LANGUAGE OVERRIDE: Reply in natural Bengali script. This includes Romanized Bengali/Banglish input. Never reply in Banglish unless explicitly requested.'
+   : replyLanguage === 'English'
+    ? '\n\nCURRENT TURN LANGUAGE OVERRIDE: Reply in natural English.'
+    : '\n\nCURRENT TURN LANGUAGE OVERRIDE: Identify the latest user's language and reply in that same language and normal script. Do not default to English if the message is in another language.';
   const messages=[{role:'system',content:SAY_AI_SYSTEM_PROMPT+turnLanguageInstruction},...history,{role:'user',content:userContent}];
   let saved:SavedConfig|null=null;
   if(env.SAY_AI_CONFIG){try{saved=await env.SAY_AI_CONFIG.get<SavedConfig>('private-ai-brain-config','json');}catch{}}
