@@ -86,10 +86,10 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
   const userContent=attachments.length?{text:body.message.trim().slice(0,12000),attachments}:body.message.trim().slice(0,12000);
   const replyLanguage = detectReplyLanguage(body.message);
   const turnLanguageInstruction = replyLanguage === 'Bengali'
-   ? '\n\nCURRENT TURN LANGUAGE OVERRIDE: Reply in natural Bengali script. This includes Romanized Bengali/Banglish input. Never reply in Banglish unless explicitly requested.'
+   ? '\n\nABSOLUTE OUTPUT LANGUAGE RULE FOR THIS TURN: The latest user message is Bengali (including Romanized Bengali/Banglish). Write the entire answer ONLY in standard Bengali using Bengali script. Do not use Latin-letter Banglish. Do not include an English translation, English summary, bilingual explanation, or a second-language version. Keep only unavoidable product names, proper nouns, URLs, code, and technical terms in their original form. Even if conversation history is English or mixed-language, ignore its language and follow this latest Bengali message. Example: "What is your name?" asked in English gets English; "ami tomar nam ki" gets only "তোমার নাম কী?"'
    : replyLanguage === 'English'
-    ? '\n\nCURRENT TURN LANGUAGE OVERRIDE: Reply in natural English.'
-    : '\n\nCURRENT TURN LANGUAGE OVERRIDE: Identify the latest user's language and reply in that same language and normal script. Do not default to English if the message is in another language.';
+    ? '\n\nABSOLUTE OUTPUT LANGUAGE RULE FOR THIS TURN: The latest user message is English. Write the entire answer ONLY in natural English. Do not write Bengali script, do not translate the answer into Bengali, and do not add a second-language version. Keep only unavoidable proper nouns, URLs, code, and technical terms as-is. Ignore the language of conversation history.'
+    : '\n\nABSOLUTE OUTPUT LANGUAGE RULE FOR THIS TURN: Detect the language of the latest user message and write the entire answer ONLY in that language and its normal writing system. Do not add translations or bilingual text. Ignore the language of conversation history. For Romanized input, identify the actual language rather than assuming it is English. Keep only unavoidable proper nouns, URLs, code, and technical terms as-is.';
   const messages=[{role:'system',content:SAY_AI_SYSTEM_PROMPT+turnLanguageInstruction},...history,{role:'user',content:userContent}];
   let saved:SavedConfig|null=null;
   if(env.SAY_AI_CONFIG){try{saved=await env.SAY_AI_CONFIG.get<SavedConfig>('private-ai-brain-config','json');}catch{}}
