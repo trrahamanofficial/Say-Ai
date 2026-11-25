@@ -12,6 +12,21 @@ export const AuthView: React.FC<{ onGuest: () => void }> = ({ onGuest }) => {
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [isEmbeddedBrowser, setIsEmbeddedBrowser] = useState(false);
+
+  useEffect(() => {
+    const ua = navigator.userAgent || '';
+    setIsEmbeddedBrowser(/FBAN|FBAV|Instagram|; wv\)|\bwv\b|YouTube/i.test(ua));
+  }, []);
+
+  const openInChrome = () => {
+    const target = 'https://say-ai.pages.dev/';
+    if (/Android/i.test(navigator.userAgent)) {
+      window.location.href = 'intent://say-ai.pages.dev/#Intent;scheme=https;package=com.android.chrome;end';
+      return;
+    }
+    window.open(target, '_blank', 'noopener,noreferrer');
+  };
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform() || !supabase) return;
@@ -113,6 +128,13 @@ export const AuthView: React.FC<{ onGuest: () => void }> = ({ onGuest }) => {
         <p className="text-center text-xs font-bold uppercase tracking-[.22em] text-cyan-700 mb-2">Your personal AI workspace</p>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-center text-slate-900">{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h1>
         <p className="text-sm text-center text-slate-500 mt-2 mb-6">Sign in to continue to SAY AI.</p>
+        {isEmbeddedBrowser && (
+          <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-center text-sm text-slate-700">
+            <p className="font-semibold">Google sign-in works best in Chrome</p>
+            <p className="mt-1">You opened SAY AI inside another app. Open it in Chrome to choose your Google account.</p>
+            <button type="button" onClick={openInChrome} className="mt-2 rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white">Open in Chrome</button>
+          </div>
+        )}
         <button type="button" disabled={busy} onClick={signInWithGoogle} className="sayai-google-button w-full rounded-2xl py-3.5 flex items-center justify-center gap-3 font-bold text-slate-800 disabled:opacity-60">
           <svg viewBox="0 0 48 48" aria-hidden="true" className="w-5 h-5"><path fill="#FFC107" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-8.8 6-15Z"/><path fill="#FF3D00" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5.1c-1.8 1.2-4 1.9-6.8 1.9-5.2 0-9.6-3.5-11.2-8.2H5.9V33c3.4 6.7 10.3 11 18.1 11Z"/><path fill="#4CAF50" d="M12.8 27.7a12 12 0 0 1 0-7.4v-5.3H5.9a20 20 0 0 0 0 18Z"/><path fill="#1976D2" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6.1 29.5 4 24 4 16.2 4 9.3 8.3 5.9 15l6.9 5.3c1.6-4.7 6-8.2 11.2-8.2Z"/></svg>
           <span>{busy ? 'Please wait…' : 'Continue with Google'}</span>
