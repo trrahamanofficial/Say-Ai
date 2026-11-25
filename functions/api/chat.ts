@@ -125,7 +125,8 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
   const active=(saved?.providers||[]).filter(p=>p.enabled&&p.apiKey&&p.model&&p.baseUrl);
   if(active.length){
    const selected=active.find(p=>p.id===saved?.selectedProviderId);
-   const ordered=selected?[selected,...active.filter(p=>p.id!==selected.id)]:active;
+   const liveSearchProvider=active.find(p=>p.type==='gemini');
+   const ordered=[...new Map([...(liveSearchProvider?[liveSearchProvider]:[]),...(selected?[selected]:[]),...active].map(p=>[p.id,p])).values()];
    const failures:string[]=[];
    for(const provider of ordered){
     try{return json({success:true,reply:await askProvider(provider,messages),model:provider.model,provider:provider.name});}
