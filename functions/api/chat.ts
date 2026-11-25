@@ -6,6 +6,9 @@ type SavedConfig = { providers?:Provider[]; selectedProviderId?:string };
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...corsHeaders } });
 export async function onRequestOptions(){return new Response(null,{status:204,headers:corsHeaders});}
 const getText=(data:any):string=>{
+ const geminiParts=data?.candidates?.flatMap((candidate:any)=>candidate?.content?.parts||[])||[];
+ const geminiText=geminiParts.map((part:any)=>typeof part?.text==='string'?part.text:'').filter(Boolean).join('\\n');
+ if(geminiText.trim())return geminiText;
  const content=data?.choices?.[0]?.message?.content;
  if(typeof content==='string')return content;
  if(Array.isArray(content))return content.map((p:any)=>p.text||'').join('\n');
