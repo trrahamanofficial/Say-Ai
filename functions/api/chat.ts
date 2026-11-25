@@ -24,7 +24,7 @@ async function askProvider(provider:Provider,messages:Array<{role:string;content
    return {role:m.role==='assistant'?'model':'user',parts};
   });
   const system=messages.find(m=>m.role==='system')?.content;
-  upstream=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(provider.model)+':generateContent?key='+encodeURIComponent(provider.apiKey),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:system?{parts:[{text:system}]}:undefined,contents})});
+  upstream=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(provider.model)+':generateContent?key='+encodeURIComponent(provider.apiKey),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:system?{parts:[{text:system}]}:undefined,contents,tools:[{google_search:{}}]})});
  }else if(provider.type==='cohere'){
   upstream=await fetch('https://api.cohere.com/v2/chat',{method:'POST',headers:{Authorization:'Bearer '+provider.apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:provider.model,messages:messages.map(m=>({role:m.role==='assistant'?'assistant':m.role==='system'?'system':'user',content:typeof m.content==='string'?m.content:[{type:'text',text:m.content.text||''},...(m.content.attachments||[]).map((a:any)=>({type:'image_url',image_url:{url:'data:'+a.mimeType+';base64,'+a.data}}))]}))})});
  }else if(provider.type==='anthropic'){
@@ -36,8 +36,22 @@ async function askProvider(provider:Provider,messages:Array<{role:string;content
  }
  const data=await upstream.json() as any;
  if(!upstream.ok)throw new Error(data?.error?.message||data?.message||provider.name+' returned HTTP '+upstream.status);
- const reply=getText(data);
+ let reply=getText(data);
  if(!reply.trim())throw new Error(provider.name+' returned an empty response.');
+ // Gemini Google Search grounding: show the web sources used in the answer.
+ if(provider.type==='gemini'){
+  const candidates=data?.candidates||[];
+  const chunks=candidates.flatMap((candidate:any)=>candidate?.groundingMetadata?.groundingChunks||[]);
+  const sources=chunks.map((chunk:any)=>chunk?.web).filter((web:any)=>web?.uri)
+   .map((web:any)=>({title:String(web.title||web.uri),uri:String(web.uri)}));
+  const uniqueSources=Array.from(new Map(sources.map((source:any)=>[source.uri,source])).values()).slice(0,8);
+  if(uniqueSources.length){
+   reply+='\\n\\n**Sources:**\\n'+uniqueSources.map((source:any)=>'- ['+source.title.replace(/\\[/g,'(').replace(/\\]/g,')')+']('+source.uri+')').join('\\n');
+  }
+  const queries=candidates.flatMap((candidate:any)=>candidate?.groundingMetadata?.webSearchQueries||[]);
+  const uniqueQueries=Array.from(new Set(queries.map((query:any)=>String(query)))).slice(0,4);
+  if(uniqueQueries.length) reply+='\\n\\n**Web searches:** '+uniqueQueries.join('; ');
+ }
  return reply;
 }
 function detectReplyLanguage(input: string): 'Bengali' | 'English' | 'Other' {
